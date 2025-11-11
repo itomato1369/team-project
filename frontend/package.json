@@ -1,0 +1,50 @@
+{
+  "name": "sakai-vue",
+  "version": "4.3.0",
+  "description": "Sakai is an application template for Vue based on the [create-vue](https://github.com/vuejs/create-vue), the recommended way to start a Vite-powered Vue projects.",
+  "homepage": "https://github.com/DevDisability-Assist/frontend#readme",
+  "bugs": {
+    "url": "https://github.com/DevDisability-Assist/frontend/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/DevDisability-Assist/frontend.git"
+  },
+  "license": "ISC",
+  "author": "",
+  "type": "commonjs",
+  "main": "index.js",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "lint": "eslint --fix . --ext .vue,.js,.jsx,.cjs,.mjs --fix --ignore-path .gitignore"
+  },
+  "dependencies": {
+    "@primeuix/themes": "^1.0.0",
+    "axios": "^1.13.2",
+    "chart.js": "3.3.2",
+    "pinia": "^3.0.4",
+    "pinia-plugin-persistedstate": "^4.7.1",
+    "primeicons": "^7.0.0",
+    "primevue": "^4.3.1",
+    "router": "^2.2.0",
+    "tailwindcss-primeui": "^0.5.0",
+    "vue": "^3.5.24",
+    "vue-router": "^4.4.0"
+  },
+  "devDependencies": {
+    "@primevue/auto-import-resolver": "^4.3.1",
+    "@rushstack/eslint-patch": "^1.8.0",
+    "@tailwindcss/vite": "^4.1.17",
+    "@vitejs/plugin-vue": "^5.0.5",
+    "@vue/eslint-config-prettier": "^9.0.0",
+    "eslint": "^8.57.0",
+    "eslint-plugin-vue": "^9.23.0",
+    "prettier": "^3.2.5",
+    "sass": "^1.55.0",
+    "tailwindcss": "^4.1.17",
+    "unplugin-vue-components": "^0.27.3",
+    "vite": "^5.4.21"
+  }
+}

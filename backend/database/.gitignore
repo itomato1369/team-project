@@ -1,0 +1,3 @@
+dbConfig.env
+*.env
+*.pem
