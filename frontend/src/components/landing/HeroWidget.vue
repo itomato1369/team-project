@@ -3,7 +3,8 @@
     id="hero"
     class="flex flex-col pt-6 px-6 lg:px-20 overflow-hidden"
     style="
-      background: linear-gradient(0deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.2)),
+      background:
+        linear-gradient(0deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.2)),
         radial-gradient(
           77.36% 256.97% at 77.36% 57.52%,
           rgb(238, 239, 175) 0%,
