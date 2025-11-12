@@ -61,7 +61,7 @@ const navigateTo = (page) => {
         <Card class="stat-card" @click="navigateTo('new-reservations')">
           <template #title>신규 예약 신청</template>
           <template #content>
-            <div class="stat-value"><span class="count-blue">2</span>건</div>
+            <div class="stat-value"><span class="count-green">2</span>건</div>
           </template>
         </Card>
 
@@ -205,6 +205,11 @@ body {
 
 .stat-value .count-blue {
   color: #3b82f6; /* PrimeVue blue-500 */
+  margin-right: 8px;
+}
+
+.stat-value .count-green {
+  color: #22c55e; /* PrimeVue green-500 */
   margin-right: 8px;
 }
 
