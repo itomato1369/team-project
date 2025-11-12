@@ -15,4 +15,14 @@ export default [
     name: 'syshome',
     component: () => import('@/components/SysMain.vue'),
   },
+  {
+    path: '/counseling-apply',
+    name: 'counseling-apply',
+    component: () => import('../views/pages/user/Counseling.vue'),
+  },
+  {
+    path: '/counseling-history',
+    name: 'counseling-history',
+    component: () => import('../views/pages/user/CounselingHistory.vue'),
+  },
 ];
