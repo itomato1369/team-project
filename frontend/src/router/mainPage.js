@@ -15,4 +15,14 @@ export default [
     name: 'syshome',
     component: () => import('@/components/SysMain.vue'),
   },
+  {
+    path: '/homepage',
+    name: 'homepage',
+    component: () => import('@/components/AppHome.vue'),
+  },
+  {
+    path: '/signup',
+    name: 'signup',
+    component: () => import('@/components/SignUp.vue'),
+  },
 ];
