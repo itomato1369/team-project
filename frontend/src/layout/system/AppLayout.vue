@@ -1,9 +1,9 @@
 <script setup>
-import { useLayout } from '@/layout/composables/layout.js';
+import { useLayout } from '@/layout/composables/layout';
 import { computed, ref, watch } from 'vue';
-import AppFooter from './System_AppFooter.vue';
-import AppSidebar from './System_AppSidebar.vue';
-import AppTopbar from './System_AppTopbar.vue';
+import AppFooter from './AppFooter.vue';
+import AppSidebar from './AppSidebar.vue';
+import AppTopbar from './AppTopbar.vue';
 
 const { layoutConfig, layoutState, isSidebarActive } = useLayout();
 
