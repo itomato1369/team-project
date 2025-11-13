@@ -39,4 +39,4 @@ app.use("/api/user", userRouter);
 
 // 회원가입 모듈
 const signupRouter = require("./routers/signupRouter.js");
-app.use(signupRouter);
+app.use("/register", signupRouter);

@@ -1,10 +1,10 @@
 <script setup>
 import { ref } from 'vue';
-import { useRouter } from 'vue-router'; // 라우팅을 위해 추가
+import { useRouter } from 'vue-router'; // 라우팅을 위해 추가n
 import axios from 'axios';
 
 // 상태 변수 정의 (추가된 필드 포함)
-const selectedRole = ref('USER'); // 권한 별 로그인
+const selectedRole = ref('1a'); // 권한 별 로그인 코드설계 참조
 const userId = ref(''); // 아이디
 const password = ref(''); // 비밀번호
 const confirmPassword = ref(''); // 비밀번호 확인
