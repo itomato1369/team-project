@@ -36,3 +36,7 @@ console.log("[app.js] 3. authRouter loaded.");
 //유저 모듈
 const userRouter = require("./routers/userRouter");
 app.use("/api/user", userRouter);
+
+//조사지 등록 모듈
+const surveyRouter = require("./routers/surveyRouter.js");
+app.use("/api/system/survey", surveyRouter); // 👈 프론트가 호출할 기본 주소

@@ -2,9 +2,10 @@
 const boards = require("./sqls/board.js");
 const users = require("./sqls/user.js");
 const consult = require("./sqls/consult.js");
-
+const inquiry = require("./sqls/inquiry.js");
 module.exports = {
   ...boards,
   ...users,
   ...consult,
+  ...inquiry,
 };
