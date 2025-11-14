@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import InputText from 'primevue/inputtext';
 import Checkbox from 'primevue/checkbox';
 import Button from 'primevue/button';
@@ -72,12 +72,20 @@ const SAMPLE_RESULTS = [
 ];
 
 const query = ref(props.initialQuery || '');
-const selectedCategories = ref(new Set(['지원 계획', '사이트 메뉴명', '자료실'])); // 기본 전체 선택
+const selectedCategories = ref(['지원 계획', '사이트 메뉴명', '자료실']); // Set -> Array로 변경
 const sortBy = ref('relevance'); // relevance | recent | popular
 
 /* Pagination / counts (간단) */
 // const perPage = ref(10);
 const page = ref(1);
+
+// 페이지 로드 시 history.state에서 검색어 가져오기
+onMounted(() => {
+  const queryFromState = history.state.searchQuery;
+  if (queryFromState) {
+    query.value = queryFromState;
+  }
+});
 
 /* 결과 원본: props.results 우선, 없으면 SAMPLE_RESULTS 사용 */
 const sourceResults = computed(() => {
@@ -87,17 +95,14 @@ const sourceResults = computed(() => {
 
 /* 필터/검색/정렬 처리 */
 function resetFilters() {
-  selectedCategories.value = new Set(['지원 계획', '사이트 메뉴명', '자료실']);
-}
-function toggleCategory(cat) {
-  if (selectedCategories.value.has(cat)) selectedCategories.value.delete(cat);
-  else selectedCategories.value.add(cat);
+  selectedCategories.value = ['지원 계획', '사이트 메뉴명', '자료실']; // Array로 초기화
 }
 
 const filteredResults = computed(() => {
   const q = query.value.trim().toLowerCase();
   const cats = selectedCategories.value;
-  let list = sourceResults.value.filter((r) => cats.has(r.category));
+  // Array의 includes 메소드로 변경
+  let list = sourceResults.value.filter((r) => cats.includes(r.category));
   if (q) {
     list = list.filter(
       (r) =>
@@ -189,10 +194,7 @@ function toggleFilterCollapsed() {
         <div class="filter-body" v-show="!filterCollapsed">
           <div class="filter-group">
             <label v-for="cat in categories" :key="cat" class="filter-item">
-              <Checkbox
-                :model-value="selectedCategories.has(cat)"
-                @update:model-value="() => toggleCategory(cat)"
-              />
+              <Checkbox v-model="selectedCategories" :inputId="cat" :value="cat" />
               <span class="label">{{ cat }}</span>
             </label>
           </div>

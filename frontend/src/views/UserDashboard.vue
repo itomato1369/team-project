@@ -3,15 +3,18 @@ import { onBeforeMount, ref } from 'vue';
 import SearchBar from '@/components/SearchBar.vue';
 import Button from 'primevue/button';
 import axios from 'axios';
+import 'primeicons/primeicons.css';
+import { useRouter } from 'vue-router'; // useRouter 추가
+const router = useRouter(); // 라우터 인스턴스
 
 const quickMenus = ref([
   // ... (기존 quickMenus 데이터)
-  { icon: 'pi pi-file-text', label: '사업 공고' },
-  { icon: 'pi pi-pencil', label: '사업 신청' },
-  { icon: 'pi pi-users', label: '피보호자 등록' },
-  { icon: 'pi pi-calendar', label: '상담 예약' },
-  { icon: 'pi pi-question-circle', label: 'Q&A' },
-  { icon: 'pi pi-folder', label: '자료실' },
+  { icon: 'pi pi-file', label: '사업 공고', path: 'umy' },
+  { icon: 'pi pi-pencil', label: '사업 신청', path: 'umy' },
+  { icon: 'pi pi-users', label: '피보호자 등록', path: 'umy' },
+  { icon: 'pi pi-calendar', label: '상담 예약', path: 'umy' },
+  { icon: 'pi pi-question-circle', label: 'Q&A', path: 'umy' },
+  { icon: 'pi pi-folder', label: '자료실', path: 'umy' },
 ]);
 
 const expiringNotices = ref([]);
@@ -53,36 +56,41 @@ const toggleAccordion = (surveyNo) => {
     selectedSurveyNo.value = surveyNo;
   }
 };
-// --- END ADDED ---
 
 onBeforeMount(() => {
   setExpiringNotices();
   setSurveyToUserWard();
 });
+
+// SearchBar가 @search 이벤트를 발생시키면 실행될 함수
+const performSearch = (query) => {
+  if (query && query.trim()) {
+    // 'uds' 페이지로 쿼리와 함께 이동
+    router.push({
+      name: 'uds',
+      state: { searchQuery: query },
+    });
+  }
+};
 </script>
 
 <template>
   <div class="dashboard-background">
     <div class="search-bar-wrapper">
-      <SearchBar />
+      <SearchBar @search="performSearch" />
     </div>
-
     <div class="main-content-card">
       <div class="col-12 md:col-9">
         <p>자주 찾는 메뉴</p>
         <div class="Menu_Group">
-          <a
-            v-for="(menu, idx) in quickMenus"
-            :key="idx"
-            href="#"
-            class="Menu_Item"
-            @click.prevent="alert(menu.label + ' 페이지 이동')"
-          >
-            <div class="Icon_Container">
-              <i :class="menu.icon + ' menu-icon'" aria-hidden="true"></i>
-            </div>
+          <div v-for="(menu, idx) in quickMenus" :key="idx" class="Menu_Item">
+            <router-link :to="menu.path" class="Menu_Icon_Link">
+              <div class="Icon_Container">
+                <i :class="menu.icon + ' menu-icon'" aria-hidden="true"></i>
+              </div>
+            </router-link>
             <p class="Menu_Text">{{ menu.label }}</p>
-          </a>
+          </div>
         </div>
       </div>
 
