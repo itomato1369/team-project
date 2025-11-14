@@ -54,7 +54,6 @@ const handleSignUp = async () => {
 
   // backend로 전송할 최종 데이터 객체
   const signUpData = {
-    selectedRole: selectedRole.value,
     userId: userId.value,
     password: password.value,
     name: name.value,
@@ -232,7 +231,7 @@ const closePostcode = () => {
             </button>
           </div>
         </div>
-        <!-- Daum API연동 에러 발생시 -->
+        <!-- Daum API연동 에러 발생시 보여줌 -->
         <p v-if="apiLoadError" class="error-message">{{ apiLoadError }}</p>
 
         <div class="form-group">

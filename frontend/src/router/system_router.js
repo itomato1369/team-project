@@ -7,23 +7,23 @@ const systemRouter = [
     children: [
       {
         path: '/system',
-        name: 'sysDashboard',
-        component: () => import('@/views/System_Dashboard.vue'),
+        name: 'sysMain',
+        component: () => import('@/views/uikit/system_ui/SystemMain.vue'),
       },
       {
-        path: '/system/allow',
-        name: 'sysAllow',
-        component: () => import('@/views/uikit/system_ui/FormLayout.vue'),
+        path: '/system/approval',
+        name: 'sysApproval',
+        component: () => import('@/views/uikit/system_ui/SystemApproval.vue'),
       },
       {
-        path: '/system/regist',
-        name: 'input',
-        component: () => import('@/views/uikit/system_ui/InputDoc.vue'),
+        path: '/system/institutions',
+        name: 'sysInstitutionList',
+        component: () => import('@/views/uikit/system_ui/SystemInstitution.vue'),
       },
       {
-        path: '/system/regist-list',
-        name: 'button',
-        component: () => import('@/views/uikit/system_ui/ButtonDoc.vue'),
+        path: '/system/supportplan',
+        name: 'sysSupportplan',
+        component: () => import('@/views/uikit/system_ui/SystemSupportplan.vue'),
       },
       {
         path: '/system/regist-plan',
@@ -67,7 +67,7 @@ const systemRouter = [
   {
     path: '/auth/login',
     name: 'login',
-    component: () => import('@/views/pages/auth/Login.vue'),
+    component: () => import('@/views/pages/Login.vue'),
   },
   {
     path: '/auth/access',
