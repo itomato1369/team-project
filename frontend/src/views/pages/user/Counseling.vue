@@ -3,7 +3,9 @@ import { ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { useToast } from 'primevue/usetoast';
 import Card from 'primevue/card';
-import api from '@/api/api.js'; // [연동] 1. api.js 임포트
+import api from '@/api/api.js';
+
+import ConfirmationDialog from '@/components/ConfirmationDialog.vue';
 
 const router = useRouter();
 const toast = useToast();
@@ -109,13 +111,9 @@ function onDateSelect(date) {
     availableTimes.value = times;
   } else {
     // [수정] isDateDisabled가 정확하다면 이 코드는 실행되지 않아야 합니다.
+    // (만약 :disabledDates가 주석처리되면 이 코드가 실행될 수 있습니다)
     availableTimes.value = [];
-    toast.add({
-      severity: 'error',
-      summary: '데이터 오류',
-      detail: '활성화된 날짜의 시간 정보를 찾을 수 없습니다.',
-      life: 3000,
-    });
+    console.warn('선택된 날짜에 대한 시간 정보가 없습니다 (isDateDisabled 확인 필요).');
   }
 }
 
@@ -145,6 +143,8 @@ async function submitApplication() {
 
   try {
     // [v12 수정] at_no와 start_time_stamp를 전송
+    // [v15] 참고: consult_category, name, res_reason 등은 현재 UI에서
+    // 받지 않으므로, 백엔드(scheduleService.js)에서 임시 처리합니다.
     const payload = {
       at_no: selectedTimeSlot.value.at_no,
       start_time_stamp: selectedTimeSlot.value.start_time_stamp,
@@ -214,6 +214,11 @@ const confirmationDateTime = computed(() => {
 // [연동] 스케줄 로딩 로직
 async function refreshSchedules() {
   isLoadingSchedules.value = true;
+  // [수정] 상태 초기화 (새로고침 시)
+  selectedDate.value = null;
+  selectedTimeSlot.value = null;
+  availableTimes.value = [];
+
   try {
     // API 경로를 사용자가 수정한 '/api/user/schedule/available'로 사용
     const response = await api.get('/api/user/schedule/available');
@@ -235,6 +240,7 @@ async function refreshSchedules() {
       detail: '예약 가능한 시간을 불러오는 데 실패했습니다.',
       life: 3000,
     });
+    availableScheduleData.value = {}; // [수정] 오류 시 빈 객체
     availableDateSet = new Set(); // 오류 시 빈 Set
   } finally {
     // [해결] 데이터 로드가 완료된 후 렌더링을 true로 변경합니다.
@@ -277,8 +283,11 @@ onMounted(async () => {
                 @date-select="onDateSelect"
                 class="w-full"
               >
-                <!-- 
-                :disabledDates="isDateDisabled" -->
+                <!--
+                    [v15 수정] 이 속성의 주석을 제거하여
+                    예약 불가능한 날짜를 클릭할 수 없도록 합니다.
+                  -->
+                :disabledDates="isDateDisabled"
               </Calendar>
             </div>
             <!-- (대안) 예약 가능 날짜가 아예 없는 경우 -->
@@ -292,6 +301,7 @@ onMounted(async () => {
       </div>
 
       <!-- 2. 시간 슬롯 카드 (날짜 선택 및 시간이 있을 때) -->
+      <!-- [수정] availableTimes.length > 0 조건 추가 -->
       <div class="table-container" v-if="selectedDate && availableTimes.length > 0">
         <Card>
           <template #content>
@@ -367,29 +377,13 @@ onMounted(async () => {
   </div>
 
   <!-- 3단계: 상담 신청 완료 알림 (팝업) -->
-  <Dialog
-    v-model:visible="showConfirmationDialog"
-    modal
-    header="상담 신청 완료"
-    :style="{ width: '450px' }"
-    :breakpoints="{ '960px': '75vw', '641px': '100vw' }"
-    @hide="closeConfirmationDialog"
-  >
-    <div class="flex flex-column align-items-center text-center">
-      <i class="pi pi-check-circle text-green-500 text-5xl mb-4"></i>
-      <!-- [v10 수정] text-center 클래스 추가 -->
-      <p class="line-height-3 text-center">
-        {{ userName }}님 {{ confirmationDateTime }}<br />
-        상담이 예약되었습니다.
-      </p>
-    </div>
-    <template #footer>
-      <div class="flex w-full gap-2">
-        <Button label="목록보기" @click="goToHistory" class="p-button-text flex-1" />
-        <Button label="닫기" @click="closeConfirmationDialog" autofocus class="flex-1" />
-      </div>
-    </template>
-  </Dialog>
+  <ConfirmationDialog
+    :visible="showConfirmationDialog"
+    :userName="userName"
+    :confirmationDateTime="confirmationDateTime"
+    @close="closeConfirmationDialog"
+    @goToHistory="goToHistory"
+  />
 </template>
 
 <style>
@@ -397,7 +391,7 @@ onMounted(async () => {
 /*
 body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';
-    background-color: #f8f9fa; 
+    background-color: #f8f9fa;
     margin: 0;
 }
 */
@@ -463,9 +457,9 @@ body {
 }
 
 /*
-   .table-container는 Card를 감싸는 용도로도 사용되었으므로,
-   Card 내부의 패딩을 별도로 설정합니다.
-   또한, table-container끼리의 상단 여백을 추가합니다.
+    .table-container는 Card를 감싸는 용도로도 사용되었으므로,
+    Card 내부의 패딩을 별도로 설정합니다.
+    또한, table-container끼리의 상단 여백을 추가합니다.
 */
 .table-container {
   margin-top: 2rem; /* 카드 간의 수직 여백 */

@@ -154,9 +154,6 @@ onMounted(() => {
           <!-- 담당자 -->
           <Column field="staff" header="담당자" style="min-width: 8rem"></Column>
 
-          <!-- 상담유형 -->
-          <Column field="type" header="상담유형" style="min-width: 8rem"></Column>
-
           <!-- 상태 -->
           <Column field="status" header="상태" style="min-width: 8rem">
             <template #body="{ data }">
