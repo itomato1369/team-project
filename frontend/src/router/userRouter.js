@@ -5,6 +5,11 @@ export default [
     component: () => import('@/views/UserDashboard.vue'),
   },
   {
+    path: '/umy',
+    name: 'umy',
+    component: () => import('@/views/UserMyPage.vue'),
+  },
+  {
     path: '/uds',
     name: 'uds',
     component: () => import('@/components/UserSearch.vue'),

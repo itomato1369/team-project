@@ -35,8 +35,62 @@ WHERE
 ORDER BY s.updated_at DESC
 `;
 
+const findBoardList = `
+SELECT 
+    board_no
+    , institution_name
+    , category
+    , writer
+    , title
+    , content
+    , hashtag
+    , file_no
+    , created_at
+    , updated_at
+FROM board
+ORDER BY created_at DESC
+`;
+
+const findBoardListByHashtag = `
+SELECT 
+    board_no
+    , institution_name
+    , category
+    , writer
+    , title
+    , content
+    , hashtag
+    , file_no
+    , created_at
+    , updated_at
+FROM board
+WHERE hashtag LIKE ?
+ORDER BY created_at DESC
+`;
+
+const findBoardListByData = `
+SELECT 
+    board_no
+    , institution_name
+    , category
+    , writer
+    , title
+    , content
+    , hashtag
+    , file_no
+    , created_at
+    , updated_at
+FROM board
+WHERE title LIKE ? OR content LIKE ?
+ORDER BY created_at DESC
+`;
+
 module.exports = {
   findUserById,
   findExpiringNotices,
   findSurveyToUserWard,
+
+  findBoardList,
+  findBoardListByData,
+  findBoardListByHashtag,
 };

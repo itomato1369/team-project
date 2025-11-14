@@ -37,4 +37,10 @@ router.get("/userwiter-survey", async (req, res) => {
   res.send({ result: survey });
 });
 
+router.get("/user-board", async (req, res) => {
+  const { term, type } = req.query;
+  let boardList = await userService.getBoardList({ term, type });
+  res.send({ result: boardList });
+});
+
 module.exports = router;
