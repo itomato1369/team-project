@@ -13,6 +13,12 @@ app.use(express.urlencoded({ extended: true }));
 // content-type : application/json
 app.use(express.json());
 
+// [추가] 모든 요청을 로깅하는 최상위 미들웨어
+app.use((req, res, next) => {
+  console.log(`[GLOBAL] Incoming Request: ${req.method} ${req.originalUrl}`);
+  next();
+});
+
 //2.server 실행영역
 app.listen(port, () => {
   console.log("Server Start");
@@ -25,7 +31,7 @@ app.get("/", (req, res) => {
 
 //라우팅 모듈 등록  endpoint에 위치한 미들웨어랑 다를게 없음
 
-// [신규] 인증 라우터 등록
+// [수정] 구체적인 라우터를 먼저 등록
 console.log("[app.js] 2. Loading authRouter...");
 const authRouter = require("./routers/authRouter.js");
 app.use("/auth", authRouter);
@@ -45,5 +51,7 @@ app.use("/system/survey", surveyRouter);
 //유저 모듈
 const staffRouter = require("./routers/staffRouter");
 app.use("/staff", staffRouter);
+
+// [수정] 가장 일반적인 라우터를 마지막에 등록
 const boardRouter = require("./routers/router.js");
 app.use("/", boardRouter);

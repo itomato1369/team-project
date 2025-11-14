@@ -5,12 +5,20 @@ const userService = require("../services/userService");
 // const authMiddleware = require('../middleware/authMiddleware'); // [참고] 실제로는 로그인 인증 필요
 
 // GET /api/schedule/available : 예약 가능한 모든 날짜/시간 조회
-router.get("/available-time", consultService.getAvailableSchedules);
+router.get("/schedule/available", consultService.getAvailableSchedules);
 
 // [추가] POST /api/schedule/reserve : 신규 상담 예약 생성
 // [참고] 실제로는 authMiddleware를 추가하여 로그인한 사용자만 접근하도록 해야 합니다.
 // router.post('/reserve', authMiddleware, scheduleService.createReservation);
-router.post("/reserve", consultService.createReservation);
+router.post("/schedule/reserve", consultService.createReservation);
+
+// GET /api/reservations/my : 나의 상담 내역 조회 (UI 연동)
+// (라우터 파일의 prefix가 /api 라면, 실제 경로는 /api/reservations/my)
+router.get("/reservations/my", consultService.getMyReservations);
+
+// POST /api/reservations/cancel/:res_no : 나의 상담 예약 취소 (UI 연동)
+// (실제 경로는 /api/reservations/cancel/123)
+router.post("/reservations/cancel/:res_no", consultService.cancelMyReservation);
 
 // 일반 이용자 로그인 페이지에서 출력되는 마감 임박 공고 목록 조회.(데이터부족으로 2년치 조회 쿼리문으로 사용 중.)
 router.get("/user-notices", async (req, res) => {

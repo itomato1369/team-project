@@ -1,76 +1,182 @@
-const db = require("../database/mappers/mapper");
-// Date 객체를 'HH:MM' 형식으로 변환하는 헬퍼 함수
+const db = require("../database/mappers/mapper"); // (경로는 실제 환경에 맞게 조정)
+
+// (formatToTime, formatDateToISO 함수는 변경 없음... 생략)
 function formatToTime(date) {
-  const hours = date.getUTCHours().toString().padStart(2, "0");
-  const minutes = date.getUTCMinutes().toString().padStart(2, "0");
+  const hours = date.getHours().toString().padStart(2, "0");
+  const minutes = date.getMinutes().toString().padStart(2, "0");
   return `${hours}:${minutes}`;
 }
 
-// Date 객체를 'YYYY-MM-DD' 형식으로 변환하는 헬퍼 함수
 function formatDateToISO(date) {
-  return date.toISOString().split("T")[0];
+  const year = date.getFullYear();
+  const month = (date.getMonth() + 1).toString().padStart(2, "0");
+  const day = date.getDate().toString().padStart(2, "0");
+  return `${year}-${month}-${day}`;
 }
-/**
- * 예약 가능한 모든 스케줄을 조회하여
- * { 'YYYY-MM-DD': [{ time: 'HH:MM', at_no: 1 }, ...], ... } 형식으로 가공
- */
 
+/**
+ * [v15 수정] 30분 단위 시간 슬롯 생성 (예약된 슬롯 필터링)
+ * (변경 없음)
+ */
 module.exports.getAvailableSchedules = async (req, res) => {
+  console.log("--- getAvailableSchedules Service ---");
   try {
+    // 1. 상담가능 블록 조회
     const schedules = await db.query("getAvailableSchedules");
+    console.log("DB Result (getAvailableSchedules):", schedules);
+
+    // 2. [신규] 이미 예약된 슬롯 조회
+    const existingReservations = await db.query("getUpcomingReservations");
+    const reservedSlots = new Set(
+      existingReservations.map((r) => new Date(r.res_start).toISOString())
+    );
+    console.log("Existing Reserved Slots (ISO):", reservedSlots);
+
     const formattedSchedules = {};
+    const thirtyMinutes = 30 * 60 * 1000; // 30분을 밀리초로
 
     schedules.forEach((slot) => {
-      const dateKey = formatDateToISO(slot.start_time);
-      const timeObj = {
-        time: formatToTime(slot.start_time), // '10:30'
-        at_no: slot.at_no, // 1
-      };
+      const startDate = slot.start_time;
+      const endDate = slot.end_time;
 
-      if (!formattedSchedules[dateKey]) {
-        formattedSchedules[dateKey] = [];
+      console.log(
+        `Processing block at_no ${slot.at_no}: ${startDate} to ${endDate}`
+      );
+
+      let currentTime = new Date(startDate.getTime());
+
+      while (currentTime < endDate) {
+        const isoTimestamp = currentTime.toISOString();
+        const dateKey = formatDateToISO(currentTime);
+        const timeStr = formatToTime(currentTime);
+
+        if (!reservedSlots.has(isoTimestamp)) {
+          const timeObj = {
+            time: timeStr,
+            at_no: slot.at_no,
+            staff_id: slot.staff_id,
+            start_time_stamp: isoTimestamp,
+          };
+
+          if (!formattedSchedules[dateKey]) {
+            formattedSchedules[dateKey] = [];
+          }
+          formattedSchedules[dateKey].push(timeObj);
+        }
+        currentTime = new Date(currentTime.getTime() + thirtyMinutes);
       }
-      formattedSchedules[dateKey].push(timeObj);
     });
 
+    console.log("Formatted Response:", formattedSchedules);
     res.status(200).json(formattedSchedules);
   } catch (error) {
-    console.error(error);
+    console.error("스케줄 조회 오류:", error);
     res.status(500).send({ message: "스케줄 조회 중 오류가 발생했습니다." });
   }
 };
+
 /**
- * [추가] 신규 상담 예약을 생성
+ * [수정] 신규 상담 예약을 생성
+ * - `consult_category` 제거
  */
 module.exports.createReservation = async (req, res) => {
+  console.log("--- createReservation Service ---");
   try {
-    const { at_no } = req.body;
-    // [중요] user_id는 실제로는 authMiddleware를 통해 세션/토큰에서 가져와야 합니다.
-    // const { user_id } = req.user;
-    const user_id = "temp_user_id"; // (임시 하드코딩)
+    // `consult_category`를 req.body에서 제거
+    const { at_no, start_time_stamp, name, res_reason } = req.body;
+    console.log("Request Payload:", req.body);
 
-    if (!at_no) {
-      return res
-        .status(400)
-        .send({ message: "필수 정보(at_no)가 누락되었습니다." });
+    const user_id = "test"; // (임시 하드코딩)
+
+    if (!at_no || !start_time_stamp) {
+      return res.status(400).send({
+        message: "필수 정보(at_no, start_time_stamp)가 누락되었습니다.",
+      });
     }
 
-    // 1. available_time 상태 변경
-    const updateResult = await db.query("updateSlotStatus", [at_no]);
-    if (updateResult.affectedRows === 0) {
-      // 이미 예약되었거나 존재하지 않는 슬롯
+    // 1. staff_id 조회
+    console.log(`Executing Query: getStaffIdByAtNo with at_no = ${at_no}`);
+    const staffResult = await db.query("getStaffIdByAtNo", [at_no]);
+
+    if (!staffResult || staffResult.length === 0) {
+      console.warn("Staff ID not found for at_no:", at_no);
       return res
-        .status(409)
-        .send({ message: "이미 예약되었거나 유효하지 않은 시간입니다." });
+        .status(404)
+        .send({ message: "유효하지 않은 예약 블록입니다." });
     }
+    const staff_id = staffResult[0].staff_id;
+    console.log("Found staff_id:", staff_id);
 
-    // 2. reservation 테이블에 삽입
-    await db.query("createReservation", [user_id, at_no]);
+    // 2. res_start, res_end 계산
+    const res_start = new Date(start_time_stamp);
+    const res_end = new Date(res_start.getTime() + 30 * 60 * 1000);
 
+    // 3. [수정] reservation 테이블 삽입
+    // `consult_category`를 params에서 제거
+    const params = [
+      user_id,
+      staff_id,
+      name || "홍길동", // (임시 - 실제로는 authStore 등에서 가져와야 함)
+      res_start,
+      res_end,
+      res_reason || "",
+      at_no,
+    ];
+
+    console.log(`Executing Query: createReservation with params:`, params);
+    await db.query("createReservation", params);
+
+    console.log("Reservation successful (slot reserved).");
     res.status(201).send({ message: "상담 예약이 완료되었습니다." });
   } catch (error) {
-    console.error(error);
-    // [참고] 트랜잭션이 없다면, 1번만 성공하고 2번이 실패할 경우 롤백 로직이 필요합니다.
+    console.error("예약 생성 오류:", error);
+    if (error.code === "ER_DUP_ENTRY") {
+      return res
+        .status(409)
+        .send({ message: "이미 예약된 시간이거나 처리 중복 오류입니다." });
+    }
     res.status(500).send({ message: "예약 처리 중 오류가 발생했습니다." });
+  }
+};
+
+/**
+ * [신규] 나의 상담 내역 조회
+ * (변경 없음)
+ */
+module.exports.getMyReservations = async (req, res) => {
+  console.log("--- getMyReservations Service ---");
+  try {
+    const user_id = "test"; // (임시)
+
+    const reservations = await db.query("getMyReservations", [user_id]);
+    console.log("DB Result (getMyReservations):", reservations);
+    res.status(200).json(reservations);
+  } catch (error) {
+    console.error("나의 예약 조회 오류:", error);
+    res.status(500).send({ message: "예약 조회 중 오류가 발생했습니다." });
+  }
+};
+
+/**
+ * [신규] 상담 예약 취소
+ * (변경 없음)
+ */
+module.exports.cancelMyReservation = async (req, res) => {
+  console.log("--- cancelMyReservation Service ---");
+  try {
+    const { res_no } = req.params;
+    const user_id = "test"; // (임시)
+
+    const result = await db.query("cancelReservationById", [res_no, user_id]);
+
+    if (result.affectedRows === 0) {
+      return res
+        .status(404)
+        .send({ message: "예약을 찾을 수 없거나 취소 권한이 없습니다." });
+    }
+    res.status(200).send({ message: "예약이 취소되었습니다." });
+  } catch (error) {
+    console.error("예약 취소 오류:", error);
+    res.status(500).send({ message: "예약 취소 중 오류가 발생했습니다." });
   }
 };

@@ -15,7 +15,7 @@ const connectionPool = mariadb.createPool({
   connectionLimit: 3,
   // Object의 필드정보(Entiry)를 Query문에 있는 '?'에 자동변환 설정
   permitSetMultiParamEntries: true,
-
+  connectTimeout: 10000,
   // DML(insert, update, delete)를 실행할 경우
   // 반환되는 Object의 insertId 속성을 Number 타입으로 자동 변환
   insertIdAsNumber: true,
