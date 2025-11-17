@@ -32,23 +32,44 @@ router.get("/user-notices", async (req, res) => {
 });
 
 router.get("/userwiter-survey", async (req, res) => {
-  console.log("************\n\nuserRouter - GET /userwiter-survey called");
   // req에서 받은 userName을 서비스로 전달
   let survey = [];
   try {
+    // 임시로 "test" 사용자명 사용
     survey = await userService.getSurveyToUserWard("test");
-    console.log("test nowSurvey is !!!!!!!", survey);
   } catch (err) {
-    console.error("Error fetching survey:", err);
     res.send({ err: "userwiter-survey Err: " + err });
   }
   res.send({ result: survey });
 });
 
 router.get("/user-board", async (req, res) => {
+  console.log("user-board query is called");
   const { term, type } = req.query;
   let boardList = await userService.getBoardList({ term, type });
   res.send({ result: boardList });
+});
+
+router.get("/user-surveys", async (req, res) => {
+  let surveys = [];
+  console.log("user-surveys 호출: ");
+  try {
+    // TODO: 추후 실제 로그인된 사용자 정보로 변경 필요
+    surveys = await userService.getUserSurveys("test");
+  } catch (err) {
+    return res.status(500).send({ err: "Failed to get user surveys: " + err });
+  }
+  res.status(200).send({ result: surveys });
+});
+
+router.get("/user-inquiries", async (req, res) => {
+  let inquiries = [];
+  try {
+    inquiries = await userService.getInquiries();
+  } catch (err) {
+    return res.status(500).send({ err: "Failed to get user inquiries: " + err });
+  }
+  res.status(200).send({ result: inquiries });
 });
 
 module.exports = router;

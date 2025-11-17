@@ -13,10 +13,10 @@ const popularTags = ref(['#조사지 작성방법', '#피부양자 등록']); //
 
 // --- 검색 실행 함수 ---
 const performSearch = () => {
+  // 값 입력없어도 넘어가지게 수정
+  emit('search', searchQuery.value.trim());
   // 검색어가 있을 경우, 'search' 이벤트를 발생시켜 부모 컴포넌트로 검색어를 전달
-  if (searchQuery.value.trim()) {
-    emit('search', searchQuery.value);
-  }
+  // if (searchQuery.value.trim()) {}
 };
 
 // --- Chip 클릭 시 검색 실행 함수 ---
@@ -111,4 +111,3 @@ const searchFromChip = (tag) => {
   background-color: #e9ecef; /* PrimeVue의 기본 호버 색상과 유사하게 */
 }
 </style>
-

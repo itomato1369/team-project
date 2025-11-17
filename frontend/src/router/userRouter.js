@@ -10,6 +10,16 @@ export default [
     component: () => import('@/views/UserMyPage.vue'),
   },
   {
+    path: '/smy',
+    name: 'smy',
+    component: () => import('@/views/pages/staff/StaffMyPage.vue'),
+  },
+  {
+    path: '/amy',
+    name: 'amy',
+    component: () => import('@/views/AdminMyPage.vue'),
+  },
+  {
     path: '/uds',
     name: 'uds',
     component: () => import('@/components/UserSearch.vue'),
@@ -23,5 +33,10 @@ export default [
     path: '/sn',
     name: 'sn',
     component: () => import('@/components/StaffNotice.vue'),
+  },
+  {
+    path: '/ui',
+    name: 'ui',
+    component: () => import('@/components/UserInquiry.vue'),
   },
 ];

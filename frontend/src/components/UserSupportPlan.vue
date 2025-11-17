@@ -1,6 +1,6 @@
 <template>
   <div>
-    <DetailHeader title="지원 계획 열람" />
+    <!-- <DetailHeader title="지원 계획 열람" /> -->
     <div class="support-plan-container card">
       <div class="plan-form">
         <h4>지원 계획 폼</h4>

@@ -87,6 +87,41 @@ WHERE title LIKE ? OR content LIKE ?
 ORDER BY created_at DESC
 `;
 
+const findUserSurveys = `
+SELECT
+    n.business_name,
+    w.name AS ward_name,
+    n.business_end AS deadline,
+    CASE
+        WHEN s.survey_no IS NOT NULL THEN s.status
+        ELSE '미제출'
+    END AS submission_status,
+    n.notice_no,
+    w.ward_no
+FROM
+    notice n
+CROSS JOIN
+    (SELECT ward_no, name FROM ward WHERE guardian_name = ( SELECT user_id FROM member WHERE user_name = ? )) w
+LEFT JOIN
+    survey s ON w.ward_no = s.ward_no AND n.business_name = s.business_name
+ORDER BY
+    w.name, n.business_end
+`;
+
+const findInquiries = `
+SELECT
+    i.inquiry_no,
+    i.inquiry_name,
+    n.business_name,
+    i.created_at
+FROM
+    inquiry i
+LEFT JOIN
+    notice n ON i.notice_no = n.notice_no
+ORDER BY
+    i.created_at DESC
+`;
+
 module.exports = {
   findUserById,
   findExpiringNotices,
@@ -95,4 +130,6 @@ module.exports = {
   findBoardList,
   findBoardListByData,
   findBoardListByHashtag,
+  findUserSurveys,
+  findInquiries,
 };

@@ -1,10 +1,10 @@
 <template>
   <div>
-    <DetailHeader title="선발 결과 확인" />
+    <!-- <DetailHeader title="결과 확인" /> -->
     <div class="selection-result-container card">
       <div class="result-details">
         <div class="status-header">
-          <h4>선발 결과</h4>
+          <h4>지원 결과</h4>
           <div class="status-pills">
             <span :class="['status-pill', { active: project.status === 'selected' }]">선정</span>
             <span :class="['status-pill', { active: project.status === 'rejected' }]">반려</span>

@@ -9,12 +9,12 @@ const router = useRouter(); // 라우터 인스턴스
 
 const quickMenus = ref([
   // ... (기존 quickMenus 데이터)
-  { icon: 'pi pi-file', label: '사업 공고', path: 'umy' },
-  { icon: 'pi pi-pencil', label: '사업 신청', path: 'umy' },
-  { icon: 'pi pi-users', label: '피보호자 등록', path: 'umy' },
-  { icon: 'pi pi-calendar', label: '상담 예약', path: 'umy' },
-  { icon: 'pi pi-question-circle', label: 'Q&A', path: 'umy' },
-  { icon: 'pi pi-folder', label: '자료실', path: 'umy' },
+  { icon: '📄', label: '사업 공고', path: 'umy' },
+  { icon: '📝', label: '사업 신청', path: 'umy' },
+  { icon: '🧑‍🤝‍🧑', label: '피보호자 등록', path: 'umy' },
+  { icon: '📞', label: '상담 예약', path: 'umy' },
+  { icon: '❓', label: 'Q&A', path: 'umy' },
+  { icon: '📚', label: '자료실', path: 'umy' },
 ]);
 
 const expiringNotices = ref([]);
@@ -64,13 +64,11 @@ onBeforeMount(() => {
 
 // SearchBar가 @search 이벤트를 발생시키면 실행될 함수
 const performSearch = (query) => {
-  if (query && query.trim()) {
-    // 'uds' 페이지로 쿼리와 함께 이동
-    router.push({
-      name: 'uds',
-      state: { searchQuery: query },
-    });
-  }
+  // 'uds' 페이지로 쿼리와 함께 이동 (항상 이동)
+  router.push({
+    name: 'uds',
+    state: { searchQuery: query || '' }, // Pass empty string if query is null/undefined
+  });
 };
 </script>
 
@@ -86,7 +84,8 @@ const performSearch = (query) => {
           <div v-for="menu in quickMenus" :key="menu.label" class="Menu_Item">
             <router-link :to="menu.path" class="Menu_Icon_Link">
               <div class="Icon_Container">
-                <i :class="menu.icon + ' menu-icon'" aria-hidden="true"></i>
+                <!-- <i :class="menu.icon + ' menu-icon'" aria-hidden="true"></i> -->
+                 <span class="menu-icon">{{ menu.icon }}</span>
               </div>
             </router-link>
             <p class="Menu_Text">{{ menu.label }}</p>
@@ -217,20 +216,49 @@ const performSearch = (query) => {
   border-radius: 10px;
   padding: 0.75rem;
 }
-.Menu_Group {
-  display: flex;
+ /* .Menu_Group {
   flex-wrap: wrap;
   gap: 1rem;
   justify-content: center;
-}
-.Menu_Item {
+} 
+ .Menu_Item {
   display: flex;
   flex-direction: column;
   align-items: center;
   width: 120px;
   text-decoration: none;
   color: inherit;
+}  */
+ .Menu_Group {
+  /* Tailwind: flex justify-between p-4 bg-white rounded-xl shadow-lg */
+  flex-wrap: wrap;
+  display: flex;
+  justify-content: center;
+  padding: 1.5rem 1rem; /* 상하 패딩 확대 */
+  background-color: white;
+  border-radius: 1rem; /* 모서리 둥글게 */
+  /* 명확하고 부드러운 그림자 효과 */
+  box-shadow:
+    0 10px 15px -3px rgba(0, 0, 0, 0.1),
+    0 4px 6px -2px rgba(0, 0, 0, 0.05); /* shadow-xl */
 }
+.Menu_Item {
+  /* flex flex-col items-center */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-decoration: none;
+  color: #4b5563; /* text-gray-600 */
+  transition: all 200ms ease-in-out;
+  flex-basis: 16%;/*  5개 메뉴가 균등하게 공간을 차지 */
+  padding: 0.5rem;
+}
+
+.Menu_Item:has(.Icon_Container:hover) {
+  transform: translateY(-4px); /* 호버 시 떠오르는 효과 강조 */
+  color: #4f46e5; /* hover:text-indigo-600 */
+}
+
 .Icon_Container {
   width: 80px;
   height: 80px;
@@ -241,6 +269,7 @@ const performSearch = (query) => {
   justify-content: center;
   margin-bottom: 0.5rem;
 }
+
 .menu-icon {
   font-size: 2rem;
 }
