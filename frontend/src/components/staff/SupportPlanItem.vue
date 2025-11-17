@@ -1,4 +1,5 @@
 <script setup>
+import { computed } from 'vue';
 const props = defineProps({
   title: String,
   writer: String,

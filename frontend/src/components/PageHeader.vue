@@ -1,15 +1,3 @@
-<template>
-  <div class="page-header">
-    <div class="title-container">
-      <h1>{{ title }}</h1>
-      <div v-if="userName" class="user-info">
-        <span>{{ userName }} ({{ userType }})</span>
-        <span class="status" :class="statusClass">{{ statusText }}</span>
-      </div>
-    </div>
-  </div>
-</template>
-
 <script setup>
 import { computed } from 'vue';
 
@@ -48,9 +36,21 @@ const statusClass = computed(() => {
 });
 </script>
 
+<template>
+  <div class="page-header">
+    <div class="title-container">
+      <h1>{{ title }}</h1>
+      <div v-if="userName" class="user-info">
+        <span>{{ userName }} ({{ userType }})</span>
+        <span class="status" :class="statusClass">{{ statusText }}</span>
+      </div>
+    </div>
+  </div>
+</template>
+
 <style scoped>
 .page-header {
-  background-color: #4A4A4A;
+  background-color: #4a4a4a;
   color: white;
   padding: 1.5rem 2rem;
   border-radius: 10px 10px 0 0;
@@ -81,12 +81,12 @@ h1 {
 }
 
 .status-approved {
-  background-color: #4CAF50; /* Green */
+  background-color: #4caf50; /* Green */
   color: white;
 }
 
 .status-pending {
-  background-color: #FFC107; /* Amber */
+  background-color: #ffc107; /* Amber */
   color: black;
 }
 </style>

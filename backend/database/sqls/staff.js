@@ -31,7 +31,26 @@ const supportPlan = `
   ORDER BY created_at DESC;
 `;
 
+const wardsearch = `
+SELECT
+    T1.name AS '이름',
+    T1.age AS '나이',
+    NULL AS '생년월일',
+    CASE
+        WHEN T1.sex = 'MALE' THEN '남'
+        WHEN T1.sex = 'FEMALE' THEN '여'
+        ELSE T1.sex
+    END AS '성별',
+    T1.disabled_level AS '장애유형',
+    T1.address AS '주소'
+FROM
+    ward T1
+WHERE
+    T1.ward_no = ?
+LIMIT 1`;
+
 module.exports = {
   surveySelect,
   supportPlan,
+  wardsearch,
 };

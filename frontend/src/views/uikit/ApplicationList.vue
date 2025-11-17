@@ -10,10 +10,10 @@ const searchKeyword = ref(''); // 검색 키워드
 // 관리자용 데이터 조회
 onBeforeMount(async () => {
   try {
-    const res = await axios.get('/api/admin');
+    const res = await axios.get('/api/staff');
     surveys.value = res.data;
   } catch (err) {
-    console.error('Admin Survey 조회 오류:', err);
+    console.error('Staff Survey 조회 오류:', err);
   } finally {
     loading.value = false;
   }

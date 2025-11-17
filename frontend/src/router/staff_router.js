@@ -15,9 +15,10 @@ const staffRouter = [
         // meta: { requiresAuth: false }, // 인증X
       },
       {
-        path: '/survey',
+        path: '/survey/:surveyNo',
         name: 'survey',
         component: () => import('@/views/uikit/Survey.vue'),
+        props: true,
       },
       {
         path: '/activityreport',
@@ -25,9 +26,14 @@ const staffRouter = [
         component: () => import('@/views/uikit/ActivityReport.vue'),
       },
       {
-        path: '/test',
-        name: 'test',
-        component: () => import('@/views/uikit/test.vue'),
+        path: '/applicationlist',
+        name: 'applicationlist',
+        component: () => import('@/views/uikit/ApplicationList.vue'),
+      },
+      {
+        path: '/applicationform',
+        name: 'applicationform',
+        component: () => import('@/views/uikit/ApplicationForm.vue'),
       },
     ],
   },

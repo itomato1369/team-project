@@ -8,7 +8,7 @@ import Tag from 'primevue/tag';
 import InputText from 'primevue/inputtext';
 import DataTable from 'primevue/datatable';
 import Column from 'primevue/column';
-
+import { useRouter } from 'vue-router';
 // 데이터 및 상태
 const surveys = ref([]);
 const loading = ref(true);
@@ -49,14 +49,14 @@ onBeforeMount(async () => {
   }
 });
 
-// 게시글 작성 버튼
-const writePost = () => {
-  console.log('새 조사지 등록 페이지로 이동');
-};
+const router = useRouter();
 
 // 상세보기 버튼
-const viewDetails = (survey) => {
-  console.log(`${survey.survey_no}번 조사지 상세보기`);
+const viewDetails = (row) => {
+  router.push({
+    name: 'survey',
+    params: { surveyNo: row.survey_no },
+  });
 };
 </script>
 
