@@ -22,7 +22,7 @@ const model = ref([
       { label: '지원계획 등록', icon: 'pi pi-fw pi-check-square', to: '/system/regist-plan' },
       { label: '지원계획 목록', icon: 'pi pi-fw pi-list', to: '/system/plan-list' },
       { label: '조사지 관리', icon: 'pi pi-fw pi-book', to: '/system/survey' },
-      { label: 'Panel', icon: 'pi pi-fw pi-tablet', to: '/uikit/panel' },
+      { label: '자료실', icon: 'pi pi-fw pi-file', to: '/system/data-board' },
       { label: 'Overlay', icon: 'pi pi-fw pi-clone', to: '/uikit/overlay' },
       { label: 'Media', icon: 'pi pi-fw pi-image', to: '/uikit/media' },
       { label: 'Menu', icon: 'pi pi-fw pi-bars', to: '/uikit/menu' },

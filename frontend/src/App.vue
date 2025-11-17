@@ -1,6 +1,8 @@
 <script setup>
 import { onMounted, watch } from 'vue';
 import { useAuthStore } from '@/stores/authStore';
+import { ConfirmDialog } from 'primevue';
+import Toast from 'primevue/toast';
 
 const authStore = useAuthStore();
 
@@ -33,6 +35,8 @@ watch(
 
 <template>
   <router-view />
+  <Toast />
+  <ConfirmDialog />
 </template>
 
 <style scoped></style>

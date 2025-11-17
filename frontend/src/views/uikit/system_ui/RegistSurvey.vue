@@ -1,7 +1,7 @@
 <script setup>
 import { onBeforeMount } from 'vue';
 // 1. 방금 만든 Composable을 import 합니다.
-import { RegistSurveyForm } from './RegistSurveyForm.js'; // (경로 확인)
+import { RegistSurveyForm } from './RegistSurveyForm.js';
 
 // 2. Composable을 호출하여 필요한 모든 것을 "구조 분해 할당"으로 가져옵니다.
 const {
@@ -11,17 +11,13 @@ const {
   priorityList,
   basicInfo,
   questionList,
-  initializeForm,
+
   addForm,
   removeQuestion,
   saveTemp,
   requestApproval,
+  clearTemp,
 } = RegistSurveyForm();
-
-// 3. 컴포넌트 생명주기 훅에서 초기화 함수를 호출합니다.
-onBeforeMount(() => {
-  initializeForm();
-});
 
 // <script setup> 끝! 매우 깔끔해졌습니다.
 </script>
@@ -170,14 +166,18 @@ onBeforeMount(() => {
               ></Select>
             </div>
           </div>
-
-          <div class="flex justify-center mt-6">
-            <Button label="질문 추가" icon="pi pi-plus" severity="info" @click="addForm" outlined />
-          </div>
-
-          <div class="flex justify-center gap-4 mt-4">
+          <Button label="질문 추가" icon="pi pi-plus" severity="info" @click="addForm" outlined />
+          <div class="flex justify-center mt-6"></div>
+          <div class="flex justify-end gap-2 mt-8">
+            <Button
+              label="초기화 (임시저장 삭제)"
+              icon="pi pi-trash"
+              severity="danger"
+              outlined
+              @click="clearTemp"
+            />
             <Button label="임시저장" icon="pi pi-save" severity="secondary" @click="saveTemp" />
-            <Button label="등록" icon="pi pi-send" severity="info" @click="requestApproval" />
+            <Button label="등록 요청" icon="pi pi-send" severity="info" @click="requestApproval" />
           </div>
         </div>
       </div>

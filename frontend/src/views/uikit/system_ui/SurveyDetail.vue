@@ -8,6 +8,7 @@ import Card from 'primevue/card';
 import InputText from 'primevue/inputtext';
 import Textarea from 'primevue/textarea';
 import ProgressSpinner from 'primevue/progressspinner';
+import RadioButton from 'primevue/radiobutton';
 
 const route = useRoute(); // 2. 현재 라우트 정보에 접근
 const surveyId = route.params.id; // 3. URL의 :id 값을 가져옴 (예: '123')
@@ -78,7 +79,17 @@ function formatDate(value) {
 
             <div class="flex flex-col gap-3">
               <label>상태</label>
-              <InputText type="text" v-model="basicInfo.inquiry_status" readonly />
+              <InputText
+                type="text"
+                :value="
+                  basicInfo.inquiry_status === 0
+                    ? '상태1'
+                    : basicInfo.inquiry_status === 1
+                      ? '상태2'
+                      : '알 수 없음'
+                "
+                readonly
+              />
             </div>
 
             <div class="flex flex-col gap-3">
@@ -109,7 +120,44 @@ function formatDate(value) {
 
               <div class="flex flex-col gap-3 mt-4">
                 <label>답변 유형</label>
-                <InputText v-model="question.response_type" readonly />
+                <div class="mt-4 p-3 border rounded-md bg-gray-50">
+                  <label class="font-medium text-sm text-gray-600">답변 예시 (미리보기)</label>
+
+                  <div v-if="question.response_type === 2" class="flex items-center gap-4 mt-2">
+                    <div class="flex items-center">
+                      <RadioButton
+                        :inputId="'preview-ox-o-' + index"
+                        :name="'preview-ox-' + index"
+                        value="O"
+                        disabled
+                      />
+                      <label :for="'preview-ox-o-' + index" class="ml-2 text-gray-700">O</label>
+                    </div>
+                    <div class="flex items-center">
+                      <RadioButton
+                        :inputId="'preview-ox-x-' + index"
+                        :name="'preview-ox-' + index"
+                        value="X"
+                        disabled
+                      />
+                      <label :for="'preview-ox-x-' + index" class="ml-2 text-gray-700">X</label>
+                    </div>
+                  </div>
+
+                  <div v-else-if="question.response_type === 1" class="mt-2">
+                    <Textarea
+                      :id="'preview-text-' + index"
+                      rows="3"
+                      class="w-full"
+                      placeholder="사용자가 답변을 입력하는 공간입니다."
+                      disabled
+                    />
+                  </div>
+
+                  <div v-else class="mt-2 text-gray-500 text-sm">
+                    (알 수 없는 유형 코드: {{ question.response_type }})
+                  </div>
+                </div>
               </div>
 
               <div class="flex flex-col gap-3 mt-4">

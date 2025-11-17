@@ -51,6 +51,16 @@ const systemRouter = [
         name: 'RegistSurvey', // 👈 이 'name'을 사용할 것입니다.
         component: () => import('@/views/uikit/system_ui/RegistSurvey.vue'),
       },
+      {
+        path: '/system/data-board', // (실제 경로는 다를 수 있습니다)
+        name: 'FileBoard', // 👈 이 'name'을 사용할 것입니다.
+        component: () => import('@/views/uikit/system_ui/SystemDataBoard.vue'),
+      },
+      {
+        path: '/system/file-regist', // (실제 경로는 다를 수 있습니다)
+        name: 'RegistFile', // 👈 이 'name'을 사용할 것입니다.
+        component: () => import('@/views/uikit/system_ui/RegistFile.vue'),
+      },
     ],
   },
   {
