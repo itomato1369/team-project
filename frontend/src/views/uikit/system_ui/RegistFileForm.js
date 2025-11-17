@@ -20,6 +20,7 @@ export function RegistFileForm1() {
     { name: '기관 7', code: 'institution 7' },
     { name: '기관 8', code: 'institution 8' },
   ]);
+
   const basicInfo = ref({
     writer: null,
     title: null,

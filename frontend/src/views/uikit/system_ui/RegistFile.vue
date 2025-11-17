@@ -2,7 +2,7 @@
 import { RegistFileForm1 } from './RegistFileForm.js';
 
 // 2. Composable을 호출하여 필요한 모든 것을 "구조 분해 할당"으로 가져옵니다.
-const { institutionList, basicInfo } = RegistFileForm1();
+const { institutionList, basicInfo, requestApproval } = RegistFileForm1();
 </script>
 
 <template>
@@ -16,7 +16,7 @@ const { institutionList, basicInfo } = RegistFileForm1();
           </div>
 
           <div class="flex flex-col gap-3">
-            <label for="institution_name">기관명</label>
+            <label for="institution_name">작성기관</label>
             <Select
               code="institution_name"
               v-model="basicInfo.institution_name"
@@ -32,8 +32,7 @@ const { institutionList, basicInfo } = RegistFileForm1();
             <InputText id="name1" type="text" v-model="basicInfo.writer" />
           </div>
           <div class="flex flex-col gap-3">
-            <label for="title">파일명</label>
-            <InputText id="name1" type="text" v-model="basicInfo.title" />
+            <label for="title">파일첨부</label>
           </div>
           <Button label="등록 요청" icon="pi pi-send" severity="info" @click="requestApproval" />
         </div>
