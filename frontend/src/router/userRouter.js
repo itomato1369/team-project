@@ -39,4 +39,9 @@ export default [
     name: 'ui',
     component: () => import('@/components/UserInquiry.vue'),
   },
+  {
+    path: '/ui/:id',
+    name: 'user-inquiry-detail',
+    component: () => import('@/components/UserInquiryDetail.vue'),
+  },
 ];

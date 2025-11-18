@@ -31,7 +31,9 @@ const fetchUserSurveys = async () => {
   loading.value = true;
   error.value = null;
   try {
-    const response = await axios.get('/api/user/user-surveys');
+    const response = await axios.get('/api/user/user-surveys', {
+      params: { writer: 'test' }
+    });
     userSurveys.value = response.data.result;
   } catch (err) {
     console.error('Failed to fetch user surveys:', err);
@@ -58,7 +60,8 @@ const viewResult = (survey) => {
 
 // 상태(status)에 따라 Tag의 색상을 결정하는 함수
 const getStatusSeverity = (status) => {
-  switch (status) {
+  const currentStatus = status || '미제출';
+  switch (currentStatus) {
     case '미제출':
       return 'info';
     case '접수':
@@ -88,7 +91,7 @@ const getStatusSeverity = (status) => {
         <!-- 'submission_status' 컬럼의 body를 커스터마이징 -->
         <template #body-submission_status="{ data }">
           <Tag
-            :value="data.submission_status"
+            :value="data.submission_status || '미제출'"
             :severity="getStatusSeverity(data.submission_status)"
           />
         </template>
@@ -97,7 +100,7 @@ const getStatusSeverity = (status) => {
         <template #body-management="{ data }">
           <div class="flex gap-2">
             <Button
-              v-if="data.submission_status === '미제출'"
+              v-if="!data.submission_status"
               label="작성하기"
               outlined
               @click="doSurvey(data)"

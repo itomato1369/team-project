@@ -1,8 +1,9 @@
 const mapper = require("../database/mappers/mapper");
+const sql = require("../database/sqlList");
 
 const formatDate = (date) => {
   // date 값이 null이거나 유효하지 않은 경우, 에러를 발생시키는 대신 null을 반환
-  if (!date || new Date(date).toString() === 'Invalid Date') {
+  if (!date || new Date(date).toString() === "Invalid Date") {
     return null;
   }
 
@@ -74,7 +75,7 @@ const getBoardList = async (searchParams) => {
 
 const getUserSurveys = async (userName) => {
   const surveyResults = await mapper.query("findUserSurveys", userName);
-  
+
   const res = surveyResults.map((item) => {
     item.deadline = formatDate(item.deadline);
     return item;
@@ -84,7 +85,7 @@ const getUserSurveys = async (userName) => {
 
 const getInquiries = async () => {
   const inquiryResults = await mapper.query("findInquiries");
-  
+
   if (!Array.isArray(inquiryResults)) {
     return [];
   }
@@ -96,4 +97,152 @@ const getInquiries = async () => {
   return res;
 };
 
-module.exports = { getExpiringNotices, getSurveyToUserWard, getBoardList, getUserSurveys, getInquiries };
+const getInquiryDetail = async (inquiryNo) => {
+  const inquiryDetailResult = await mapper.query(
+    "findInquiryDetail",
+    inquiryNo
+  );
+
+  if (!Array.isArray(inquiryDetailResult) || inquiryDetailResult.length === 0) {
+    return null;
+  }
+
+  const item = inquiryDetailResult[0];
+
+  item.created_at = formatDate(item.created_at);
+  item.updated_at = formatDate(item.updated_at);
+  item.business_end = formatDate(item.business_end);
+
+  return item;
+};
+
+const getInquiryQuestions = async (inquiryNo) => {
+  const questions = await mapper.query("findInquiryQuestions", inquiryNo);
+  return questions.map((q) => ({
+    question_no: q.business_no,
+    question_content: q.question_content,
+    is_required: q.is_required,
+    response_type: q.response_type,
+    priority: q.priority,
+  }));
+};
+
+const saveInquiryAnswers = async (saveData) => {
+  const { inquiryDetail, answers } = saveData;
+  const filteredAnswers = answers.filter(
+    (answer) => answer.survey_answer && answer.survey_answer.trim() !== ""
+  );
+  if (filteredAnswers.length === 0) {
+    return { message: "No answers to save." };
+  }
+  let conn;
+  try {
+    conn = await mapper.connectionPool.getConnection();
+    await conn.beginTransaction();
+    // 1. Insert into survey table using data from the frontend payload
+    const surveyParams = [
+      inquiryDetail.ward_no,
+      inquiryDetail.business_name || "문의조사",
+      inquiryDetail.purpose, // Use purpose from payload
+      inquiryDetail.content, // Use content from payload
+      inquiryDetail.writer,
+      inquiryDetail.status,
+    ];
+    const surveyResult = await conn.query(sql.insertSurvey, surveyParams);
+    const newSurveyNo = surveyResult.insertId;
+    // 2. Manually construct bulk insert for survey_result table
+    const placeholders = filteredAnswers.map(() => "(?, ?, ?)").join(",");
+    const surveyResultValues = filteredAnswers.flatMap((answer) => [
+      answer.business_no,
+      answer.survey_answer,
+      newSurveyNo,
+    ]);
+    const insertSql = `INSERT INTO survey_result (business_no, survey_answer, survey_no) VALUES ${placeholders}`;
+    await conn.query(insertSql, surveyResultValues);
+    await conn.commit();
+    return { message: "Answers saved successfully." };
+  } catch (err) {
+    if (conn) await conn.rollback();
+    throw new Error("Failed to save answers: " + err.message);
+  } finally {
+    if (conn) conn.release();
+  }
+};
+
+const getSurveyByInquiryContent = async (inquiryName) => {
+  const survey = await mapper.query("findSurveyByInquiryContent", inquiryName);
+  return survey[0];
+};
+
+const getSurveyResults = async (surveyNo) => {
+  const results = await mapper.query("findSurveyResultsBySurveyNo", surveyNo);
+  return results;
+};
+
+const updateSurveyAndResults = async (surveyNo, updateData) => {
+  const { answers, modificationReason, purpose, content } = updateData;
+  const filteredAnswers = answers.filter(
+    (answer) => answer.survey_answer && answer.survey_answer.trim() !== ""
+  );
+
+  let conn;
+  try {
+    conn = await mapper.connectionPool.getConnection();
+    await conn.beginTransaction();
+
+    // 1. Delete old results
+    await conn.query(sql.deleteSurveyResultsBySurveyNo, [surveyNo]);
+
+    // 2. Insert new results (if any)
+    if (filteredAnswers.length > 0) {
+      const placeholders = filteredAnswers.map(() => "(?, ?, ?)").join(",");
+      const surveyResultValues = filteredAnswers.flatMap((answer) => [
+        answer.business_no,
+        answer.survey_answer,
+        surveyNo,
+      ]);
+      const insertSql = `INSERT INTO survey_result (business_no, survey_answer, survey_no) VALUES ${placeholders}`;
+      await conn.query(insertSql, surveyResultValues);
+    }
+
+    // 3. Update the main survey's timestamp, modification reason, purpose, and content
+    await conn.query(sql.updateSurvey, [
+      modificationReason,
+      purpose,
+      content,
+      surveyNo,
+    ]);
+
+    await conn.commit();
+    return { message: "Survey updated successfully." };
+  } catch (err) {
+    if (conn) await conn.rollback();
+    throw new Error("Failed to update survey: " + err.message);
+  } finally {
+    if (conn) conn.release();
+  }
+};
+
+const getMyPageSurveys = async (writer) => {
+  const surveys = await mapper.query("findSurveysForMyPage", writer);
+  // Format dates before sending
+  return surveys.map((s) => ({
+    ...s,
+    created_at: formatDate(s.created_at),
+  }));
+};
+
+module.exports = {
+  getExpiringNotices,
+  getSurveyToUserWard,
+  getBoardList,
+  getUserSurveys,
+  getInquiries,
+  getInquiryDetail,
+  saveInquiryAnswers,
+  getInquiryQuestions,
+  getSurveyByInquiryContent,
+  getSurveyResults,
+  updateSurveyAndResults,
+  getMyPageSurveys,
+};

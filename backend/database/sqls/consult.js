@@ -69,6 +69,76 @@ SET res_status = '취소'
 WHERE res_no = ? AND user_id = ?;
 `;
 
+// --- [신규 추가] 담당자 예약 관리 SQL ---
+
+// 기본 쿼리 (검색 조건 없음)
+const getStaffReservationsBase = `
+SELECT
+    at.at_no AS atNo,
+    at.start_time,
+    at.status,
+    res.res_no AS id, 
+    res.res_reason AS reason,            -- (수정) reservation.res_reason
+    m.user_name AS applicantName,     -- (수정) member.user_name (보호자)
+    res.name AS patientName           -- (수정) reservation.name (피보호자)
+FROM available_time at
+JOIN reservation res ON at.at_no = res.at_no
+JOIN member m ON res.user_id = m.user_id
+WHERE
+    at.staff_id = ? AND at.status = '예약'
+ORDER BY at.start_time ASC
+`;
+
+// '상담일시' 검색
+const getStaffReservationsByDate = `
+${getStaffReservationsBase.replace("ORDER BY at.start_time ASC", "")}
+AND DATE(at.start_time) BETWEEN ? AND ?
+ORDER BY at.start_time ASC
+`;
+
+// '보호자이름' 검색 (m.user_name)
+const getStaffReservationsByApplicant = `
+${getStaffReservationsBase.replace("ORDER BY at.start_time ASC", "")}
+AND m.user_name LIKE ?
+ORDER BY at.start_time ASC
+`;
+
+// '사유' 검색 (res.res_reason)
+const getStaffReservationsByReason = `
+${getStaffReservationsBase.replace("ORDER BY at.start_time ASC", "")}
+AND res.res_reason LIKE ?
+ORDER BY at.start_time ASC
+`;
+
+/**
+ * 담당자가 예약을 취소 (상태를 '상담불가'로 변경)
+ * - at_no와 staff_id이 일치하고, '예약' 상태일 때만
+ */
+const cancelStaffReservation = `
+UPDATE available_time
+SET status = '상담불가'
+WHERE at_no = ? AND staff_id = ? AND status = '예약'
+`;
+
+/**
+ * [신규 추가] 예약 생성 시 'available_time' 테이블의 상태를 '예약'으로 변경
+ * - at_no를 기준으로 '상담가능' 상태일 때만 '예약'으로 변경 (중복 예약 방지)
+ */
+const updateAvailableTimeStatusToBooked = `
+UPDATE available_time
+SET status = '예약'
+WHERE at_no = ? AND status = '상담가능'
+`;
+
+/**
+ * [신규] 알림(alarm) 테이블에 알림 삽입
+ */
+const createAlarm = `
+INSERT INTO alarm (
+    content, to_id, from_id, status, res_no, created_at, read_yn
+) 
+VALUES (?, ?, ?, ?, ?, NOW(), 0)
+`;
 module.exports = {
   getAvailableSchedules,
   getUpcomingReservations,
@@ -76,4 +146,11 @@ module.exports = {
   createReservation,
   getMyReservations,
   cancelReservationById,
+  getStaffReservationsBase,
+  getStaffReservationsByDate,
+  getStaffReservationsByApplicant,
+  getStaffReservationsByReason,
+  cancelStaffReservation,
+  updateAvailableTimeStatusToBooked,
+  createAlarm,
 };

@@ -37,7 +37,9 @@ const setExpiringNotices = async () => {
 };
 const setSurveyToUserWard = async () => {
   try {
-    const res = await axios.get('/api/user/userwiter-survey');
+    const res = await axios.get('/api/user/userwiter-survey', { 
+      params: { writer: 'test' } 
+    });
     console.log('mySurveyResult.data', res.data);
     surveyToUserWard.value = res.data.result;
   } catch (err) {

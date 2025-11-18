@@ -46,9 +46,7 @@ onBeforeMount(() => {
 
 // "상세보기" 버튼 클릭 시 실행될 함수
 const goToInquiryDetail = (inquiry) => {
-  // TODO: 상세 페이지 라우트 이름 확정 후 수정
-  // router.push({ name: 'user-inquiry-detail', params: { id: inquiry.inquiry_no } });
-  alert(`'${inquiry.business_name}' 사업의 '${inquiry.inquiry_name}' 상세 페이지로 이동합니다. (ID: ${inquiry.inquiry_no})`);
+  router.push({ name: 'user-inquiry-detail', params: { id: inquiry.inquiry_no } });
 };
 </script>
 

@@ -16,9 +16,19 @@ const model = ref([
     items: [
       { label: '로그인', icon: 'pi pi-fw pi-sign-in', to: '/login' },
       { label: '로그아웃', icon: 'pi pi-fw pi-sign-out', command: () => authStore.logout() },
-      { label: '기관 담당자 대시보드', icon: 'pi pi-fw pi-home', to: { name: 'staffhome' } },
+      { label: '담당자 대시보드', icon: 'pi pi-fw pi-home', to: { name: 'staffhome' } },
       { label: '이용자 상담신청', icon: 'pi pi-fw pi-home', to: { name: 'counseling-apply' } },
       { label: '이용자 상담내역', icon: 'pi pi-fw pi-home', to: { name: 'counseling-history' } },
+      {
+        label: '담당자 상담스케줄설정',
+        icon: 'pi pi-fw pi-home',
+        to: { name: 'staffschedule-settings' },
+      },
+      {
+        label: '담당자 상담예약관리',
+        icon: 'pi pi-fw pi-home',
+        to: { name: 'reservations' },
+      },
       { label: '담당자신청서조회', icon: 'pi pi-fw pi-home', to: '/activityreport' },
       //      { label: '지원계획신청서', icon: 'pi pi-fw pi-home', to: '/survey' },
       { label: '관리자사업승인요청조회', icon: 'pi pi-fw pi-home', to: '/applicationlist' },

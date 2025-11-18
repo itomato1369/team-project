@@ -92,10 +92,7 @@ SELECT
     n.business_name,
     w.name AS ward_name,
     n.business_end AS deadline,
-    CASE
-        WHEN s.survey_no IS NOT NULL THEN s.status
-        ELSE '미제출'
-    END AS submission_status,
+    s.status AS submission_status,
     n.notice_no,
     w.ward_no
 FROM
@@ -108,19 +105,84 @@ ORDER BY
     w.name, n.business_end
 `;
 
-const findInquiries = `
+const userInquirySqls = {
+  findSurveysForMyPage: `
+SELECT
+    s.content,
+    n.institution_name,
+    s.business_name,
+    s.created_at,
+    s.status,
+    i.inquiry_no
+FROM survey s
+LEFT JOIN notice n ON s.business_name = n.business_name
+LEFT JOIN inquiry i ON s.content = i.inquiry_name
+WHERE s.writer = ?
+ORDER BY s.created_at DESC
+`,
+
+  findSurveyByInquiryContent: `
+SELECT * FROM survey WHERE content = ?
+`,
+
+  updateSurvey: `
+UPDATE survey SET updated_at = NOW(), modify_reason = ?, purpose = ?, content = ? WHERE survey_no = ?
+`,
+
+  deleteSurveyResultsBySurveyNo: `
+DELETE FROM survey_result WHERE survey_no = ?
+`,
+
+  findSurveyResultsBySurveyNo: `
+SELECT * FROM survey_result WHERE survey_no = ?
+`,
+
+  findInquiries: `
 SELECT
     i.inquiry_no,
     i.inquiry_name,
+    i.inquiry_writer,
+    i.inquiry_status,
+    i.created_at,
+    i.updated_at,
+    i.notice_no,
+    n.business_name
+FROM inquiry i
+LEFT JOIN notice n ON i.notice_no = n.notice_no
+WHERE i.inquiry_status = 1`,
+  inquiryList: `select 
+ business_no
+, answer_list
+, answer
+, must 
+from inquiry_list`,
+
+  findInquiryDetail: `
+SELECT
+    i.inquiry_no,
+    i.inquiry_name,
+    i.inquiry_writer,
+    i.inquiry_status,
+    i.created_at,
+    i.updated_at,
     n.business_name,
-    i.created_at
-FROM
-    inquiry i
-LEFT JOIN
-    notice n ON i.notice_no = n.notice_no
-ORDER BY
-    i.created_at DESC
-`;
+    n.business_end
+FROM inquiry i
+LEFT JOIN notice n ON i.notice_no = n.notice_no
+WHERE i.inquiry_no = ?`,
+
+  findInquiryQuestions: `SELECT business_no, answer_list AS question_content, question_category, answer AS response_type, must AS is_required, inquiry_no, priority FROM inquiry_list WHERE inquiry_no = ? ORDER BY inquiry_no ASC`,
+
+  insertSurvey: `
+INSERT INTO survey (ward_no, business_name, purpose, content, writer, status, created_at, updated_at)
+VALUES (?, ?, ?, ?, ?, ?, NOW(), NOW())
+`,
+
+  insertSurveyResult: `
+INSERT INTO survey_result (business_no, survey_answer, survey_no)
+VALUES ?
+`,
+};
 
 module.exports = {
   findUserById,
@@ -131,5 +193,6 @@ module.exports = {
   findBoardListByData,
   findBoardListByHashtag,
   findUserSurveys,
-  findInquiries,
+
+  ...userInquirySqls,
 };
