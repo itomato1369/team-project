@@ -106,15 +106,18 @@ router.get("/user-inquiries/:id/questions", async (req, res) => {
   }
 });
 
-router.post("/user-inquiries/:id/answers", async (req, res) => {
-  const inquiryNo = req.params.id;
-  const answers = req.body.answers;
+router.post("/user-inquiries/answer", async (req, res) => {
+  const saveData = req.body;
+
+  if (!saveData || !saveData.answers || !saveData.inquiryDetail) {
+    return res.status(400).send({ err: "Invalid data format." });
+  }
 
   try {
-    await userService.saveInquiryAnswers(inquiryNo, answers);
+    await userService.saveInquiryAnswers(saveData);
     res.status(201).send({ message: "Answers saved successfully." });
   } catch (err) {
-    return res.status(500).send({ err: "Failed to save answers: " + err });
+    return res.status(500).send({ err: "Failed to save answers: " + err.message });
   }
 });
 

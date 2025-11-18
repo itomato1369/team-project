@@ -1,4 +1,5 @@
 const mapper = require("../database/mappers/mapper");
+const sql = require("../database/sqlList");
 
 const formatDate = (date) => {
   // date 값이 null이거나 유효하지 않은 경우, 에러를 발생시키는 대신 null을 반환
@@ -120,18 +121,55 @@ const getInquiryDetail = async (inquiryNo) => {
 
 const getInquiryQuestions = async (inquiryNo) => {
   const questions = await mapper.query("findInquiryQuestions", inquiryNo);
-  return questions.map(q => ({
-    question_no: q.question_no,
+  return questions.map((q) => ({
+    question_no: q.business_no,
     question_content: q.question_content,
     is_required: q.is_required,
-    response_type: q.response_type
+    response_type: q.response_type,
+    priority: q.priority,
   }));
 };
 
-const saveInquiryAnswers = async (inquiryNo, answers) => {
-  const values = answers.map(answer => [inquiryNo, answer.id, answer.answer]);
-  const result = await mapper.query("insertInquiryAnswers", [values]);
-  return result;
+const saveInquiryAnswers = async (saveData) => {
+  const { inquiryDetail, answers } = saveData;
+  const filteredAnswers = answers.filter(
+    (answer) => answer.survey_answer && answer.survey_answer.trim() !== ""
+  );
+  if (filteredAnswers.length === 0) {
+    return { message: "No answers to save." };
+  }
+  let conn;
+  try {
+    conn = await mapper.connectionPool.getConnection();
+    await conn.beginTransaction();
+    // 1. Insert into survey table using data from the frontend payload
+    const surveyParams = [
+      inquiryDetail.ward_no,
+      inquiryDetail.business_name || "문의조사",
+      inquiryDetail.purpose,
+      inquiryDetail.inquiry_name,
+      inquiryDetail.writer,
+      inquiryDetail.status,
+    ];
+    const surveyResult = await conn.query(sql.insertSurvey, surveyParams);
+    const newSurveyNo = surveyResult.insertId;
+    // 2. Manually construct bulk insert for survey_result table
+    const placeholders = filteredAnswers.map(() => "(?, ?, ?)").join(",");
+    const surveyResultValues = filteredAnswers.flatMap((answer) => [
+      answer.business_no,
+      answer.survey_answer,
+      newSurveyNo,
+    ]);
+    const insertSql = `INSERT INTO survey_result (business_no, survey_answer, survey_no) VALUES ${placeholders}`;
+    await conn.query(insertSql, surveyResultValues);
+    await conn.commit();
+    return { message: "Answers saved successfully." };
+  } catch (err) {
+    if (conn) await conn.rollback();
+    throw new Error("Failed to save answers: " + err.message);
+  } finally {
+    if (conn) conn.release();
+  }
 };
 
 module.exports = {

@@ -108,21 +108,9 @@ ORDER BY
     w.name, n.business_end
 `;
 
-const findInquiries = `
-SELECT
-    i.inquiry_no,
-    i.inquiry_name,
-    n.business_name,
-    i.created_at
-FROM
-    inquiry i
-LEFT JOIN
-    notice n ON i.notice_no = n.notice_no
-ORDER BY
-    i.created_at DESC
-`;
-
-const findInquiryDetail = `
+const userInquirySqls = {
+    
+findInquiries: `
 SELECT
     i.inquiry_no,
     i.inquiry_name,
@@ -130,34 +118,44 @@ SELECT
     i.inquiry_status,
     i.created_at,
     i.updated_at,
-    n.notice_no,
-    n.institution_name,
-    n.business_name,
-    n.content,
-    n.business_end
-FROM
-    inquiry i
-LEFT JOIN
-    notice n ON i.notice_no = n.notice_no
-WHERE
-    i.inquiry_no = ?
-`;
+    i.notice_no,
+    n.business_name
+FROM inquiry i
+LEFT JOIN notice n ON i.notice_no = n.notice_no
+WHERE i.inquiry_status = 1`,
+inquiryList: `select 
+ business_no
+, answer_list
+, answer
+, must 
+from inquiry_list`,
 
-const insertInquiryAnswers = `
-INSERT INTO inquiry_answer (inquiry_no, question_no, answer_content)
-VALUES ?
-`;
-
-const findInquiryQuestions = `
+findInquiryDetail: `
 SELECT
-    business_no AS question_no,
-    answer_list AS question_content,
-    must AS is_required,
-    answer AS response_type
-FROM inquiry_list
-WHERE inquiry_no = ?
-ORDER BY business_no ASC
-`;
+    i.inquiry_no,
+    i.inquiry_name,
+    i.inquiry_writer,
+    i.inquiry_status,
+    i.created_at,
+    i.updated_at,
+    n.business_name,
+    n.business_end
+FROM inquiry i
+LEFT JOIN notice n ON i.notice_no = n.notice_no
+WHERE i.inquiry_no = ?`,
+
+findInquiryQuestions: `SELECT business_no, answer_list AS question_content, question_category, answer AS response_type, must AS is_required, inquiry_no, priority FROM inquiry_list WHERE inquiry_no = ? ORDER BY inquiry_no ASC`,
+
+insertSurvey: `
+INSERT INTO survey (ward_no, business_name, purpose, content, writer, status, created_at, updated_at)
+VALUES (?, ?, ?, ?, ?, ?, NOW(), NOW())
+`,
+
+insertSurveyResult: `
+INSERT INTO survey_result (business_no, survey_answer, survey_no)
+VALUES ?
+`
+}
 
 module.exports = {
   findUserById,
@@ -168,8 +166,6 @@ module.exports = {
   findBoardListByData,
   findBoardListByHashtag,
   findUserSurveys,
-  findInquiries,
-  findInquiryDetail,
-  insertInquiryAnswers,
-  findInquiryQuestions,
+
+  ...userInquirySqls,
 };
