@@ -5,5 +5,5 @@ const approvalList = {
 };
 
 module.exports = {
-  selectApprovalList,
+  ...approvalList,
 };

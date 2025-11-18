@@ -39,7 +39,7 @@ const getInstitutionListBySearch = async (status, institution_name) => {
     }
     // 조건이 하나라도 있다면 WHERE 절을 SQL에 추가
     if (conditions.length > 0) {
-      sql += "WHERE" + conditions.join("AND");
+      sql += " WHERE " + conditions.join(" AND ");
     }
     // mapper.js의 dynamicQuery 함수를 활용하여 동적 쿼리 실행
     const institutions = await db.dynamicQuery(sql, values);
@@ -47,8 +47,35 @@ const getInstitutionListBySearch = async (status, institution_name) => {
   }
 };
 
+// 기관 등록
+// 파라미터 타입 주의해서 가져오기 //교수님이 도와주심
+const registerInstitution = async (data) => {
+  const institutionData = [
+    data.institution_name,
+    data.phone,
+    data.road_address,
+    data.detail_address,
+    "1s", // 초기 상태를 운영으로 설정
+  ];
+  const result = await db.query("registerInstitution", institutionData);
+  // 결과 반환
+  return result;
+};
+
+// 기관 수정
+const updateInstitution = async (id, data) => {
+  // DB에 전달할 데이터 배열
+  const updateData = [data.institution_name, data.phone, data.status, id];
+  const result = await db.query("updateInstitution", updateData);
+  return result;
+};
+
+// 지원계획 관련
+
 module.exports = {
   getAllInstitutionList,
   getInstitutionById,
   getInstitutionListBySearch,
+  registerInstitution,
+  updateInstitution,
 };

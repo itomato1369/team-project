@@ -28,11 +28,6 @@ const getInstitutionList = async () => {
   }
 };
 
-// vue 컴포넌트가 DOM에 처음 로드 될 때 실행
-onMounted(() => {
-  getInstitutionList();
-});
-
 // 검색을 위한 상태 선택
 const statusOptions = ref([
   { label: '전체상태', value: '0S' },
@@ -40,6 +35,22 @@ const statusOptions = ref([
   { label: '휴업', value: '2s' },
   { label: '폐업', value: '3s' },
 ]);
+// 공통코드로 사용한 1s,2s,3s를 변환
+const getStatusText = (statusCode) => {
+  switch (statusCode) {
+    case '운영':
+    case '1s':
+      return '운영';
+    case '휴업':
+    case '2s':
+      return '휴업';
+    case '폐업':
+    case '3s':
+      return '폐업';
+    default:
+      return statusCode || '정의되지 않은 코드';
+  }
+};
 
 // 기본값은 전체 ALL
 const selectedStatus = ref(statusOptions.value[0]);
@@ -80,6 +91,11 @@ const goToRegisterInstitution = () => {
 const goToDetailInstitution = (data) => {
   router.push({ name: 'sysInstitutionDetails', params: { id: data.institution_no } });
 };
+
+// vue 컴포넌트가 DOM에 처음 로드 될 때 실행
+onMounted(() => {
+  getInstitutionList();
+});
 </script>
 
 <template>
@@ -137,7 +153,7 @@ const goToDetailInstitution = (data) => {
 
         <Column field="status" header="운영상태" style="width: 15%; min-width: 120px">
           <template #body="slotProps">
-            <Tag :value="slotProps.data.status"></Tag>
+            <Tag :value="getStatusText(slotProps.data.status)"></Tag>
           </template>
         </Column>
 

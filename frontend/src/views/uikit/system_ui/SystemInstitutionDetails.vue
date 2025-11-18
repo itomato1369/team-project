@@ -82,7 +82,13 @@ const goToInstitutionList = () => {
 };
 
 const goToInstitutionUpdate = () => {
-  router.push({ name: 'sysInstitutionUpdate' });
+  // institution_no를 URL 파라미터로 넘겨줌
+  const id = route.params.id;
+  if (id) {
+    router.push({ name: 'sysInstitutionUpdate', params: { id: id } });
+  } else {
+    console.error('수정 기관 ID가 없습니다');
+  }
 };
 // vue 컴포넌트가 DOM에 처음 로드 될 때 실행
 onMounted(() => {
@@ -137,7 +143,7 @@ onMounted(() => {
 
       <!-- 상태 수정 일자 -->
       <div class="detail-field">
-        <label class="field-label">개관 일자</label>
+        <label class="field-label">기관정보 수정 일자</label>
         <p class="field-value">{{ formatDate(institutionDetail.updated_at) }}</p>
       </div>
 

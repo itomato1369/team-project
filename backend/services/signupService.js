@@ -24,6 +24,9 @@ const register = async (userData) => {
   // 비밀번호 해싱
   const hashedPassword = await bcrypt.hash(password, 10);
 
+  // 이용자 기본 상태값
+  const defaultStatus = "READY";
+
   // DB에 저장할 값 배열
   const values = [
     userId,
@@ -34,7 +37,7 @@ const register = async (userData) => {
     phone,
     fullAddress, // mapper에서는 address
     role,
-    institution_no,
+    defaultStatus,
   ];
   // DB 쿼리 실행
   await db.query("signUpUser", values);
