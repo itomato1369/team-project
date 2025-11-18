@@ -49,8 +49,64 @@ WHERE
     T1.ward_no = ?
 LIMIT 1`;
 
+/**
+ * 담당자 이름(staff_name)으로 '상담가능' 스케줄 조회
+ * - at_no: 삭제 시 필요
+ * - staff_name: 본인 확인용
+ */
+const getAvailableSlots = `
+SELECT 
+    at_no, 
+    start_time, 
+    end_time
+FROM available_time
+WHERE staff_name = ? 
+  AND status = '상담가능'
+  AND start_time >= NOW()
+ORDER BY start_time`;
+
+/**
+ * 담당자 ID(staff_id)로 '예약확정'된 상담 건수 조회 (날짜별 그룹)
+ */
+const getReservationCounts = `
+SELECT 
+    DATE_FORMAT(res_start, '%Y-%m-%d') AS date, 
+    COUNT(*) AS count
+FROM reservation
+WHERE staff_id = ?
+  AND res_status = '예약확정'
+  AND res_start >= NOW()
+GROUP BY DATE_FORMAT(res_start, '%Y-%m-%d')`;
+
+/**
+ * '상담가능' 스케줄 신규 등록
+ * - 참고: DB 스키마의 recurring_rules가 CHAR(1)이지만,
+ * - 프론트엔드 UI(반복 없음, 매주)와 맞추기 위해 VARCHAR(10)로 가정함.
+ */
+const createStaffSchedule = `
+INSERT INTO available_time (
+    start_time, 
+    end_time, 
+    staff_name, 
+    status, 
+    recurring_rules,
+    created_at
+) VALUES (?, ?, ?, '상담가능', ?, NOW())`;
+
+/**
+ * '상담가능' 스케줄 삭제
+ * - at_no와 staff_name이 모두 일치해야 삭제 (보안)
+ */
+const deleteStaffSchedule = `
+DELETE FROM available_time 
+WHERE at_no = ? AND staff_name = ? AND status = '상담가능'`;
+
 module.exports = {
   surveySelect,
   supportPlan,
   wardsearch,
+  getAvailableSlots,
+  getReservationCounts,
+  createStaffSchedule,
+  deleteStaffSchedule,
 };
