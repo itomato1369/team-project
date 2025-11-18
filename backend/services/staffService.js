@@ -1,13 +1,13 @@
 const db = require("../database/mappers/mapper");
 
-const surveySelect = async (req, res) => {
+exports.surveySelect = async (req, res) => {
   console.log("서베이셀렉트 ");
   let result = await db.query("surveySelect", []);
   console.log("여기다, ", result);
   res.send(result);
 };
 
-const supportPlan = async (req, res) => {
+exports.supportPlan = async (req, res) => {
   console.log("돌겠네");
   try {
     // 쿼리 이름 대신 SQL 문자열 자체를 db.query()에 전달 (db 모듈 설계에 따라 다름)
@@ -22,7 +22,7 @@ const supportPlan = async (req, res) => {
   }
 };
 
-const wardsearch = async (req, res) => {
+exports.wardsearch = async (req, res) => {
   try {
     // 쿼리 이름 대신 SQL 문자열 자체를 db.query()에 전달 (db 모듈 설계에 따라 다름)
     let result = await db.query("wardsearch", []);
@@ -123,21 +123,74 @@ exports.createSchedule = async (req, res) => {
   }
 
   try {
-    const params = [
-      start_time,
-      end_time,
-      staff_name,
-      recurring_rules || "none",
-    ];
+    // recurring_rules를 DB 스키마(CHAR(1))에 맞게 변환
+    const recurringRulesMap = {
+      none: "N",
+      weekly: "W",
+      weekdays: "D",
+    };
+    const recurring_rule_char =
+      recurringRulesMap[recurring_rules] || recurringRulesMap["none"];
 
-    const result = await db.query("createStaffSchedule", params);
+    // --- 반복 날짜 생성 로직 ---
+    const datesToInsert = [];
+    const baseStartDate = new Date(start_time);
+    const baseEndDate = new Date(end_time);
 
-    // 새로 생성된 스케줄 정보 반환 (at_no 포함)
+    if (recurring_rules === "none") {
+      datesToInsert.push({ start: baseStartDate, end: baseEndDate });
+    } else {
+      const recurrenceEndDate = new Date(baseStartDate);
+      recurrenceEndDate.setMonth(recurrenceEndDate.getMonth() + 3); // 3개월 후까지 반복
+
+      let currentDate = new Date(baseStartDate);
+      const dayOfWeek = baseStartDate.getDay(); // 0=일, 1=월, ..., 6=토
+
+      while (currentDate <= recurrenceEndDate) {
+        const currentDayOfWeek = currentDate.getDay();
+
+        if (recurring_rules === "weekly") {
+          if (currentDayOfWeek === dayOfWeek) {
+            const newStartDate = new Date(currentDate);
+            newStartDate.setHours(baseStartDate.getHours(), baseStartDate.getMinutes(), baseStartDate.getSeconds());
+            
+            const newEndDate = new Date(currentDate);
+            newEndDate.setHours(baseEndDate.getHours(), baseEndDate.getMinutes(), baseEndDate.getSeconds());
+
+            datesToInsert.push({ start: newStartDate, end: newEndDate });
+          }
+        } else if (recurring_rules === "weekdays") {
+          if (currentDayOfWeek >= 1 && currentDayOfWeek <= 5) { // 월요일부터 금요일
+            const newStartDate = new Date(currentDate);
+            newStartDate.setHours(baseStartDate.getHours(), baseStartDate.getMinutes(), baseStartDate.getSeconds());
+
+            const newEndDate = new Date(currentDate);
+            newEndDate.setHours(baseEndDate.getHours(), baseEndDate.getMinutes(), baseEndDate.getSeconds());
+            
+            datesToInsert.push({ start: newStartDate, end: newEndDate });
+          }
+        }
+        currentDate.setDate(currentDate.getDate() + 1);
+      }
+    }
+    // --- 반복 날짜 생성 로직 끝 ---
+
+    // 생성된 모든 날짜에 대해 DB에 INSERT
+    for (const datePair of datesToInsert) {
+      const params = [
+        datePair.start, // Date 객체
+        datePair.end,   // Date 객체
+        staff_name,
+        recurring_rule_char,
+      ];
+      await db.query("createStaffSchedule", params);
+    }
+
     res.status(201).json({
       message: "스케줄이 성공적으로 등록되었습니다.",
-      insertedId: result.insertId,
-      at_no: result.insertId, // at_no가 AI PK라고 가정
+      count: datesToInsert.length, // 몇 건이 등록되었는지 정보 제공
     });
+
   } catch (error) {
     console.error("스케줄 생성 오류:", error);
     res.status(500).send({ message: "스케줄 등록 중 오류가 발생했습니다." });
@@ -170,9 +223,4 @@ exports.deleteSchedule = async (req, res) => {
     console.error("스케줄 삭제 오류:", error);
     res.status(500).send({ message: "스케줄 삭제 중 오류가 발생했습니다." });
   }
-};
-
-module.exports = {
-  surveySelect,
-  supportPlan,
 };

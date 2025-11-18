@@ -50,9 +50,9 @@ WHERE
 LIMIT 1`;
 
 /**
- * 담당자 이름(staff_name)으로 '상담가능' 스케줄 조회
+ * 담당자 아이디(staff_id)으로 '상담가능' 스케줄 조회
  * - at_no: 삭제 시 필요
- * - staff_name: 본인 확인용
+ * - staff_id: 본인 확인용
  */
 const getAvailableSlots = `
 SELECT 
@@ -60,7 +60,7 @@ SELECT
     start_time, 
     end_time
 FROM available_time
-WHERE staff_name = ? 
+WHERE staff_id = ? 
   AND status = '상담가능'
   AND start_time >= NOW()
 ORDER BY start_time`;
@@ -87,7 +87,7 @@ const createStaffSchedule = `
 INSERT INTO available_time (
     start_time, 
     end_time, 
-    staff_name, 
+    staff_id, 
     status, 
     recurring_rules,
     created_at
@@ -95,11 +95,11 @@ INSERT INTO available_time (
 
 /**
  * '상담가능' 스케줄 삭제
- * - at_no와 staff_name이 모두 일치해야 삭제 (보안)
+ * - at_no와 staff_id가 모두 일치해야 삭제 (보안)
  */
 const deleteStaffSchedule = `
 DELETE FROM available_time 
-WHERE at_no = ? AND staff_name = ? AND status = '상담가능'`;
+WHERE at_no = ? AND staff_id = ? AND status = '상담가능'`;
 
 module.exports = {
   surveySelect,

@@ -48,7 +48,11 @@ api.interceptors.response.use(
     const authStore = useAuthStore();
 
     // 401 에러이고, 재시도한 요청이 아니며, 로그인 요청이 아닐 때만 토큰 갱신
-    if (error.response?.status === 401 && !originalRequest._retry && originalRequest.url !== '/api/auth/login') {
+    if (
+      error.response?.status === 401 &&
+      !originalRequest._retry &&
+      originalRequest.url !== '/api/auth/login'
+    ) {
       if (isRefreshing) {
         return new Promise(function (resolve, reject) {
           failedQueue.push({ resolve, reject });
@@ -103,6 +107,40 @@ export const reservationApi = {
    */
   cancelReservation: (reservationId) => {
     return api.post(`/api/user/reservations/cancel/${reservationId}`);
+  },
+};
+
+/**
+ * 담당자 스케줄 관련 API
+ */
+export const staffScheduleApi = {
+  /**
+   * 담당자의 스케줄(상담가능, 예약건수)을 조회합니다.
+   * (GET /api/staff/schedules)
+   * @returns {Promise<AxiosResponse<any>>}
+   */
+  getSchedules: () => {
+    return api.get('/api/staff/schedules');
+  },
+
+  /**
+   * 담당자의 상담 가능 스케줄을 생성합니다.
+   * (POST /api/staff/schedule/create)
+   * @param {object} payload - { start_time, end_time, recurring_rules }
+   * @returns {Promise<AxiosResponse<any>>}
+   */
+  createSchedule: (payload) => {
+    return api.post('/api/staff/schedule/create', payload);
+  },
+
+  /**
+   * 담당자의 상담 가능 스케줄을 삭제합니다.
+   * (DELETE /api/staff/schedule/delete/:at_no)
+   * @param {number} at_no - 삭제할 스케줄 ID
+   * @returns {Promise<AxiosResponse<any>>}
+   */
+  deleteSchedule: (at_no) => {
+    return api.delete(`/api/staff/schedule/delete/${at_no}`);
   },
 };
 
