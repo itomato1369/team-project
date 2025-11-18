@@ -106,11 +106,11 @@ ORDER BY
 `;
 
 const userInquirySqls = {
-    
-findSurveysForMyPage: `
+  findSurveysForMyPage: `
 SELECT
-    s.business_name,
+    s.content,
     n.institution_name,
+    s.business_name,
     s.created_at,
     s.status,
     i.inquiry_no
@@ -121,23 +121,23 @@ WHERE s.writer = ?
 ORDER BY s.created_at DESC
 `,
 
-findSurveyByInquiryContent: `
+  findSurveyByInquiryContent: `
 SELECT * FROM survey WHERE content = ?
 `,
 
-updateSurvey: `
+  updateSurvey: `
 UPDATE survey SET updated_at = NOW(), modify_reason = ?, purpose = ?, content = ? WHERE survey_no = ?
 `,
 
-deleteSurveyResultsBySurveyNo: `
+  deleteSurveyResultsBySurveyNo: `
 DELETE FROM survey_result WHERE survey_no = ?
 `,
 
-findSurveyResultsBySurveyNo: `
+  findSurveyResultsBySurveyNo: `
 SELECT * FROM survey_result WHERE survey_no = ?
 `,
 
-findInquiries: `
+  findInquiries: `
 SELECT
     i.inquiry_no,
     i.inquiry_name,
@@ -150,14 +150,14 @@ SELECT
 FROM inquiry i
 LEFT JOIN notice n ON i.notice_no = n.notice_no
 WHERE i.inquiry_status = 1`,
-inquiryList: `select 
+  inquiryList: `select 
  business_no
 , answer_list
 , answer
 , must 
 from inquiry_list`,
 
-findInquiryDetail: `
+  findInquiryDetail: `
 SELECT
     i.inquiry_no,
     i.inquiry_name,
@@ -171,18 +171,18 @@ FROM inquiry i
 LEFT JOIN notice n ON i.notice_no = n.notice_no
 WHERE i.inquiry_no = ?`,
 
-findInquiryQuestions: `SELECT business_no, answer_list AS question_content, question_category, answer AS response_type, must AS is_required, inquiry_no, priority FROM inquiry_list WHERE inquiry_no = ? ORDER BY inquiry_no ASC`,
+  findInquiryQuestions: `SELECT business_no, answer_list AS question_content, question_category, answer AS response_type, must AS is_required, inquiry_no, priority FROM inquiry_list WHERE inquiry_no = ? ORDER BY inquiry_no ASC`,
 
-insertSurvey: `
+  insertSurvey: `
 INSERT INTO survey (ward_no, business_name, purpose, content, writer, status, created_at, updated_at)
 VALUES (?, ?, ?, ?, ?, ?, NOW(), NOW())
 `,
 
-insertSurveyResult: `
+  insertSurveyResult: `
 INSERT INTO survey_result (business_no, survey_answer, survey_no)
 VALUES ?
-`
-}
+`,
+};
 
 module.exports = {
   findUserById,

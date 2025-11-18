@@ -98,9 +98,6 @@ const getInquiries = async () => {
 };
 
 const getInquiryDetail = async (inquiryNo) => {
-  console.log(
-    `*************************************************\n Getting details for inquiryNo: ${inquiryNo}`
-  );
   const inquiryDetailResult = await mapper.query(
     "findInquiryDetail",
     inquiryNo
@@ -145,11 +142,11 @@ const saveInquiryAnswers = async (saveData) => {
     // 1. Insert into survey table using data from the frontend payload
     const surveyParams = [
       inquiryDetail.ward_no,
-      inquiryDetail.business_name || '문의조사',
+      inquiryDetail.business_name || "문의조사",
       inquiryDetail.purpose, // Use purpose from payload
       inquiryDetail.content, // Use content from payload
       inquiryDetail.writer,
-      inquiryDetail.status
+      inquiryDetail.status,
     ];
     const surveyResult = await conn.query(sql.insertSurvey, surveyParams);
     const newSurveyNo = surveyResult.insertId;
@@ -184,8 +181,10 @@ const getSurveyResults = async (surveyNo) => {
 
 const updateSurveyAndResults = async (surveyNo, updateData) => {
   const { answers, modificationReason, purpose, content } = updateData;
-  const filteredAnswers = answers.filter(answer => answer.survey_answer && answer.survey_answer.trim() !== '');
-  
+  const filteredAnswers = answers.filter(
+    (answer) => answer.survey_answer && answer.survey_answer.trim() !== ""
+  );
+
   let conn;
   try {
     conn = await mapper.connectionPool.getConnection();
@@ -196,18 +195,23 @@ const updateSurveyAndResults = async (surveyNo, updateData) => {
 
     // 2. Insert new results (if any)
     if (filteredAnswers.length > 0) {
-      const placeholders = filteredAnswers.map(() => '(?, ?, ?)').join(',');
-      const surveyResultValues = filteredAnswers.flatMap(answer => [
+      const placeholders = filteredAnswers.map(() => "(?, ?, ?)").join(",");
+      const surveyResultValues = filteredAnswers.flatMap((answer) => [
         answer.business_no,
         answer.survey_answer,
-        surveyNo
+        surveyNo,
       ]);
       const insertSql = `INSERT INTO survey_result (business_no, survey_answer, survey_no) VALUES ${placeholders}`;
       await conn.query(insertSql, surveyResultValues);
     }
 
     // 3. Update the main survey's timestamp, modification reason, purpose, and content
-    await conn.query(sql.updateSurvey, [modificationReason, purpose, content, surveyNo]);
+    await conn.query(sql.updateSurvey, [
+      modificationReason,
+      purpose,
+      content,
+      surveyNo,
+    ]);
 
     await conn.commit();
     return { message: "Survey updated successfully." };
@@ -222,7 +226,7 @@ const updateSurveyAndResults = async (surveyNo, updateData) => {
 const getMyPageSurveys = async (writer) => {
   const surveys = await mapper.query("findSurveysForMyPage", writer);
   // Format dates before sending
-  return surveys.map(s => ({
+  return surveys.map((s) => ({
     ...s,
     created_at: formatDate(s.created_at),
   }));

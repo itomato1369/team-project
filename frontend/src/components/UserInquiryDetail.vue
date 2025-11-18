@@ -76,6 +76,7 @@ onMounted(async () => {
       answer: savedAnswersMap.get(q.question_no) || '', // 기존 답변이 있으면 사용, 없으면 빈 문자열
       response_type: q.response_type,
       is_required: q.is_required,
+      priority: q.priority,
     }));
 
   } catch (err) {

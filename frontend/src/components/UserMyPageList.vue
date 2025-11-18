@@ -29,7 +29,9 @@ const fetchMyPageSurveys = async () => {
   loading.value = true;
   error.value = null;
   try {
-    const response = await axios.get('/api/user/my-page-surveys');
+    const response = await axios.get('/api/user/my-page-surveys', {
+      params: { writer: 'test' }
+    });
     myPageSurveys.value = response.data.result;
   } catch (err) {
     console.error('Failed to fetch my page surveys:', err);

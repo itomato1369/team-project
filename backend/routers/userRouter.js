@@ -35,12 +35,15 @@ router.get("/user-notices", async (req, res) => {
   res.status(200).send({ result: nowNotices });
 });
 
+// Called by: src/views/UserDashboard.vue
 router.get("/userwiter-survey", async (req, res) => {
-  // req에서 받은 userName을 서비스로 전달
+  const { writer } = req.query;
+  if (!writer) {
+    return res.status(400).send({ err: "Writer query parameter is required." });
+  }
   let survey = [];
   try {
-    // 임시로 "test" 사용자명 사용
-    survey = await userService.getSurveyToUserWard("test");
+    survey = await userService.getSurveyToUserWard(writer);
   } catch (err) {
     res.send({ err: "userwiter-survey Err: " + err });
   }
@@ -54,18 +57,23 @@ router.get("/user-board", async (req, res) => {
   res.send({ result: boardList });
 });
 
+// Called by: src/components/UserNotice.vue
 router.get("/user-surveys", async (req, res) => {
+  const { writer } = req.query;
+  if (!writer) {
+    return res.status(400).send({ err: "Writer query parameter is required." });
+  }
   let surveys = [];
   console.log("user-surveys 호출: ");
   try {
-    // TODO: 추후 실제 로그인된 사용자 정보로 변경 필요
-    surveys = await userService.getUserSurveys("test");
+    surveys = await userService.getUserSurveys(writer);
   } catch (err) {
     return res.status(500).send({ err: "Failed to get user surveys: " + err });
   }
   res.status(200).send({ result: surveys });
 });
 
+// Called by: src/components/UserInquiry.vue
 router.get("/user-inquiries", async (req, res) => {
   let inquiries = [];
   try {
@@ -78,6 +86,7 @@ router.get("/user-inquiries", async (req, res) => {
   res.status(200).send({ result: inquiries });
 });
 
+// Called by: src/components/UserInquiryDetail.vue, src/components/SurveyDetail.vue
 router.get("/user-inquiries/:id", async (req, res) => {
   console.log("조사지 입력페이지로 야무지게 이동해야쥐.");
   const inquiryNo = req.params.id;
@@ -96,6 +105,7 @@ router.get("/user-inquiries/:id", async (req, res) => {
   res.status(200).send({ result: inquiryDetail });
 });
 
+// Called by: src/components/UserInquiryDetail.vue, src/components/SurveyDetail.vue
 router.get("/user-inquiries/:id/questions", async (req, res) => {
   const inquiryNo = req.params.id;
   try {
@@ -106,6 +116,7 @@ router.get("/user-inquiries/:id/questions", async (req, res) => {
   }
 });
 
+// Called by: src/components/UserInquiryDetail.vue, src/components/SurveyDetail.vue
 router.post("/user-inquiries/answer", async (req, res) => {
   const saveData = req.body;
 
@@ -122,15 +133,19 @@ router.post("/user-inquiries/answer", async (req, res) => {
 });
 
 router.get("/my-page-surveys", async (req, res) => {
+  const { writer } = req.query;
+  if (!writer) {
+    return res.status(400).send({ err: "Writer query parameter is required." });
+  }
   try {
-    // Using 'test' as the writer for now, as per requirements
-    const surveys = await userService.getMyPageSurveys('test');
+    const surveys = await userService.getMyPageSurveys(writer);
     res.status(200).send({ result: surveys });
   } catch (err) {
     return res.status(500).send({ err: "Failed to get my-page surveys: " + err.message });
   }
 });
 
+// Called by: src/components/UserInquiryDetail.vue, src/components/SurveyDetail.vue
 router.put("/survey-results/:surveyNo", async (req, res) => {
   const { surveyNo } = req.params;
   const updateData = req.body;
@@ -147,6 +162,7 @@ router.put("/survey-results/:surveyNo", async (req, res) => {
   }
 });
 
+// Called by: src/components/UserInquiryDetail.vue, src/components/SurveyDetail.vue
 router.get("/survey-results/:surveyNo", async (req, res) => {
   const { surveyNo } = req.params;
   try {
@@ -157,6 +173,7 @@ router.get("/survey-results/:surveyNo", async (req, res) => {
   }
 });
 
+// Called by: src/components/UserInquiryDetail.vue, src/components/SurveyDetail.vue
 router.post("/survey-by-inquiry-content", async (req, res) => {
   const { inquiryName } = req.body;
   if (!inquiryName) {

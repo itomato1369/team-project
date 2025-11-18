@@ -31,7 +31,9 @@ const fetchUserSurveys = async () => {
   loading.value = true;
   error.value = null;
   try {
-    const response = await axios.get('/api/user/user-surveys');
+    const response = await axios.get('/api/user/user-surveys', {
+      params: { writer: 'test' }
+    });
     userSurveys.value = response.data.result;
   } catch (err) {
     console.error('Failed to fetch user surveys:', err);
