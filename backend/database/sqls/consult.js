@@ -112,14 +112,33 @@ ORDER BY at.start_time ASC
 
 /**
  * 담당자가 예약을 취소 (상태를 '상담불가'로 변경)
- * - at_no와 staff_name이 일치하고, '예약' 상태일 때만
+ * - at_no와 staff_id이 일치하고, '예약' 상태일 때만
  */
 const cancelStaffReservation = `
 UPDATE available_time
 SET status = '상담불가'
-WHERE at_no = ? AND staff_name = ? AND status = '예약'
+WHERE at_no = ? AND staff_id = ? AND status = '예약'
 `;
 
+/**
+ * [신규 추가] 예약 생성 시 'available_time' 테이블의 상태를 '예약'으로 변경
+ * - at_no를 기준으로 '상담가능' 상태일 때만 '예약'으로 변경 (중복 예약 방지)
+ */
+const updateAvailableTimeStatusToBooked = `
+UPDATE available_time
+SET status = '예약'
+WHERE at_no = ? AND status = '상담가능'
+`;
+
+/**
+ * [신규] 알림(alarm) 테이블에 알림 삽입
+ */
+const createAlarm = `
+INSERT INTO alarm (
+    content, to_id, from_id, status, res_no, created_at, read_yn
+) 
+VALUES (?, ?, ?, ?, ?, NOW(), 0)
+`;
 module.exports = {
   getAvailableSchedules,
   getUpcomingReservations,
@@ -132,4 +151,6 @@ module.exports = {
   getStaffReservationsByApplicant,
   getStaffReservationsByReason,
   cancelStaffReservation,
+  updateAvailableTimeStatusToBooked,
+  createAlarm,
 };

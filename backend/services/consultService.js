@@ -77,13 +77,13 @@ module.exports.getAvailableSchedules = async (req, res) => {
 
 /**
  * [수정] 신규 상담 예약을 생성
- * - `consult_category` 제거
  */
 module.exports.createReservation = async (req, res) => {
   console.log("--- createReservation Service ---");
+
   try {
-    // `consult_category`를 req.body에서 제거
     const { at_no, start_time_stamp, name, res_reason } = req.body;
+
     console.log("Request Payload:", req.body);
 
     const user_id = "test"; // (임시 하드코딩)
@@ -93,13 +93,13 @@ module.exports.createReservation = async (req, res) => {
         message: "필수 정보(at_no, start_time_stamp)가 누락되었습니다.",
       });
     }
-
     // 1. staff_id 조회
     console.log(`Executing Query: getStaffIdByAtNo with at_no = ${at_no}`);
     const staffResult = await db.query("getStaffIdByAtNo", [at_no]);
 
     if (!staffResult || staffResult.length === 0) {
-      console.warn("Staff ID not found for at_no:", at_no);
+      console.warn("Staff ID not found for at_no:", at_no); // [신규] 롤백 로직 (선점한 슬롯 다시 '상담가능'으로)
+
       return res
         .status(404)
         .send({ message: "유효하지 않은 예약 블록입니다." });
@@ -116,7 +116,7 @@ module.exports.createReservation = async (req, res) => {
     const params = [
       user_id,
       staff_id,
-      name || "홍길동", // (임시 - 실제로는 authStore 등에서 가져와야 함)
+      name || "김밥", // (임시 - 실제로는 authStore 등에서 가져와야 함)
       res_start,
       res_end,
       res_reason || "",
@@ -124,12 +124,34 @@ module.exports.createReservation = async (req, res) => {
     ];
 
     console.log(`Executing Query: createReservation with params:`, params);
-    await db.query("createReservation", params);
+    const insertResult = await db.query("createReservation", params);
+    const newResNo = insertResult.insertId; // 방금 생성된 res_no
 
+    // 5. [신규] 알림(alarm) 생성 (담당자에게)
+    if (newResNo) {
+      // 4. [신규] available_time 테이블의 상태를 '예약'으로 변경
+      await db.query("updateAvailableTimeStatusToBooked", [at_no]);
+      console.log(`Available time status updated to '예약' for at_no ${at_no}`);
+      // [수정] 쿼리 이름을 사용하도록 변경
+      console.log(`Executing Query: createAlarm for res_no ${newResNo}`);
+
+      console.log(
+        `Executing Query: updateAvailableTimeStatusToBooked for at_no ${at_no}`
+      );
+      await db.query("createAlarm", [
+        `[신규 예약] ${name || "홍길동"} 님의 상담 예약이 신청되었습니다.`, // content
+        staff_id, // to_id (담당자)
+        user_id, // from_id (신청자)
+        "예약확정", // status
+        newResNo, // res_no
+      ]);
+      console.log(`Alarm created for res_no ${newResNo}`);
+    }
     console.log("Reservation successful (slot reserved).");
     res.status(201).send({ message: "상담 예약이 완료되었습니다." });
   } catch (error) {
     console.error("예약 생성 오류:", error);
+
     if (error.code === "ER_DUP_ENTRY") {
       return res
         .status(409)
@@ -158,8 +180,7 @@ module.exports.getMyReservations = async (req, res) => {
 };
 
 /**
- * [신규] 상담 예약 취소
- * (변경 없음)
+ * 상담 예약 취소
  */
 module.exports.cancelMyReservation = async (req, res) => {
   console.log("--- cancelMyReservation Service ---");
@@ -174,6 +195,8 @@ module.exports.cancelMyReservation = async (req, res) => {
         .status(404)
         .send({ message: "예약을 찾을 수 없거나 취소 권한이 없습니다." });
     }
+
+    console.log(`Slot for res_no ${res_no} reverted to '상담가능'.`);
     res.status(200).send({ message: "예약이 취소되었습니다." });
   } catch (error) {
     console.error("예약 취소 오류:", error);

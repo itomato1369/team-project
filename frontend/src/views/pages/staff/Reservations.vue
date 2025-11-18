@@ -1,30 +1,31 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue';
-// api.js에서 staffReservationApi 임포트 (경로는 실제 위치에 맞게 수정)
+// api.js에서 staffReservationApi 임포트
 import { staffReservationApi } from '@/api/api';
+// [신규] 모달 컴포넌트 임포트 (경로 수정 필요)
+import ReservationCancelModal from './ReservationCancelModal.vue';
 
 // --- Reactive State ---
 
 // 검색 관련
-const searchType = ref('date'); // 'date', 'applicant', 'reason'
+const searchType = ref('date');
 const searchStartDate = ref('');
 const searchEndDate = ref('');
 const searchKeyword = ref('');
 
 // 목록 데이터
-const reservationList = ref([]); // API 응답으로 채워짐
+const reservationList = ref([]);
 const isLoading = ref(false);
 const error = ref(null);
 
-// 모달 관련
+// 모달 관련 (상태는 부모가 계속 관리)
 const isModalOpen = ref(false);
 const currentReservation = ref(null);
-const isCanceling = ref(false); // 취소 API 호출 중 상태
-const modalError = ref(null); // 모달 내 에러 메시지
+const isCanceling = ref(false);
+const modalError = ref(null);
 
 // --- Computed Properties ---
 
-// 검색창 Placeholder
 const searchInputPlaceholder = computed(() => {
   if (searchType.value === 'applicant') {
     return '보호자 이름을 입력하세요';
@@ -37,12 +38,11 @@ const searchInputPlaceholder = computed(() => {
 
 // --- Methods ---
 
-// (Helper) 날짜 포맷팅 함수
+// (Helper) 날짜 포맷팅 함수 (테이블에서 사용)
 function formatDateTime(isoString) {
   if (!isoString) return '날짜 정보 없음';
   try {
     const date = new Date(isoString);
-    // 'yyyy년 MM월 dd일 HH:mm' 형식
     return date.toLocaleString('ko-KR', {
       year: 'numeric',
       month: 'long',
@@ -52,34 +52,41 @@ function formatDateTime(isoString) {
       hour12: false,
     });
   } catch (e) {
-    console.error('Date formatting error:', e);
     return isoString;
   }
 }
 
-// (API) 예약 목록 조회 (요구사항 1, 2)
+// (API) 예약 목록 조회
 async function fetchReservations() {
   isLoading.value = true;
   error.value = null;
 
-  // 1. 검색 파라미터 구성
   const params = {
     searchType: searchType.value,
   };
 
   if (searchType.value === 'date') {
-    params.startDate = searchStartDate.value || null; // 빈 문자열 대신 null
+    params.startDate = searchStartDate.value || null;
     params.endDate = searchEndDate.value || null;
   } else {
     params.keyword = searchKeyword.value;
   }
 
   try {
-    // 2. API 호출
     const response = await staffReservationApi.getReservations(params);
 
-    // (참고) 백엔드 응답 구조에 따라 response.data.list 또는 response.data일 수 있음
-    reservationList.value = response.data;
+    // (수정) 백엔드 응답 스키마에 맞게 컬럼명 수정
+    // (atNo, start_time, status, id, reason, counselingType, applicantName, patientName)
+    reservationList.value = response.data.map((item) => ({
+      ...item,
+      // create (2).sql 스키마에 맞게 컬럼명 재확인
+      start_time: item.start_time,
+      applicantName: item.applicantName, // (m.user_name)
+      patientName: item.patientName, // (res.name)
+      reason: item.reason, // (res.res_reason)
+      atNo: item.atNo, // (at.at_no)
+      id: item.id, // (res.res_no)
+    }));
   } catch (err) {
     console.error('예약 목록 조회 실패:', err);
     error.value = err;
@@ -90,48 +97,45 @@ async function fetchReservations() {
 
 // 검색 버튼 클릭
 function executeSearch() {
-  // fetchReservations 함수가 파라미터를 사용하므로 그냥 호출
   fetchReservations();
 }
 
 // 컴포넌트 마운트 시 초기 목록 조회
 onMounted(() => {
-  // (선택) 초기 날짜 설정 (예: 오늘 날짜)
-  // searchStartDate.value = new Date().toISOString().split('T')[0];
-
   fetchReservations();
 });
 
-// 기록 작성 (요구사항 4)
+// 기록 작성
 function writeRecord(reservation) {
   console.log(`(Action) 기록 작성 페이지로 이동:`);
-  console.log(`Available Time No (at_no): ${reservation.atNo}`); // 백엔드 응답의 at_no 필드명 확인 필요
+  console.log(`Available Time No (at_no): ${reservation.atNo}`);
 
   // location.href = `/counseling/record/new?at_no=${reservation.atNo}`;
   alert(`'기록 작성' 클릭 (at_no: ${reservation.atNo}). 상담일지 작성 페이지로 이동합니다.`);
 }
 
-// 예약 취소 모달 열기
+// --- [수정] 모달 로직 ---
+
+// 예약 취소 모달 열기 (상태 설정)
 function openCancelModal(reservation) {
   currentReservation.value = reservation;
-  modalError.value = null; // 모달 열 때 에러 초기화
+  modalError.value = null;
   isModalOpen.value = true;
 }
 
-// 예약 취소 모달 닫기
+// 예약 취소 모달 닫기 (상태 초기화)
 function closeCancelModal() {
   isModalOpen.value = false;
   currentReservation.value = null;
   isCanceling.value = false;
+  modalError.value = null; // 닫을 때 모달 에러도 초기화
 }
 
-// 예약 취소 확정 (요구사항 3)
+// 예약 취소 확정 (API 호출)
 async function confirmCancel() {
   if (!currentReservation.value || isCanceling.value) return;
 
   const reservationToCancel = currentReservation.value;
-  // (중요) 백엔드 API가 /:at_no를 받기로 했으므로, 'atNo' 필드가 필요
-  //       응답 데이터에 'atNo' 필드가 없다면 필드명을 맞춰야 함
   const atNo = reservationToCancel.atNo;
 
   if (!atNo) {
@@ -143,27 +147,19 @@ async function confirmCancel() {
   modalError.value = null;
 
   try {
-    // 1. (API) 취소 API 호출
     await staffReservationApi.cancelReservationByStaff(atNo);
-
     console.log(`(DB) UPDATE available_time SET status = '상담불가' WHERE at_no = ${atNo};`);
-
-    // 2. (UI) 목록에서 제거 (또는 목록 새로고침)
-    // (옵션 1: 즉시 제거)
-    // reservationList.value = reservationList.value.filter(
-    //   (item) => item.atNo !== atNo
-    // );
 
     // (옵션 2: 목록 새로고침 - 추천)
     await fetchReservations();
 
-    // 3. 모달 닫기
+    // 3. 모달 닫기 (상태 초기화)
     closeCancelModal();
   } catch (err) {
     console.error('예약 취소 실패:', err);
     modalError.value = err.response?.data?.message || err.message || '알 수 없는 오류 발생';
   } finally {
-    isCanceling.value = false;
+    isCanceling.value = false; // 에러 발생 시에도 로딩 해제
   }
 }
 </script>
@@ -242,7 +238,6 @@ async function confirmCancel() {
         <table class="min-w-full divide-y divide-gray-200">
           <thead class="bg-gray-50">
             <tr>
-              <!-- ... (thead columns) ... -->
               <th
                 scope="col"
                 class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
@@ -296,7 +291,6 @@ async function confirmCancel() {
             </tr>
             <!-- 데이터 있음 -->
             <tr v-else v-for="reservation in reservationList" :key="reservation.id">
-              <!-- (백엔드 응답에 따라 key는 reservation.atNo 또는 reservation.resNo 등이 될 수 있습니다) -->
               <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                 {{ formatDateTime(reservation.start_time) }}
               </td>
@@ -332,7 +326,6 @@ async function confirmCancel() {
       <div
         class="flex items-center justify-between border-t border-gray-200 bg-white px-4 py-3 sm:px-6"
       >
-        <!-- ... (pagination code) ... -->
         <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
           <div>
             <p class="text-sm text-gray-700">
@@ -394,52 +387,17 @@ async function confirmCancel() {
     </div>
   </div>
 
-  <!-- 예약 취소 확인 모달 -->
-  <div
-    v-if="isModalOpen"
-    class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50"
-  >
-    <div class="bg-white rounded-lg shadow-xl w-full max-w-md transform transition-all">
-      <div class="px-6 py-4 border-b">
-        <h3 class="text-lg font-medium leading-6 text-gray-900">예약 취소 확인</h3>
-      </div>
-      <div class="p-6">
-        <p class="text-sm text-gray-700">정말로 이 예약을 취소하시겠습니까?</p>
-        <div v-if="currentReservation" class="mt-2 text-sm text-gray-600">
-          <p><strong>일시:</strong> {{ formatDateTime(currentReservation.start_time) }}</p>
-          <p><strong>신청인:</strong> {{ currentReservation.applicantName }}</p>
-        </div>
-        <p class="mt-4 text-sm text-yellow-700 bg-yellow-50 p-3 rounded-md">
-          (요구사항 3) 취소 시, 해당 시간 슬롯은 '상담불가' 상태로 변경되며 신청자에게 알림이
-          전송됩니다.
-        </p>
-        <!-- 취소 API 에러 메시지 -->
-        <p v-if="modalError" class="mt-4 text-sm text-red-600">취소 실패: {{ modalError }}</p>
-      </div>
-      <div class="px-6 py-4 bg-gray-50 flex justify-end space-x-3">
-        <button
-          type="button"
-          @click="closeCancelModal"
-          class="px-4 py-2 bg-white border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-        >
-          닫기
-        </button>
-        <button
-          type="button"
-          @click="confirmCancel"
-          :disabled="isCanceling"
-          class="px-4 py-2 bg-red-600 border border-transparent rounded-md shadow-sm text-sm font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50"
-        >
-          {{ isCanceling ? '취소 중...' : '예약 취소' }}
-        </button>
-      </div>
-    </div>
-  </div>
+  <!-- [수정] 분리된 모달 컴포넌트 사용 -->
+  <ReservationCancelModal
+    :is-open="isModalOpen"
+    :reservation="currentReservation"
+    :is-canceling="isCanceling"
+    :error="modalError"
+    @confirm="confirmCancel"
+    @close="closeCancelModal"
+  />
 </template>
 
 <style scoped>
-/* (scoped styles) */
-/* Tailwind CSS가 대부분의 스타일을 처리하므로 
-   scoped style은 일반적으로 필요하지 않거나 
-   특정 컴포넌트 오버라이드에 사용됩니다. */
+/* 메인 페이지 스타일 (필요한 경우) */
 </style>
