@@ -121,4 +121,53 @@ router.post("/user-inquiries/answer", async (req, res) => {
   }
 });
 
+router.get("/my-page-surveys", async (req, res) => {
+  try {
+    // Using 'test' as the writer for now, as per requirements
+    const surveys = await userService.getMyPageSurveys('test');
+    res.status(200).send({ result: surveys });
+  } catch (err) {
+    return res.status(500).send({ err: "Failed to get my-page surveys: " + err.message });
+  }
+});
+
+router.put("/survey-results/:surveyNo", async (req, res) => {
+  const { surveyNo } = req.params;
+  const updateData = req.body;
+
+  if (!updateData || !updateData.answers || !Array.isArray(updateData.answers)) {
+    return res.status(400).send({ err: "Invalid data format." });
+  }
+
+  try {
+    await userService.updateSurveyAndResults(surveyNo, updateData);
+    res.status(200).send({ message: "Survey updated successfully." });
+  } catch (err) {
+    return res.status(500).send({ err: "Failed to update survey: " + err.message });
+  }
+});
+
+router.get("/survey-results/:surveyNo", async (req, res) => {
+  const { surveyNo } = req.params;
+  try {
+    const results = await userService.getSurveyResults(surveyNo);
+    res.status(200).send({ result: results });
+  } catch (err) {
+    return res.status(500).send({ err: "Failed to get survey results: " + err.message });
+  }
+});
+
+router.post("/survey-by-inquiry-content", async (req, res) => {
+  const { inquiryName } = req.body;
+  if (!inquiryName) {
+    return res.status(400).send({ err: "inquiryName is required." });
+  }
+  try {
+    const survey = await userService.getSurveyByInquiryContent(inquiryName);
+    res.status(200).send({ result: survey });
+  } catch (err) {
+    return res.status(500).send({ err: "Failed to get survey: " + err.message });
+  }
+});
+
 module.exports = router;

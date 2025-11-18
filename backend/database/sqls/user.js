@@ -92,10 +92,7 @@ SELECT
     n.business_name,
     w.name AS ward_name,
     n.business_end AS deadline,
-    CASE
-        WHEN s.survey_no IS NOT NULL THEN s.status
-        ELSE '미제출'
-    END AS submission_status,
+    s.status AS submission_status,
     n.notice_no,
     w.ward_no
 FROM
@@ -110,6 +107,36 @@ ORDER BY
 
 const userInquirySqls = {
     
+findSurveysForMyPage: `
+SELECT
+    s.business_name,
+    n.institution_name,
+    s.created_at,
+    s.status,
+    i.inquiry_no
+FROM survey s
+LEFT JOIN notice n ON s.business_name = n.business_name
+LEFT JOIN inquiry i ON s.content = i.inquiry_name
+WHERE s.writer = ?
+ORDER BY s.created_at DESC
+`,
+
+findSurveyByInquiryContent: `
+SELECT * FROM survey WHERE content = ?
+`,
+
+updateSurvey: `
+UPDATE survey SET updated_at = NOW(), modify_reason = ?, purpose = ?, content = ? WHERE survey_no = ?
+`,
+
+deleteSurveyResultsBySurveyNo: `
+DELETE FROM survey_result WHERE survey_no = ?
+`,
+
+findSurveyResultsBySurveyNo: `
+SELECT * FROM survey_result WHERE survey_no = ?
+`,
+
 findInquiries: `
 SELECT
     i.inquiry_no,

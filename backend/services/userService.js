@@ -145,11 +145,11 @@ const saveInquiryAnswers = async (saveData) => {
     // 1. Insert into survey table using data from the frontend payload
     const surveyParams = [
       inquiryDetail.ward_no,
-      inquiryDetail.business_name || "문의조사",
-      inquiryDetail.purpose,
-      inquiryDetail.inquiry_name,
+      inquiryDetail.business_name || '문의조사',
+      inquiryDetail.purpose, // Use purpose from payload
+      inquiryDetail.content, // Use content from payload
       inquiryDetail.writer,
-      inquiryDetail.status,
+      inquiryDetail.status
     ];
     const surveyResult = await conn.query(sql.insertSurvey, surveyParams);
     const newSurveyNo = surveyResult.insertId;
@@ -172,6 +172,62 @@ const saveInquiryAnswers = async (saveData) => {
   }
 };
 
+const getSurveyByInquiryContent = async (inquiryName) => {
+  const survey = await mapper.query("findSurveyByInquiryContent", inquiryName);
+  return survey[0];
+};
+
+const getSurveyResults = async (surveyNo) => {
+  const results = await mapper.query("findSurveyResultsBySurveyNo", surveyNo);
+  return results;
+};
+
+const updateSurveyAndResults = async (surveyNo, updateData) => {
+  const { answers, modificationReason, purpose, content } = updateData;
+  const filteredAnswers = answers.filter(answer => answer.survey_answer && answer.survey_answer.trim() !== '');
+  
+  let conn;
+  try {
+    conn = await mapper.connectionPool.getConnection();
+    await conn.beginTransaction();
+
+    // 1. Delete old results
+    await conn.query(sql.deleteSurveyResultsBySurveyNo, [surveyNo]);
+
+    // 2. Insert new results (if any)
+    if (filteredAnswers.length > 0) {
+      const placeholders = filteredAnswers.map(() => '(?, ?, ?)').join(',');
+      const surveyResultValues = filteredAnswers.flatMap(answer => [
+        answer.business_no,
+        answer.survey_answer,
+        surveyNo
+      ]);
+      const insertSql = `INSERT INTO survey_result (business_no, survey_answer, survey_no) VALUES ${placeholders}`;
+      await conn.query(insertSql, surveyResultValues);
+    }
+
+    // 3. Update the main survey's timestamp, modification reason, purpose, and content
+    await conn.query(sql.updateSurvey, [modificationReason, purpose, content, surveyNo]);
+
+    await conn.commit();
+    return { message: "Survey updated successfully." };
+  } catch (err) {
+    if (conn) await conn.rollback();
+    throw new Error("Failed to update survey: " + err.message);
+  } finally {
+    if (conn) conn.release();
+  }
+};
+
+const getMyPageSurveys = async (writer) => {
+  const surveys = await mapper.query("findSurveysForMyPage", writer);
+  // Format dates before sending
+  return surveys.map(s => ({
+    ...s,
+    created_at: formatDate(s.created_at),
+  }));
+};
+
 module.exports = {
   getExpiringNotices,
   getSurveyToUserWard,
@@ -181,4 +237,8 @@ module.exports = {
   getInquiryDetail,
   saveInquiryAnswers,
   getInquiryQuestions,
+  getSurveyByInquiryContent,
+  getSurveyResults,
+  updateSurveyAndResults,
+  getMyPageSurveys,
 };
