@@ -99,6 +99,21 @@ router.post("/", async (req, res) => {
     if (conn) conn.release();
   }
 });
+// 사업명 불러오기
+router.get("/notices/list", async (req, res) => {
+  console.log("[surveyRouter] GET /notices/list 요청 받음 (사업명 옵션)");
+  try {
+    // 'noticeList'는 sqlList.js에 notice 테이블을 조회하는 쿼리 키입니다.
+    const noticeRows = await query("noticeList"); // 프론트엔드에서 기대하는 { notices: [...] } 형식으로 응답
+    res.status(200).json({
+      notices: noticeRows,
+    });
+  } catch (err) {
+    console.error("Notice 목록 DB 조회 실패:", err);
+    res.status(500).json({ message: "서버 오류: 공지사항 목록 조회 실패" });
+  }
+});
+
 // ==========================================================
 // 라우트 2: GET /system/survey/:id (상세보기)
 // [중요!] 모든 로직은 'async (req, res) => { ... }' *안*에 있어야 합니다.

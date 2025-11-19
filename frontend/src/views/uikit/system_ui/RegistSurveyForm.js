@@ -1,6 +1,6 @@
 // src/views/uikit/system_ui/RegistSurveyForm.js
 
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import axios from 'axios';
 import { useToast } from 'primevue/usetoast'; // 👈 1. [추가]
@@ -13,10 +13,9 @@ export function RegistSurveyForm() {
   const confirm = useConfirm(); // 👈 4. [추가]
   // --- 옵션 목록 (기존과 동일) ---
 
-  const businessItems = ref([
-    { name: '사업명 1', code: 'Business 1' },
-    { name: '사업명 2', code: 'Business 2' },
-  ]);
+  const businessItems = ref([]);
+  const allNotices = ref([]);
+  const relatedNoticeContent = ref('');
   const statuses = ref([
     { name: '상태1', code: 0 },
     { name: '상태2', code: 1 },
@@ -37,7 +36,34 @@ export function RegistSurveyForm() {
     status: null,
   });
   const questionList = ref([]); // --- 헬퍼 및 폼 관리 함수 (기존과 동일) ---
+  const fetchBusinessItems = async () => {
+    try {
+      // 🚨 실제 API 엔드포인트로 변경해야 합니다.
+      // 서버는 notice 테이블의 notice_no, notice_title, content를 반환해야 합니다.
+      const response = await axios.get('/api/system/survey/notices/list');
 
+      // 응답 데이터 (예시 데이터 구조를 notice 테이블 결과로 가정):
+      // [{ notice_no: 10, notice_title: '공지사항A', content: '내용A' }, ...]
+
+      const fetchedData = response.data.notices || [];
+
+      allNotices.value = fetchedData;
+
+      // Select 컴포넌트가 요구하는 { name: '표시 이름', code: '고유 값' } 구조로 매핑
+      businessItems.value = fetchedData.map((notice) => ({
+        name: notice.content, // notice 테이블의 title을 이름으로 사용
+        code: notice.notice_no, // notice 테이블의 PK(notice_no)를 코드로 사용
+      }));
+    } catch (error) {
+      console.error('사업명 목록(Notice) 로드 실패:', error);
+      toast.add({
+        severity: 'error',
+        summary: '로딩 실패',
+        detail: '공지사항 목록을 불러오지 못했습니다.',
+        life: 5000,
+      });
+    }
+  };
   function createNewQuestion() {
     return { id: Date.now(), content: '', responseType: null, required: false, priority: null };
   }
@@ -142,6 +168,28 @@ export function RegistSurveyForm() {
       });
     } // 2. 백엔드로 보낼 데이터 조립 (기존과 동일)
 
+    // --- [신규 로직] basicInfo.businessItem 변경 감지 및 content 추출 ---
+    watch(
+      () => basicInfo.value.businessItem,
+      (newVal) => {
+        if (newVal && newVal.code) {
+          // 1. 선택된 항목의 고유 코드(notice_no)를 사용하여 allNotices에서 원본 데이터 찾기
+          const selectedNotice = allNotices.value.find(
+            (notice) => notice.notice_no === newVal.code
+          );
+
+          // 2. 해당 notice의 content를 ref에 저장 (없으면 빈 문자열)
+          if (selectedNotice) {
+            relatedNoticeContent.value = selectedNotice.content;
+          } else {
+            relatedNoticeContent.value = '관련 공지 내용을 찾을 수 없습니다.';
+          }
+        } else {
+          relatedNoticeContent.value = '';
+        }
+      },
+      { immediate: true }
+    );
     const surveyData = { ...basicInfo.value, questionList: questionList.value, writer: '관리자' };
 
     try {
@@ -180,6 +228,7 @@ export function RegistSurveyForm() {
   } // --- [수정] onMounted (Toast 적용) ---
 
   onMounted(() => {
+    fetchBusinessItems();
     const savedData = localStorage.getItem(tempStorageKey);
     if (savedData) {
       try {
@@ -218,5 +267,6 @@ export function RegistSurveyForm() {
     saveTemp,
     requestApproval,
     clearTemp,
+    relatedNoticeContent,
   };
 }

@@ -1,5 +1,4 @@
 <script setup>
-// [!!!! 추가 !!!!] PrimeVue 컴포넌트들을 import 해야 합니다.
 import DataTable from 'primevue/datatable';
 import Column from 'primevue/column';
 import Button from 'primevue/button';
@@ -8,7 +7,6 @@ import IconField from 'primevue/iconfield';
 import InputIcon from 'primevue/inputicon';
 import MultiSelect from 'primevue/multiselect';
 import DatePicker from 'primevue/datepicker';
-// ---
 
 import { FilterMatchMode, FilterOperator } from '@primevue/core/api';
 import { onMounted, reactive, ref } from 'vue';
@@ -17,6 +15,7 @@ import axios from 'axios'; // 👈 2. [추가] axios import
 
 const router = useRouter();
 const datas = ref([]);
+const selectedFiles = ref([]);
 
 const filters1 = ref({
   global: { value: null, matchMode: FilterMatchMode.CONTAINS },
@@ -152,6 +151,74 @@ function formatDate(value) {
     year: 'numeric',
   });
 }
+const downloadFile = async function downloadFile(fileNo) {
+  try {
+    const response = await axios.get(`/api/system/data-board/download/${fileNo}`, {
+      responseType: 'blob',
+    });
+
+    const blob = new Blob([response.data]);
+    const url = window.URL.createObjectURL(blob);
+
+    const link = document.createElement('a');
+    link.href = url;
+
+    const contentDisposition = response.headers['content-disposition'];
+    let fileName = fileNo;
+
+    if (contentDisposition) {
+      const match = contentDisposition.match(/filename="?(.+)"?/);
+      if (match) fileName = decodeURIComponent(match[1]);
+    }
+
+    link.download = fileName;
+    link.click();
+    window.URL.revokeObjectURL(url);
+  } catch (err) {
+    console.error('파일 다운로드 실패:', err);
+  }
+};
+const downloadZip = async function downloadZip(file) {
+  // 👈 인자 fileNo 제거
+  try {
+    // 1. 선택된 파일 객체에서 board_no (또는 file_no.name)만 추출하여 배열 생성
+    const fileNos = selectedFiles.value.map((file) => file.file_no.name);
+
+    if (fileNos.length === 0) {
+      alert('다운로드할 파일을 선택해주세요.');
+      return;
+    } // 2. POST 요청으로 fileNos 배열을 Body에 전달
+
+    const response = await axios.post(
+      `/api/system/data-board/download-multi`,
+      { fileNos: fileNos },
+      {
+        responseType: 'blob',
+      }
+    );
+
+    const blob = new Blob([response.data]);
+    const url = window.URL.createObjectURL(blob);
+
+    const link = document.createElement('a');
+    link.href = url;
+
+    const contentDisposition = response.headers['content-disposition'];
+    let fileName = 'files.zip';
+
+    if (contentDisposition) {
+      const match = contentDisposition.match(/filename="?(.+)"?/);
+      if (match) fileName = decodeURIComponent(match[1]);
+    }
+
+    link.download = fileName;
+    link.click();
+    window.URL.revokeObjectURL(url);
+    selectedFiles.value = [];
+  } catch (err) {
+    console.error('파일 다운로드 실패:', err);
+  }
+};
 </script>
 
 <template>
@@ -222,31 +289,17 @@ function formatDate(value) {
           ></Button>
         </template>
       </Column>
-      <Column
-        header="첨부 파일"
-        filterField="representative"
-        :showFilterMatchModes="false"
-        :filterMenuStyle="{ width: '14rem' }"
-        style="min-width: 14rem"
-      >
+      <Column header="첨부 파일" style="min-width: 8rem">
         <template #body="{ data }">
-          <div class="flex items-center gap-2">
-            <span>{{ data.file_no.name }}</span>
+          <div v-if="data.file_no.name">
+            <!-- 디스켓 아이콘 클릭 시 다운로드 -->
+            <i
+              class="pi pi-save"
+              style="cursor: pointer; font-size: 1.2rem"
+              @click="downloadFile(data.file_no.name)"
+              title="파일 다운로드"
+            ></i>
           </div>
-        </template>
-        <template #filter="{ filterModel }">
-          <MultiSelect
-            v-model="filterModel.value"
-            :options="representatives"
-            optionLabel="name"
-            placeholder="Any"
-          >
-            <template #option="slotProps">
-              <div class="flex items-center gap-2">
-                <span>{{ slotProps.option.name }}</span>
-              </div>
-            </template>
-          </MultiSelect>
         </template>
       </Column>
       <Column

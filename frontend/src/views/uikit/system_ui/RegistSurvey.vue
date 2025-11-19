@@ -1,5 +1,4 @@
 <script setup>
-import { onBeforeMount } from 'vue';
 // 1. 방금 만든 Composable을 import 합니다.
 import { RegistSurveyForm } from './RegistSurveyForm.js';
 
@@ -11,7 +10,7 @@ const {
   priorityList,
   basicInfo,
   questionList,
-
+  relatedNoticeContent,
   addForm,
   removeQuestion,
   saveTemp,

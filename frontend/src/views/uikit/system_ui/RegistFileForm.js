@@ -28,59 +28,64 @@ export function RegistFileForm1() {
     institution_name: null,
   });
   const fileList = ref([]); // --- 헬퍼 및 폼 관리 함수 (기존과 동일) ---
+  // ⭐ requestApproval 함수가 파일 객체를 인수로 받도록 수정
+  const requestApproval = async (fileObject) => {
+    // 1. 유효성 검사 (Toast 피드백)
+    if (!basicInfo.value.institution_name || !basicInfo.value.writer || !basicInfo.value.title) {
+      return toast.add({
+        severity: 'warn',
+        summary: '입력 필요',
+        detail: '자료명, 작성기관, 작성자를 모두 입력하세요.',
+        life: 3000,
+      });
+    }
 
-  const requestApproval = async () => {
-    // 1. 유효성 검사 (Toast 피드백으로 변경)
-    if (!basicInfo.value.institution_name) {
-      return toast.add({
-        severity: 'warn',
-        summary: '입력 필요',
-        detail: '기관명을 입력하세요.',
-        life: 3000,
-      });
-    }
-    if (!basicInfo.value.writer) {
-      return toast.add({
-        severity: 'warn',
-        summary: '입력 필요',
-        detail: '작성자를 입력하세요.',
-        life: 3000,
-      });
-    }
-    if (!basicInfo.value.title) {
-      return toast.add({
-        severity: 'warn',
-        summary: '입력 필요',
-        detail: '파일명을 입력하세요.',
-        life: 3000,
-      });
-    }
-    if (basicInfo.value.file_no == null) {
+    // ⭐️ 2. 파일 첨부 여부 검사 (file_no가 아닌 fileObject 존재 여부로 검사)
+    if (!fileObject) {
       return toast.add({
         severity: 'warn',
         summary: '입력 필요',
         detail: '파일을 첨부하세요.',
         life: 3000,
       });
-    } // 2. 백엔드로 보낼 데이터 조립 (기존과 동일)
+    }
+    // 3. 백엔드로 보낼 FormData 조립 (파일 업로드 필수)
+    const formData = new FormData();
 
-    const fileData = { ...basicInfo.value };
+    // ⭐ 파일 데이터 추가 (백엔드에서 'uploadFile' 키로 받습니다)
+    formData.append('uploadFile', fileObject);
+
+    // ⭐ 메타데이터 추가
+    formData.append('institution_name', basicInfo.value.institution_name.name); // 예시: Select 옵션의 name 필드를 보낸다고 가정
+    formData.append('writer', basicInfo.value.writer);
+    formData.append('title', basicInfo.value.title);
+
+    // files 테이블에 필요한 추가 정보 (백엔드 라우터에서 사용)
+    formData.append('parent_id', 1); // 예시 값
+    formData.append('parent_tablename', 'board'); // 예시 값
 
     try {
-      // 3. 백엔드 POST API 호출
-      const postResponse = await axios.post('/api/system/data-board', fileData);
+      // 4. 백엔드 POST API 호출 (파일 업로드용 API)
+      // '/api/system/data-board'가 아닌, 파일을 처리하는 라우터로 변경
+      const postResponse = await axios.post('/api/system/data-board', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data', // 파일 업로드 시 필수
+        },
+      });
 
-      // 4. 등록 성공 (🚨 [수정] 구문 오류 '=' 제거됨)
+      // 5. 등록 성공
+      const newFileNo = postResponse.data.fileNo; // 백엔드 응답에서 fileNo 추출
+
       toast.add({
         severity: 'success',
         summary: '등록 성공',
-        detail: '조사지가 성공적으로 등록되었습니다!',
+        detail: `파일 및 게시글 등록 완료! (File No: ${newFileNo})`,
         life: 3000,
-      }); // 5. localStorage의 임시 데이터 삭제
+      });
 
-      router.push({ name: 'FileList' });
+      router.push('/system/data-board'); // 목록 페이지로 이동
     } catch (err) {
-      // 7. 등록 실패
+      // 6. 등록 실패
       console.error('등록 실패:', err);
       toast.add({
         severity: 'error',
@@ -89,13 +94,11 @@ export function RegistFileForm1() {
         life: 5000,
       });
     }
-    // 🚨 [수정] }; (함수 닫기)를 catch 블록 밖으로 올바르게 이동
-  }; // --- 초기화 로직 (기존과 동일) ---
+  };
 
   return {
-    fileList,
-    basicInfo,
-    requestApproval,
     institutionList,
+    basicInfo,
+    requestApproval, // 이 함수를 Vue 컴포넌트에서 사용합니다.
   };
 }
