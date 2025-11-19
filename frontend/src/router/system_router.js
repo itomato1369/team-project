@@ -6,40 +6,51 @@ const systemRouter = [
     component: AppLayout,
     children: [
       {
-        path: '/system',
+        path: '/system', // 시스템 관리자 메인 페이지
         name: 'sysMain',
         component: () => import('@/views/uikit/system_ui/SystemMain.vue'),
       },
       {
-        path: '/system/approval',
+        path: '/system/approval', // 권한승인 페이지
         name: 'sysApproval',
         component: () => import('@/views/uikit/system_ui/SystemApproval.vue'),
       },
       {
-        path: '/system/institutions',
+        path: '/system/institutions', // 등록된 기관 목록
         name: 'sysInstitutionList',
         component: () => import('@/views/uikit/system_ui/SystemInstitution.vue'),
       },
       {
-        path: '/system/institutions/register',
+        path: '/system/institutions/register', // 새로운 기관 등록
         name: 'sysInstitutionRegister',
         component: () => import('@/views/uikit/system_ui/SystemInstitutionRegister.vue'),
       },
       {
-        path: '/system/institutions/:id',
+        path: '/system/institutions/:id', // 등록된 기관 상세보기
         name: 'sysInstitutionDetails',
         component: () => import('@/views/uikit/system_ui/SystemInstitutionDetails.vue'),
       },
       {
-        path: '/system/institutions/:id',
+        path: '/system/institutions/:id', // 등록된 기관 정보수정
         name: 'sysInstitutionUpdate',
         component: () => import('@/views/uikit/system_ui/SystemInstitutionUpdate.vue'),
       },
       {
-        path: '/system/supportplan',
-        name: 'sysSupportplan',
-        component: () => import('@/views/uikit/system_ui/SystemSupportplan.vue'),
+        path: '/system/notices', // 등록된 공고 목록
+        name: 'sysNotice',
+        component: () => import('@/views/uikit/system_ui/SystemNotice.vue'),
       },
+      {
+        path: '/system/notices/:id', // 공고 상세정보
+        name: 'sysNoticeDetails',
+        component: () => import('@/views/uikit/system_ui/SystemNoticeDetail.vue'),
+      },
+      {
+        path: '/system/notices/register', // 새로운 공고 등록
+        name: 'sysNoticeRegister',
+        component: () => import('@/views/uikit/system_ui/SystemNoticeRegister.vue'),
+      },
+
       {
         path: '/system/regist-plan',
         name: 'table',

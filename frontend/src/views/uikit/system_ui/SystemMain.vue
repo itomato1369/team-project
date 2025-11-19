@@ -1,7 +1,27 @@
 <script setup>
+import { ref } from 'vue';
 import { useRouter } from 'vue-router';
+import axios from 'axios';
 
 const router = useRouter();
+
+const approvalCount = ref(0);
+
+// DB에서 권한 승인 개수를 가져옴
+const getApprovalCount = async () => {
+  try {
+    // backend 서버의 API
+    const response = await axios.get('/api/institutions/approval/count');
+    // 응답 데이터는 response.data 객체
+    // 백엔드에서 { "total_count": 5 }
+    const data = await response.data;
+
+    approvalCount.value = data;
+  } catch (error) {
+    console.error('권한 승인 개수 오류', error);
+  }
+};
+
 // 권한 승인 페이지로 이동
 const goToApproval = () => {
   router.push({ name: 'sysApproval' });
@@ -30,12 +50,15 @@ const goToSupportplan = () => {
           <template #title>승인 대기</template>
           <template #content>
             <!-- 추후에 승인 건수는 반응형으로 수정 -->
-            <div class="stat-value"><span class="count-blue">4</span>건</div>
+            <div class="stat-value">
+              <span class="count-blue">{{ getApprovalCount.data }}</span
+              >건
+            </div>
           </template>
         </Card>
 
         <Card class="stat-card" @click="goToInstitutionList()">
-          <template #title>총 등록 기관</template>
+          <template #title>등록 기관</template>
           <template #content>
             <!-- 추후에 승인 건수는 반응형으로 수정 -->
             <div class="stat-value"><span class="count-green">2</span>건</div>
@@ -43,7 +66,7 @@ const goToSupportplan = () => {
         </Card>
 
         <Card class="stat-card" @click="goToSupportplan()">
-          <template #title>지원계획</template>
+          <template #title>사업공고</template>
           <template #content>
             <!-- 추후에 승인 건수는 반응형으로 수정 -->
             <div class="stat-value"><span class="count-red">1</span>건</div>
