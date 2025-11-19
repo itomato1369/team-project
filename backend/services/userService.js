@@ -277,10 +277,7 @@ const updateWard = async (wardNo, wardData) => {
 
 // src/components/UserMyInfoUpdate.vue
 const getUserByUserId = async (userId) => {
-  console.log("살려줘!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
-  console.log("****************\n Getting user by userId:", userId);
   const user = await mapper.query("findUserByUserId", userId);
-  console.log("****************\n user is :", user);
   return user[0];
 };
 
