@@ -44,4 +44,15 @@ export default [
     name: 'user-inquiry-detail',
     component: () => import('@/components/UserInquiryDetail.vue'),
   },
+  {
+    path: '/user/ward/insert',
+    name: 'user-ward-insert',
+    component: () => import('@/views/pages/user/UserWardInfoInsert.vue'),
+  },
+  {
+    path: '/user/ward/edit/:ward_no',
+    name: 'user-ward-edit',
+    component: () => import('@/views/pages/user/UserWardInfoInsert.vue'),
+    props: true,
+  },
 ];

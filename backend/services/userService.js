@@ -1,3 +1,4 @@
+const bcrypt = require("bcrypt");
 const mapper = require("../database/mappers/mapper");
 const sql = require("../database/sqlList");
 
@@ -232,6 +233,84 @@ const getMyPageSurveys = async (writer) => {
   }));
 };
 
+const getUsersByInstitution = async (institutionNo) => {
+  // 해당 institution_no를 가진 이용자 목록 조회
+  const users = await mapper.query("getUsersByInstitutionNo", [institutionNo]);
+  return users;
+};
+
+const getWardsByGuardianName = async (guardianName) => {
+  return await mapper.query("findWardsByGuardianName", [guardianName]);
+};
+
+const addWard = async (wardData) => {
+  const {
+    ward_rrn,
+    name,
+    sex,
+    address,
+    guardian_name,
+    guardian_relation,
+    disabled_level,
+    age,
+  } = wardData;
+
+  // Hash the RRN before saving
+  const hashedRrn = await bcrypt.hash(ward_rrn, 10);
+
+  return await mapper.query("insertWard", [
+    hashedRrn,
+    name,
+    sex,
+    address,
+    guardian_name,
+    guardian_relation,
+    disabled_level,
+    age,
+  ]);
+};
+
+const updateWard = async (wardNo, wardData) => {
+  const { address, disabled_level } = wardData;
+  return await mapper.query("updateWard", [address, disabled_level, wardNo]);
+};
+
+// src/components/UserMyInfoUpdate.vue
+const getUserByUserId = async (userId) => {
+  const user = await mapper.query("findUserByUserId", userId);
+  return user[0];
+};
+
+const getAllInstitutions = async () => {
+  return await mapper.query("findAllInstitutions", []);
+};
+
+const applyToInstitution = async (userId, institutionNo) => {
+  return await mapper.query("applyToInstitution", [institutionNo, userId]);
+};
+
+const updateUserInfo = async (userId, userData) => {
+  const { phone, address, email } = userData;
+  return await mapper.query("updateUser", [phone, address, email, userId]);
+};
+
+const changePassword = async (userId, passwordData) => {
+  const { currentPassword, newPassword } = passwordData;
+  const user = (await mapper.query("findUserById", [userId]))[0];
+
+  if (!user) {
+    throw new Error("사용자를 찾을 수 없습니다.");
+  }
+
+  const isMatch = await bcrypt.compare(currentPassword, user.password);
+  if (!isMatch) {
+    throw new Error("현재 비밀번호가 일치하지 않습니다.");
+  }
+
+  const hashedNewPassword = await bcrypt.hash(newPassword, 10);
+  return await mapper.query("updatePassword", [hashedNewPassword, userId]);
+};
+
 module.exports = {
   getExpiringNotices,
   getSurveyToUserWard,
@@ -245,4 +324,13 @@ module.exports = {
   getSurveyResults,
   updateSurveyAndResults,
   getMyPageSurveys,
+  getUsersByInstitution,
+  getWardsByGuardianName,
+  addWard,
+  updateWard,
+  getUserByUserId,
+  getAllInstitutions,
+  applyToInstitution,
+  updateUserInfo,
+  changePassword,
 };

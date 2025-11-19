@@ -128,7 +128,9 @@ router.post("/user-inquiries/answer", async (req, res) => {
     await userService.saveInquiryAnswers(saveData);
     res.status(201).send({ message: "Answers saved successfully." });
   } catch (err) {
-    return res.status(500).send({ err: "Failed to save answers: " + err.message });
+    return res
+      .status(500)
+      .send({ err: "Failed to save answers: " + err.message });
   }
 });
 
@@ -141,7 +143,9 @@ router.get("/my-page-surveys", async (req, res) => {
     const surveys = await userService.getMyPageSurveys(writer);
     res.status(200).send({ result: surveys });
   } catch (err) {
-    return res.status(500).send({ err: "Failed to get my-page surveys: " + err.message });
+    return res
+      .status(500)
+      .send({ err: "Failed to get my-page surveys: " + err.message });
   }
 });
 
@@ -150,7 +154,11 @@ router.put("/survey-results/:surveyNo", async (req, res) => {
   const { surveyNo } = req.params;
   const updateData = req.body;
 
-  if (!updateData || !updateData.answers || !Array.isArray(updateData.answers)) {
+  if (
+    !updateData ||
+    !updateData.answers ||
+    !Array.isArray(updateData.answers)
+  ) {
     return res.status(400).send({ err: "Invalid data format." });
   }
 
@@ -158,7 +166,9 @@ router.put("/survey-results/:surveyNo", async (req, res) => {
     await userService.updateSurveyAndResults(surveyNo, updateData);
     res.status(200).send({ message: "Survey updated successfully." });
   } catch (err) {
-    return res.status(500).send({ err: "Failed to update survey: " + err.message });
+    return res
+      .status(500)
+      .send({ err: "Failed to update survey: " + err.message });
   }
 });
 
@@ -169,7 +179,9 @@ router.get("/survey-results/:surveyNo", async (req, res) => {
     const results = await userService.getSurveyResults(surveyNo);
     res.status(200).send({ result: results });
   } catch (err) {
-    return res.status(500).send({ err: "Failed to get survey results: " + err.message });
+    return res
+      .status(500)
+      .send({ err: "Failed to get survey results: " + err.message });
   }
 });
 
@@ -183,7 +195,130 @@ router.post("/survey-by-inquiry-content", async (req, res) => {
     const survey = await userService.getSurveyByInquiryContent(inquiryName);
     res.status(200).send({ result: survey });
   } catch (err) {
-    return res.status(500).send({ err: "Failed to get survey: " + err.message });
+    return res
+      .status(500)
+      .send({ err: "Failed to get survey: " + err.message });
+  }
+});
+
+router.get("/users/by-institution", async (req, res) => {
+  const { institution_no } = req.query;
+  if (!institution_no) {
+    return res
+      .status(400)
+      .send({ err: "institution_no query parameter is required." });
+  }
+  try {
+    const users = await userService.getUsersByInstitution(institution_no);
+    res.status(200).send({ result: users });
+  } catch (err) {
+    return res
+      .status(500)
+      .send({ err: "Failed to get users by institution: " + err.message });
+  }
+});
+
+// Ward Management Routes
+router.get("/wards", async (req, res) => {
+  const { guardianName } = req.query;
+  if (!guardianName) {
+    return res
+      .status(400)
+      .send({ err: "guardianName query parameter is required." });
+  }
+  try {
+    const wards = await userService.getWardsByGuardianName(guardianName);
+    res.status(200).send({ result: wards });
+  } catch (err) {
+    res.status(500).send({ err: "Failed to get wards: " + err.message });
+  }
+});
+
+router.post("/wards", async (req, res) => {
+  try {
+    const result = await userService.addWard(req.body);
+    res.status(201).send({ result });
+  } catch (err) {
+    res.status(500).send({ err: "Failed to add ward: " + err.message });
+  }
+});
+
+router.put("/wards/:ward_no", async (req, res) => {
+  const { ward_no } = req.params;
+  try {
+    const result = await userService.updateWard(ward_no, req.body);
+    res.status(200).send({ result });
+  } catch (err) {
+    res.status(500).send({ err: "Failed to update ward: " + err.message });
+  }
+});
+
+// My Info Management Routes
+router.get("/me", async (req, res) => {
+  const { userId } = req.query;
+  if (!userId) {
+    return res
+      .status(400)
+      .send({ err: "username query parameter is required." });
+  }
+  try {
+    const user = await userService.getUserByUserId(userId);
+    console.log("userRouter가 반환하는 user는?", user);
+    res.status(200).send({ result: user });
+  } catch (err) {
+    res.status(500).send({ err: "Failed to get user info: " + err.message });
+  }
+});
+
+router.put("/me", async (req, res) => {
+  const { userId, ...userData } = req.body;
+  if (!userId) {
+    return res.status(400).send({ err: "userId is required." });
+  }
+  try {
+    await userService.updateUserInfo(userId, userData);
+    res.status(200).send({ message: "User info updated successfully." });
+  } catch (err) {
+    res.status(500).send({ err: "Failed to update user info: " + err.message });
+  }
+});
+
+router.put("/password", async (req, res) => {
+  const { userId, ...passwordData } = req.body;
+  if (!userId) {
+    return res.status(400).send({ err: "userId is required." });
+  }
+  try {
+    await userService.changePassword(userId, passwordData);
+    res.status(200).send({ message: "Password changed successfully." });
+  } catch (err) {
+    res.status(500).send({ err: "Failed to change password: " + err.message });
+  }
+});
+
+router.get("/institutions", async (req, res) => {
+  try {
+    const institutions = await userService.getAllInstitutions();
+    res.status(200).send({ result: institutions });
+  } catch (err) {
+    res.status(500).send({ err: "Failed to get institutions: " + err.message });
+  }
+});
+
+router.post("/apply-institution", async (req, res) => {
+  const { userId, institutionNo } = req.body;
+  if (!userId || !institutionNo) {
+    return res
+      .status(400)
+      .send({ err: "userId and institutionNo are required." });
+  }
+  try {
+    await userService.applyToInstitution(userId, institutionNo);
+    res.status(200).send({ message: "Application successful." });
+  } catch (err) {
+    res
+      .status(500)
+      .send({ err: "Failed to apply to institution: " + err.message });
   }
 });
 

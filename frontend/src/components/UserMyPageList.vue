@@ -30,7 +30,7 @@ const fetchMyPageSurveys = async () => {
   error.value = null;
   try {
     const response = await axios.get('/api/user/my-page-surveys', {
-      params: { writer: 'test' }
+      params: { writer: 'test' },
     });
     myPageSurveys.value = response.data.result;
   } catch (err) {
@@ -57,7 +57,8 @@ const goToInquiryDetail = (survey) => {
 
 // Placeholder functions for existing buttons
 const showUserSupportPlan = (project) => {
-  alert('지원계획서 열람 기능은 현재 비활성화되어 있습니다.');
+  console.log('project.support_plan_no:', project.inquiry_no);
+  router.push({ name: 'user-support-plan-detail', params: { inquiry_no: project.inquiry_no } });
 };
 
 const showUserSupportResult = (project) => {
@@ -86,7 +87,7 @@ const getStatusSeverity = (status) => {
       <template #body-status="{ data }">
         <Tag :value="data.status" :severity="getStatusSeverity(data.status)" />
       </template>
-      
+
       <!-- Custom body for the 'view_inquiry' column -->
       <template #body-view_inquiry="{ data }">
         <Button label="열람하기" outlined @click="goToInquiryDetail(data)" />

@@ -161,7 +161,7 @@ const updateInquiry = async () => {
 
 // 목록으로 돌아가기
 const goBackToList = () => {
-  router.push({ name: 'ui' }); // 'ui'는 UserInquiry 목록 페이지의 라우트 이름
+  router.go(-1);
 };
 </script>
 
