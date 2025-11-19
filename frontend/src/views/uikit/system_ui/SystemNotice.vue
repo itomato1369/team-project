@@ -1,172 +1,140 @@
 <script setup>
-import { Column } from 'primevue';
 import { ref, onMounted } from 'vue';
-import axios from 'axios';
 import { useRouter } from 'vue-router';
+import axios from 'axios';
 
-// router, route 변수에 할당
+// router에 변수 할당
 const router = useRouter();
 
-// DB에서 기관 목록을 비동기적으로 가져 올 수 있도록 axios
-const institutionAllList = ref([]);
-// 필터링된 목록 검색 결과를 보여줌
-const institutionList = ref([]);
+// DB에서 공고 목록을 비동기적으로 가져옴
+const noticeAllList = ref([]);
+// 기관명으로 검색하는 필터링
+const noticeList = ref([]);
 
-// DB에서 기관 목록을 가져옴
-const getInstitutionList = async () => {
-  try {
-    // backend 서버의 API
-    const response = await axios.get('/api/institutions');
-
-    // DB에서 가져온 데이터를 두 배열에 저장
-    const data = await response.data;
-
-    institutionAllList.value = data;
-    institutionList.value = data;
-  } catch (error) {
-    console.error('기관 목록 호출에 실패', error);
-  }
-};
-
-// 검색을 위한 상태 선택
-const statusOptions = ref([
-  { label: '전체상태', value: '0S' },
-  { label: '운영', value: '1s' },
-  { label: '휴업', value: '2s' },
-  { label: '폐업', value: '3s' },
-]);
-// 공통코드로 사용한 1s,2s,3s를 변환
-const getStatusText = (statusCode) => {
-  switch (statusCode) {
-    case '운영':
-    case '1s':
-      return '운영';
-    case '휴업':
-    case '2s':
-      return '휴업';
-    case '폐업':
-    case '3s':
-      return '폐업';
-    default:
-      return statusCode || '정의되지 않은 코드';
-  }
-};
-
-// 기본값은 전체 ALL
-const selectedStatus = ref(statusOptions.value[0]);
 // 기관명 검색
 const searchInstitution = ref('');
 
-// 함수
-// 기관명 검색 performSearch함수
-const performSearch = () => {
-  // 상태 필터링
-  let filteredList = institutionAllList.value;
-
-  if (selectedStatus.value.value !== '0S') {
-    const selectedValue = selectedStatus.value.value.toLowerCase();
-
-    // 필터링 시 데이터의 상태 값과, 선택된 값을 모두 소문자로 변환
-    filteredList = filteredList.filter(
-      (inst) => inst.status && inst.status.toLowerCase() === selectedValue
-    );
+// 날짜 포맷팅 함수
+const formatDate = (dateString) => {
+  if (!dateString) return 'N/A';
+  try {
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) {
+      return '유효하지 않은 날짜';
+    }
+    return date.toLocaleDateString('ko-KR', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+    });
+  } catch (error) {
+    return '날짜 포맷 오류';
   }
-  // 기관명 검색 필터링
+};
+
+// DB에서 notice 테이블 값을 가져옴
+const getNoticeList = async () => {
+  try {
+    // 백엔드 API
+    const response = await axios.get('/api/institutions/notices');
+    // DB에서 가져온 데이터를 두 배열에 저장
+    const data = await response.data;
+    // 등록일 날짜 포맷팅
+    const formattedDate = data.map((plan) => ({
+      ...plan,
+      start_at: formatDate(plan.business_start),
+    }));
+    noticeAllList.value = formattedDate;
+    noticeList.value = formattedDate;
+  } catch (error) {
+    console.error('SystemNotice.vue 호출 실패', error);
+  }
+};
+
+// 기관명 검색 함수
+const performSearch = () => {
+  // 전체 데이터를 기준으로 필터링
+  let filteredList = noticeAllList.value;
+  // 상태 필터링
+
+  // 담당 기관명 검색 필터링
   if (searchInstitution.value.trim() !== '') {
     const institution = searchInstitution.value.trim().toLowerCase();
+    // 기관명을 기준으로 필터링
     filteredList = filteredList.filter(
-      (inst) => inst.institution_name && inst.institution_name.toLowerCase().includes(institution)
+      (plan) => plan.institution_name && plan.institution_name.toLowerCase().includes(institution)
     );
-    // 최종 결과를 테이블 데이터에 반영
   }
-  institutionList.value = filteredList;
+  // 최종 결과를 반영
+  noticeList.value = filteredList;
 };
 
-// 기관 등록하는 페이지로 이동하는 함수
-const goToRegisterInstitution = () => {
-  router.push({ name: 'sysInstitutionRegister' });
+// 공고 등록하는 페이지로 이동
+const goToRegisterNotice = () => {
+  router.push({ name: 'sysNoticeRegister' });
 };
-
-// 기관 상세정보 보기 페이지로 이동하는 함수
-const goToDetailInstitution = (data) => {
-  router.push({ name: 'sysInstitutionDetails', params: { id: data.institution_no } });
+// 공고 상세정보 보기 페이지로 이동
+const goToDetailNotice = (data) => {
+  router.push({ name: 'sysNoticeDetails', params: { id: data.notice_no } });
 };
 
 // vue 컴포넌트가 DOM에 처음 로드 될 때 실행
 onMounted(() => {
-  getInstitutionList();
+  getNoticeList();
 });
 </script>
 
 <template>
-  <div class="institution-container p-6 md:0-10">
-    <h2 class="page-subtitle text-2xl font-bold mb-6">등록된 기관 목록</h2>
-    <!-- 새로운 기관 등록하는 버튼 -->
-    <!-- 맨 오른쪽으로 위치 -->
-    <div class="mb-6 flex justify-end">
+  <div class="support-plan-container">
+    <h2 class="page-subtitle">공고 목록</h2>
+
+    <div class="button-container">
       <Button
         icon="pi pi-plus"
-        label="새로운 기관 등록"
-        size="big"
-        @click="goToRegisterInstitution"
+        label="새로운 공고 등록"
+        size="small"
+        @click="goToRegisterNotice"
       ></Button>
     </div>
 
-    <!-- 검색 바 영역 -->
     <div class="search-bar-container">
-      <!-- 상태 선택 -->
-      <div class="search-item status-select">
-        <!-- vue에서 제공하는 Dropdown기능 -->
+      <!-- <div class="search-item status-select">
         <Dropdown
           v-model="selectedStatus"
           :options="statusOptions"
           optionLabel="label"
           placeholder="상태 선택"
         ></Dropdown>
-      </div>
-      <!-- 기관명 검색창 -->
+      </div> -->
+
       <div class="search-item institution-name-input">
-        <!-- vue에서 제공하는 InputText -->
         <InputText
           v-model="searchInstitution"
-          placeholder="기관명 검색"
+          placeholder="담당 기관명 검색"
           @keyup.enter="performSearch"
         ></InputText>
       </div>
-      <!-- 검색 버튼 -->
+
       <div class="search-item search-button">
         <Button icon="pi pi-search" label="검색" @click="performSearch"></Button>
       </div>
     </div>
 
-    <div class="institution-list mt-6">
-      <DataTable :value="institutionList" paginator :rows="10" class="p-datatable-gridlines">
-        <Column
-          field="institution_name"
-          header="기관명"
-          style="width: 15%; min-width: 120px"
-        ></Column>
-
-        <Column field="phone" header="기관연락처" style="width: 15%; min-width: 120px"></Column>
-
-        <Column field="road_address" header="주소" style="width: 15%; min-width: 120px"></Column>
-
-        <Column field="status" header="운영상태" style="width: 15%; min-width: 120px">
-          <template #body="slotProps">
-            <Tag :value="getStatusText(slotProps.data.status)"></Tag>
-          </template>
-        </Column>
-
-        <Column header="상세보기" style="width: 15%; min-width: 120px">
-          <!-- Column 컴포넌트에서 특정 셀을 커스터마이징 하러면 
-           #body를 활용 직접 디자인 하겠다 slotProps를 정의해야함-->
+    <div class="support-plan-list">
+      <DataTable :value="noticeList" paginator :rows="10" class="p-datatable-gridlines">
+        <Column field="institution_name" header="담당기관"></Column>
+        <Column field="staff_name" header="사업 담당자 명"></Column>
+        <Column field="disabled_type" header="지원 대상 장애 유형"></Column>
+        <Column field="business_name" header="지원사업 명"> </Column>
+        <Column field="start_at" header="사업 시작 일자"></Column>
+        <Column header="관리">
           <template #body="{ data }">
-            <div class="flex justify-center">
+            <div class="action-cell">
               <Button
                 icon="pi pi-file-o"
-                label="기관상세보기"
+                label="상세보기"
                 size="small"
-                @click="goToDetailInstitution(data)"
+                @click="goToDetailNotice(data)"
               ></Button>
             </div>
           </template>
@@ -180,21 +148,33 @@ onMounted(() => {
 /* ======================================= */
 /* 0. 기본 컨테이너 및 제목 스타일 */
 /* ======================================= */
-.institution-container {
-  /* 템플릿의 p-6 md:0-10 클래스를 대체/보강 */
+.support-plan-container {
   padding: 30px 20px;
   background-color: #f7f9fc; /* 부드러운 배경 */
   min-height: 100vh;
 }
 
 .page-subtitle {
-  /* 템플릿의 text-2xl font-bold mb-6 클래스를 대체/보강 */
   font-size: 1.8rem;
   font-weight: 700;
   color: #2c3e50;
   margin-bottom: 25px;
   padding-bottom: 10px;
   border-bottom: 2px solid #e0e6ed;
+}
+
+/* 등록 버튼 컨테이너 */
+.button-container {
+  margin-bottom: 1.5rem;
+  display: flex;
+  justify-content: flex-end; /* 맨 오른쪽으로 위치 */
+}
+
+/* 관리 컬럼 버튼 중앙 정렬 */
+.action-cell {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem; /* 버튼 간격 추가 */
 }
 
 /* ======================================= */
@@ -240,7 +220,7 @@ onMounted(() => {
     flex-shrink: 0;
   }
 
-  /* InputText (기관명 검색) 너비 확장 및 고정 */
+  /* InputText (담당 기관명 검색) 너비 확장 및 고정 */
   .institution-name-input {
     width: 300px; /* 필드 너비 조정 */
     flex-shrink: 0;
@@ -279,14 +259,14 @@ onMounted(() => {
     border-top-left-radius: 0;
     border-bottom-left-radius: 0;
     /* InputText와 붙도록 버튼의 왼쪽 경계선을 제거 */
-    border-left: 1px solid var(--surface-border); /* InputText의 경계선과 겹치도록 1px 선 추가 */
+    border-left: 1px solid #e0e6ed; /* 안정적인 회색 사용 */
   }
 }
 
 /* ======================================= */
 /* 2. 데이터 테이블 스타일 (카드 디자인 적용) */
 /* ======================================= */
-.institution-list {
+.support-plan-list {
   /* 템플릿의 mt-6 클래스를 대체/보강 */
   margin-top: 1.5rem;
   background-color: #ffffff;
@@ -296,7 +276,7 @@ onMounted(() => {
 }
 
 /* DataTable 헤더 스타일 */
-.institution-list :deep(.p-datatable-thead th) {
+.support-plan-list :deep(.p-datatable-thead th) {
   background-color: #4a6fa5; /* 헤더 배경색: 세련된 파란색 */
   color: #ffffff; /* 헤더 텍스트: 흰색 */
   font-weight: 600;
@@ -306,7 +286,7 @@ onMounted(() => {
 }
 
 /* DataTable 바디 셀 스타일 */
-.institution-list :deep(.p-datatable-tbody td) {
+.support-plan-list :deep(.p-datatable-tbody td) {
   font-size: 14px;
   color: #495057;
   vertical-align: middle;
@@ -315,14 +295,14 @@ onMounted(() => {
 }
 
 /* 테이블 행 호버 효과 */
-.institution-list :deep(.p-datatable-tbody tr:not(.p-highlight):hover) {
+.support-plan-list :deep(.p-datatable-tbody tr:not(.p-highlight):hover) {
   background-color: #f0f7ff; /* 마우스 오버 시 연한 하늘색 배경 */
   transition: background-color 0.2s ease;
   cursor: pointer;
 }
 
 /* 상세보기 버튼 스타일 보강 */
-.institution-list .flex.justify-center button {
+.support-plan-list .action-cell button {
   padding: 6px 12px;
   font-size: 13px;
   border-radius: 4px;

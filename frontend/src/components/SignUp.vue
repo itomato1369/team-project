@@ -50,7 +50,7 @@ const handleSignUp = async () => {
   const birthDate = `${birthYear.value.padStart(4, '0')}-${birthMonth.value.padStart(2, '0')}-${birthDay.value.padStart(2, '0')}`;
 
   // 주소 통합
-  const fullAddress = `${zipcode.value},${addressMain.value}${addressDetail.value ? ', ' + addressDetail.value : ''}`;
+  const fullAddress = `${zipcode.value}!${addressMain.value}${addressDetail.value ? '! ' + addressDetail.value : ''}`;
 
   // backend로 전송할 최종 데이터 객체
   const signUpData = {
