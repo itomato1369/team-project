@@ -78,6 +78,7 @@ SELECT
     at.start_time,
     at.status,
     res.res_no AS id, 
+    res.user_id,
     res.res_reason AS reason,            -- (수정) reservation.res_reason
     m.user_name AS applicantName,     -- (수정) member.user_name (보호자)
     res.name AS patientName           -- (수정) reservation.name (피보호자)
@@ -139,6 +140,24 @@ INSERT INTO alarm (
 ) 
 VALUES (?, ?, ?, ?, ?, NOW(), 0)
 `;
+
+/**
+ * [신규] 상담 일지 등록 (consultation_logs 테이블)
+ * - content, consult_datetime, ward_id, ward_name, staff_name, consult_status, disabled_level
+ */
+const createConsultationLog = `
+INSERT INTO consultation_logs (
+    staff_name, 
+    ward_id, 
+    ward_name, 
+    consult_datetime, 
+    disabled_level, 
+    consult_status, 
+    content
+)
+VALUES (?, ?, ?, ?, ?, ?, ?)
+`;
+
 module.exports = {
   getAvailableSchedules,
   getUpcomingReservations,
@@ -153,4 +172,5 @@ module.exports = {
   cancelStaffReservation,
   updateAvailableTimeStatusToBooked,
   createAlarm,
+  createConsultationLog,
 };

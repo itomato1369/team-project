@@ -49,6 +49,10 @@ app.use("/system/survey", surveyRouter);
 const dataBoardRouter = require("./routers/dataBoardRouter.js");
 app.use("/system/data-board", dataBoardRouter);
 
+//상담일지 관련 모듈
+const counselingRouter = require("./routers/counselingRouter.js");
+app.use("/counseling", counselingRouter);
+
 // [수정] 가장 일반적인 라우터를 마지막에 등록
 const boardRouter = require("./routers/router.js");
 app.use("/", boardRouter);

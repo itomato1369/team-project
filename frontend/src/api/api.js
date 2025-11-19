@@ -178,4 +178,31 @@ export const staffReservationApi = {
   // 별도 API (예: /api/staff/records/create)를 호출할 수 있습니다.
 };
 
+// 4. [신규] 상담 일지 API (여기에 추가되었습니다)
+export const consultLogApi = {
+  /**
+   * 상담 일지를 생성(등록)합니다.
+   * (POST /api/counseling/logs)
+   */
+  createLog: (data) => {
+    return api.post('/api/counseling/logs', data);
+  },
+
+  /**
+   * 상담 일지를 임시저장합니다.
+   * (POST /api/counseling/logs/draft)
+   */
+  saveDraft: (data) => {
+    return api.post('/api/counseling/logs/draft', data);
+  },
+
+  /**
+   * 피보호자(ward_id) 기준 조사지 목록 조회
+   * (POST /api/counseling/surveys/${wardId})
+   */
+  getSurveysByWard: (wardId) => {
+    return api.get(`/api/counseling/surveys/${wardId}`);
+  },
+};
+
 export default api;

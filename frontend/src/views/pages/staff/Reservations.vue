@@ -4,9 +4,10 @@ import { ref, computed, onMounted } from 'vue';
 import { staffReservationApi } from '@/api/api';
 // [신규] 모달 컴포넌트 임포트 (경로 수정 필요)
 import ReservationCancelModal from './ReservationCancelModal.vue';
+import { useRouter } from 'vue-router';
 
 // --- Reactive State ---
-
+const router = useRouter();
 // 검색 관련
 const searchType = ref('date');
 const searchStartDate = ref('');
@@ -76,7 +77,7 @@ async function fetchReservations() {
     const response = await staffReservationApi.getReservations(params);
 
     // (수정) 백엔드 응답 스키마에 맞게 컬럼명 수정
-    // (atNo, start_time, status, id, reason, counselingType, applicantName, patientName)
+    // (atNo, start_time, status, id, reason, counselingType, applicantName, patientName, user_id)
     reservationList.value = response.data.map((item) => ({
       ...item,
       // create (2).sql 스키마에 맞게 컬럼명 재확인
@@ -86,6 +87,7 @@ async function fetchReservations() {
       reason: item.reason, // (res.res_reason)
       atNo: item.atNo, // (at.at_no)
       id: item.id, // (res.res_no)
+      user_id: item.user_id, // (m.user_id)
     }));
   } catch (err) {
     console.error('예약 목록 조회 실패:', err);
@@ -110,8 +112,17 @@ function writeRecord(reservation) {
   console.log(`(Action) 기록 작성 페이지로 이동:`);
   console.log(`Available Time No (at_no): ${reservation.atNo}`);
 
-  // location.href = `/counseling/record/new?at_no=${reservation.atNo}`;
-  alert(`'기록 작성' 클릭 (at_no: ${reservation.atNo}). 상담일지 작성 페이지로 이동합니다.`);
+  // location.href = `/counseling-logform/new?at_no=${reservation.atNo}`;
+  router.push({
+    path: '/counseling-logform',
+    query: {
+      atNo: reservation.atNo,
+      applicantName: reservation.applicantName, // 신청인(보호자) 이름
+      wardName: reservation.patientName, // 피보호자(환자) 이름
+      reservationDate: reservation.start_time, // 예약 시간
+      guardianId: reservation.user_id, // 보호자 ID
+    },
+  });
 }
 
 // --- [수정] 모달 로직 ---
