@@ -39,6 +39,11 @@ const staffRouter = [
         component: () => import('@/views/pages/staff/StaffScheduleSettings.vue'),
       },
       {
+        path: '/supportresultlist',
+        name: 'supportresultlist',
+        component: () => import('@/views/uikit/SupportResultList.vue'),
+      },
+      {
         path: '/reservations',
         name: 'reservations',
         component: () => import('@/views/pages/staff/Reservations.vue'),

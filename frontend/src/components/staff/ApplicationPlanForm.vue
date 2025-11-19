@@ -34,13 +34,6 @@ const dropdownItems = ref([
   { name: '6번 사업', code: 'Option 6' },
 ]);
 
-// 우선순위 선택지
-const priority = ref([
-  { name: '긴급', code: 1 },
-  { name: '중점', code: 2 },
-  { name: '반려', code: 3 },
-]);
-
 // 금액 3자리 콤마
 const formatAmount = (form) => {
   const onlyNums = form.amount.replace(/[^0-9]/g, '');
@@ -55,14 +48,13 @@ const handleFiles = (event, form) => {
 // 승인요청 버튼 클릭 → 해당 폼 값만 서버로 전송
 const requestApproval = async (form) => {
   // 필수값 체크
-  if (!form.writer || !form.dropdownItem || !form.content || !form.priority) {
-    alert('필수 항목(목표, 사업, 내용, 우선순위)을 모두 입력해주세요.');
+  if (!form.writer || !form.dropdownItem || !form.content) {
+    alert('필수 항목(목표, 사업, 내용)을 모두 입력해주세요.');
     return;
   }
 
   try {
     const payload = {
-      priority_no: form.priority.code,
       support_plan_goal: form.writer,
       business_name: form.dropdownItem.name,
       spend: parseInt(form.amount.replace(/,/g, '')) || 0,
@@ -94,12 +86,15 @@ const addForm = () => forms.value.push(createForm());
 
 <template>
   <div class="md:1">
+    <h1 class="text-3xl font-extrabold mb-8 text-gray-800 border-b-4 border-indigo-300 pb-2">
+      📝 지원 계획 작성
+    </h1>
     <Fluid>
       <div v-for="form in forms" :key="form.id" class="flex mt-8">
         <div class="card flex flex-col gap-4 w-full border p-4 rounded-md shadow-sm">
           <!-- 작성자 / 담당자 -->
           <div class="flex flex-col md:flex-row gap-2">
-            <div class="flex flex-wrap gap-2 w-full">
+            <!-- <div class="flex flex-wrap gap-2 w-full">
               <label>우선순위</label>
               <Select
                 v-model="form.priority"
@@ -108,7 +103,7 @@ const addForm = () => forms.value.push(createForm());
                 placeholder="우선순위"
                 class="w-full"
               />
-            </div>
+            </div> -->
             <div class="flex flex-wrap gap-2 w-full">
               <label>목표</label>
               <InputText v-model="form.writer" type="text" />

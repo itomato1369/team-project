@@ -32,13 +32,7 @@ exports.getSurveyDetail = async (req, res) => {
     // 상세 조회용 쿼리 이름(예: surveySelectDetail)과 파라미터 전달
     let result = await db.query("wardsearch", surveyNo);
     console.log("DB조회결과************************************\n", result);
-    res.send({ result: result });
-    // if (result && result.length > 0) {
-    //   console.log("Survey Detail 조회 성공:", result[0].survey_no);
-    //   res.send(result[0]); // 단일 객체 반환
-    // } else {
-    //   res.status(404).send({ message: "해당 조사지를 찾을 수 없습니다." });
-    // }
+    res.send({ result: result }); // if (result && result.length > 0) { //   console.log("Survey Detail 조회 성공:", result[0].survey_no); //   res.send(result[0]); // 단일 객체 반환 // } else { //   res.status(404).send({ message: "해당 조사지를 찾을 수 없습니다." }); // }
   } catch (error) {
     console.error("getSurveyDetail DB 쿼리 오류:", error);
     res
@@ -47,10 +41,12 @@ exports.getSurveyDetail = async (req, res) => {
   }
 };
 
+// ⭐ 수정: supportPlan 함수가 이제 'planitem' 쿼리를 사용합니다.
 exports.supportPlan = async (req, res) => {
-  console.log("지원 계획 목록 조회");
+  console.log("지원 계획 목록 조회 (planitem 쿼리 사용)");
   try {
-    let result = await db.query("supportPlan", []);
+    // ⭐ 'supportPlan' 쿼리 대신 'planitem' 쿼리를 사용하여 필요한 모든 필드 조회
+    let result = await db.query("planitem", []);
     console.log("지원 계획 목록 조회 성공");
     res.send(result);
   } catch (error) {
@@ -90,52 +86,103 @@ exports.wardsearch = async (req, res) => {
 };
 
 exports.createSupportPlan = async (req, res) => {
-  console.log("승인요청 POST 데이터:", req.body);
+  console.log("승인요청 POST 데이터:", req.body); // Vue 컴포넌트에는 없는 필수 필드에 대한 임시 또는 기본값 설정
 
-  const {
-    priority_no,
-    support_plan_goal,
-    business_name,
-    spend,
-    plan,
-    file_no,
-    support_plan_status,
-  } = req.body;
+  const staff_name = req.body.manager || "담당자_미지정"; // DB에 전송하지 않음
+  const priority_no = 1; // 🚨 임시값 1로 고정합니다. (실제 폼에서 입력받는 기능이 없으므로)
 
-  if (!support_plan_goal || !business_name) {
-    return res.status(400).send({ message: "필수 데이터 누락" });
+  const { support_plan_goal, business_name, spend, plan, file_no } = req.body;
+
+  const support_plan_status = "승인대기"; // 고정값
+  const safe_spend = parseInt(spend.toString().replace(/,/g, "")) || 0;
+  const safe_file_no = file_no || null;
+
+  if (!support_plan_goal || !business_name || !plan) {
+    return res
+      .status(400)
+      .send({ message: "필수 데이터(목표, 사업명, 내용) 누락" });
   }
 
   try {
+    // 🔑 쿼리가 요구하는 7개의 파라미터만 정확히 전달
     await db.query("spportinsert", [
-      priority_no,
       support_plan_goal,
       business_name,
-      spend,
+      safe_spend,
       plan,
-      file_no,
-      support_plan_status,
+      safe_file_no,
+      priority_no, // ✅ 추가: priority_no
+      support_plan_status, // writer_date는 쿼리 내에서 NOW()로 처리
     ]);
 
-    console.log("지원 계획 INSERT 성공");
+    console.log("지원 계획 INSERT 성공 (파라미터 7개 사용)");
     res.send({ message: "승인요청 완료" });
   } catch (error) {
-    console.error("createSupportPlan DB 오류:", error);
+    console.error("createSupportPlan DB 쿼리 오류:", error);
     res.status(500).send({ message: "지원 계획 등록 실패" });
   }
 };
 
-// 6. planItemList: support_plan 테이블에서 상세 항목 조회
-exports.planItemList = async (req, res) => {
-  console.log("지원 계획 항목 목록 조회");
+exports.createSupportResult = async (req, res) => {
   try {
-    let result = await db.query("planitemtem", []);
-    res.send(result);
+    const {
+      support_title,
+      support_content,
+      support_spend,
+      support_started_at,
+      support_ended_at,
+    } = req.body;
+
+    console.log("프론트에서 전달한 지원결과서 요청값: ", req.body);
+    // 필수 값 체크
+    if (!support_title) {
+      console.log("이게뭔데: ", !support_title);
+      console.log("이건누군데", support_title);
+      return res.status(400).json({ message: "지원 제목은 필수입니다." });
+    }
+
+    // 안전한 날짜 변환 함수
+    const formatDate = (date) => {
+      if (!date) return null;
+      const d = new Date(date);
+      if (isNaN(d)) return null; // Invalid Date 방지
+      const yyyy = d.getFullYear();
+      const mm = String(d.getMonth() + 1).padStart(2, "0");
+      const dd = String(d.getDate()).padStart(2, "0");
+      return `${yyyy}-${mm}-${dd} 00:00:00`;
+    };
+
+    const params = [
+      support_title,
+      support_content || null,
+      Number(String(support_spend || 0).replace(/[^0-9]/g, "")),
+      formatDate(support_started_at),
+      formatDate(support_ended_at),
+    ];
+
+    // SQL 쿼리 실행 (support_plan_no 제거)
+    let result = await db.query("insertsupportresultquery", params);
+
+    res.json({ message: "등록 성공", resultId: result.insertId });
   } catch (error) {
-    console.error("planItemList DB 쿼리 실행 오류:", error);
-    res.status(500).send({ message: "지원 계획 항목 조회 실패" });
+    console.error("서버 오류:", error);
+    res.status(500).json({ message: "서버 오류", error });
   }
 };
+// 6. planItemList: support_plan 테이블에서 상세 항목 조회
+// ⭐ 삭제: supportPlan 함수가 planitem을 사용하게 되었으므로 이 함수는 제거합니다.
+/*
+exports.planItemList = async (req, res) => {
+  console.log("지원 계획 항목 목록 조회");
+  try {
+    let result = await db.query("planitemtem", []); // 오타: planitemtem
+    res.send(result);
+  } catch (error) {
+    console.error("planItemList DB 쿼리 실행 오류:", error);
+    res.status(500).send({ message: "지원 계획 항목 조회 실패" });
+  }
+};
+*/
 
 // 날짜 포맷팅 (YYYY-MM-DD) - 타임존 문제 방지
 function formatDateISO(date) {
@@ -167,23 +214,19 @@ exports.getSchedules = async (req, res) => {
 
   try {
     // 1. '상담가능' 슬롯 조회 (at_no 포함)
-    const availableSlots = await db.query("getAvailableSlots", [staff_name]);
-    // 2. '예약확정' 건수 조회
+    const availableSlots = await db.query("getAvailableSlots", [staff_name]); // 2. '예약확정' 건수 조회
     const reservationCounts = await db.query("getReservationCounts", [
       staff_id,
-    ]);
+    ]); // 3. 프론트엔드가 요구하는 scheduledData 객체로 가공
 
-    // 3. 프론트엔드가 요구하는 scheduledData 객체로 가공
-    const scheduledData = {};
+    const scheduledData = {}; // 3-1. '상담가능' 슬롯 가공
 
-    // 3-1. '상담가능' 슬롯 가공
     availableSlots.forEach((slot) => {
       const dateKey = formatDateISO(new Date(slot.start_time));
       if (!scheduledData[dateKey]) {
         scheduledData[dateKey] = [];
-      }
+      } // 프론트엔드 모달에서 삭제/조회할 수 있도록 at_no와 label 전달
 
-      // 프론트엔드 모달에서 삭제/조회할 수 있도록 at_no와 label 전달
       scheduledData[dateKey].push({
         type: "available",
         label: `${formatTime(slot.start_time)} - ${formatTime(
@@ -191,9 +234,8 @@ exports.getSchedules = async (req, res) => {
         )} 상담가능`,
         at_no: slot.at_no, // [중요] 삭제 시 사용할 고유 ID
       });
-    });
+    }); // 3-2. '예약건수' 가공
 
-    // 3-2. '예약건수' 가공
     reservationCounts.forEach((item) => {
       const dateKey = item.date; // YYYY-MM-DD
       if (!scheduledData[dateKey]) {
@@ -233,9 +275,8 @@ exports.createSchedule = async (req, res) => {
       weekdays: "D",
     };
     const recurring_rule_char =
-      recurringRulesMap[recurring_rules] || recurringRulesMap["none"];
+      recurringRulesMap[recurring_rules] || recurringRulesMap["none"]; // --- 반복 날짜 생성 로직 ---
 
-    // --- 반복 날짜 생성 로직 ---
     const datesToInsert = [];
     const baseStartDate = new Date(start_time);
     const baseEndDate = new Date(end_time);
@@ -292,10 +333,7 @@ exports.createSchedule = async (req, res) => {
         }
         currentDate.setDate(currentDate.getDate() + 1);
       }
-    }
-    // --- 반복 날짜 생성 로직 끝 ---
-
-    // 생성된 모든 날짜에 대해 DB에 INSERT
+    } // --- 반복 날짜 생성 로직 끝 --- // 생성된 모든 날짜에 대해 DB에 INSERT
     for (const datePair of datesToInsert) {
       const params = [
         datePair.start, // Date 객체
@@ -360,9 +398,8 @@ exports.getStaffReservations = async (req, res) => {
 
   try {
     const queryParams = [staff_name];
-    let queryName = "getStaffReservationsBase"; // 기본 쿼리
+    let queryName = "getStaffReservationsBase"; // 기본 쿼리 // 검색 조건에 따라 쿼리 이름과 파라미터 동적 변경
 
-    // 검색 조건에 따라 쿼리 이름과 파라미터 동적 변경
     if (searchType === "date" && startDate && endDate) {
       queryName = "getStaffReservationsByDate";
       queryParams.push(startDate, endDate);
@@ -410,9 +447,8 @@ exports.cancelStaffReservation = async (req, res) => {
       return res
         .status(404)
         .send({ message: "취소할 예약을 찾을 수 없거나 권한이 없습니다." });
-    }
+    } // (중요) TODO: (요구사항 3) 신청자(사용자)에게 취소 알림 전송 로직
 
-    // (중요) TODO: (요구사항 3) 신청자(사용자)에게 취소 알림 전송 로직
     console.log(
       `(Notification) at_no: ${at_no} 예약이 담당자에 의해 취소됨. 사용자에게 알림 전송 필요.`
     );
