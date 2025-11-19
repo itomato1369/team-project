@@ -8,7 +8,7 @@ import Divider from 'primevue/divider';
 import Accordion from 'primevue/accordion';
 import AccordionTab from 'primevue/accordiontab';
 
-const loggedInUserName = 'teeeee'; // As per instructions
+const logInUserId = 'test'; // As per instructions
 
 // --- Main Data State ---
 const currentUser = ref(null);
@@ -35,7 +35,7 @@ const detailedAddress = ref('');
 // --- Data Loading ---
 const loadMyInfo = async () => {
   try {
-    const userRes = await axios.get('/api/user/me', { params: { username: loggedInUserName } });
+    const userRes = await axios.get('/api/user/me', { params: { userId: logInUserId } });
     currentUser.value = userRes.data.result;
 
     const instRes = await axios.get('/api/user/institutions');
@@ -281,7 +281,9 @@ const currentInstitutionName = computed(() => {
             <!-- Password Error Message Display -->
             <div v-if="passwordError" class="p-field p-grid" style="margin-top: 1rem">
               <div class="p-col-12 p-md-10 p-md-offset-2">
-                <small class="p-error" style="font-size: 1.2rem; color: red;">{{ passwordError }}</small>
+                <small class="p-error" style="font-size: 1.2rem; color: red">{{
+                  passwordError
+                }}</small>
               </div>
             </div>
             <div class="p-col-12 p-md-12">

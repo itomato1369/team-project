@@ -1,4 +1,4 @@
-const bcrypt = require('bcrypt');
+const bcrypt = require("bcrypt");
 const mapper = require("../database/mappers/mapper");
 const sql = require("../database/sqlList");
 
@@ -254,8 +254,12 @@ const addWard = async (wardData) => {
     disabled_level,
     age,
   } = wardData;
+
+  // Hash the RRN before saving
+  const hashedRrn = await bcrypt.hash(ward_rrn, 10);
+
   return await mapper.query("insertWard", [
-    ward_rrn,
+    hashedRrn,
     name,
     sex,
     address,
@@ -267,33 +271,16 @@ const addWard = async (wardData) => {
 };
 
 const updateWard = async (wardNo, wardData) => {
-  const {
-    ward_rrn,
-    name,
-    sex,
-    address,
-    guardian_relation,
-    disabled_level,
-    age,
-  } = wardData;
-  return await mapper.query("updateWard", [
-    ward_rrn,
-    name,
-    sex,
-    address,
-    guardian_relation,
-    disabled_level,
-    age,
-    wardNo,
-  ]);
+  const { address, disabled_level } = wardData;
+  return await mapper.query("updateWard", [address, disabled_level, wardNo]);
 };
 
-const getUserByUsername = async (username) => {
-  const user = await mapper.query("findUserByUsername", username);
-  console.log(
-    "********************************\nUser fetched by username:",
-    user
-  );
+// src/components/UserMyInfoUpdate.vue
+const getUserByUserId = async (userId) => {
+  console.log("살려줘!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+  console.log("****************\n Getting user by userId:", userId);
+  const user = await mapper.query("findUserByUserId", userId);
+  console.log("****************\n user is :", user);
   return user[0];
 };
 
@@ -306,25 +293,25 @@ const applyToInstitution = async (userId, institutionNo) => {
 };
 
 const updateUserInfo = async (userId, userData) => {
-    const { phone, address, email } = userData;
-    return await mapper.query("updateUser", [phone, address, email, userId]);
+  const { phone, address, email } = userData;
+  return await mapper.query("updateUser", [phone, address, email, userId]);
 };
 
 const changePassword = async (userId, passwordData) => {
-    const { currentPassword, newPassword } = passwordData;
-    const user = (await mapper.query('findUserById', [userId]))[0];
+  const { currentPassword, newPassword } = passwordData;
+  const user = (await mapper.query("findUserById", [userId]))[0];
 
-    if (!user) {
-        throw new Error('사용자를 찾을 수 없습니다.');
-    }
+  if (!user) {
+    throw new Error("사용자를 찾을 수 없습니다.");
+  }
 
-    const isMatch = await bcrypt.compare(currentPassword, user.password);
-    if (!isMatch) {
-        throw new Error('현재 비밀번호가 일치하지 않습니다.');
-    }
+  const isMatch = await bcrypt.compare(currentPassword, user.password);
+  if (!isMatch) {
+    throw new Error("현재 비밀번호가 일치하지 않습니다.");
+  }
 
-    const hashedNewPassword = await bcrypt.hash(newPassword, 10);
-    return await mapper.query('updatePassword', [hashedNewPassword, userId]);
+  const hashedNewPassword = await bcrypt.hash(newPassword, 10);
+  return await mapper.query("updatePassword", [hashedNewPassword, userId]);
 };
 
 module.exports = {
@@ -344,7 +331,7 @@ module.exports = {
   getWardsByGuardianName,
   addWard,
   updateWard,
-  getUserByUsername,
+  getUserByUserId,
   getAllInstitutions,
   applyToInstitution,
   updateUserInfo,

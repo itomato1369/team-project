@@ -214,14 +214,16 @@ const wardSqls = {
   `,
   updateWard: `
     UPDATE ward 
-    SET ward_rrn = ?, name = ?, sex = ?, address = ?, guardian_relation = ?, disabled_level = ?, age = ?
+    SET address = ?, disabled_level = ?
     WHERE ward_no = ?
-  `
+  `,
 };
 
 const myInfoSqls = {
-  findUserByUsername: `
-    SELECT * FROM member WHERE user_name = ?
+  findUserByUserId: `
+    SELECT * 
+    FROM member 
+    WHERE user_id = ?
   `,
   applyToInstitution: `
     UPDATE member SET institution_no = ?, status = 'READY' WHERE user_id = ?
@@ -234,9 +236,8 @@ const myInfoSqls = {
   `,
   updatePassword: `
     UPDATE member SET password = ? WHERE user_id = ?
-  `
+  `,
 };
-
 
 module.exports = {
   findUserById,
@@ -254,5 +255,5 @@ module.exports = {
 
   ...wardSqls,
 
-  ...myInfoSqls
+  ...myInfoSqls,
 };

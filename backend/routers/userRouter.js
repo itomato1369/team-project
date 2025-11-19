@@ -255,14 +255,15 @@ router.put("/wards/:ward_no", async (req, res) => {
 
 // My Info Management Routes
 router.get("/me", async (req, res) => {
-  const { username } = req.query;
-  if (!username) {
+  const { userId } = req.query;
+  if (!userId) {
     return res
       .status(400)
       .send({ err: "username query parameter is required." });
   }
   try {
-    const user = await userService.getUserByUsername(username);
+    const user = await userService.getUserByUserId(userId);
+    console.log("userRouter가 반환하는 user는?", user);
     res.status(200).send({ result: user });
   } catch (err) {
     res.status(500).send({ err: "Failed to get user info: " + err.message });
@@ -270,29 +271,29 @@ router.get("/me", async (req, res) => {
 });
 
 router.put("/me", async (req, res) => {
-    const { userId, ...userData } = req.body;
-    if (!userId) {
-        return res.status(400).send({ err: "userId is required." });
-    }
-    try {
-        await userService.updateUserInfo(userId, userData);
-        res.status(200).send({ message: "User info updated successfully." });
-    } catch (err) {
-        res.status(500).send({ err: "Failed to update user info: " + err.message });
-    }
+  const { userId, ...userData } = req.body;
+  if (!userId) {
+    return res.status(400).send({ err: "userId is required." });
+  }
+  try {
+    await userService.updateUserInfo(userId, userData);
+    res.status(200).send({ message: "User info updated successfully." });
+  } catch (err) {
+    res.status(500).send({ err: "Failed to update user info: " + err.message });
+  }
 });
 
 router.put("/password", async (req, res) => {
-    const { userId, ...passwordData } = req.body;
-    if (!userId) {
-        return res.status(400).send({ err: "userId is required." });
-    }
-    try {
-        await userService.changePassword(userId, passwordData);
-        res.status(200).send({ message: "Password changed successfully." });
-    } catch (err) {
-        res.status(500).send({ err: "Failed to change password: " + err.message });
-    }
+  const { userId, ...passwordData } = req.body;
+  if (!userId) {
+    return res.status(400).send({ err: "userId is required." });
+  }
+  try {
+    await userService.changePassword(userId, passwordData);
+    res.status(200).send({ message: "Password changed successfully." });
+  } catch (err) {
+    res.status(500).send({ err: "Failed to change password: " + err.message });
+  }
 });
 
 router.get("/institutions", async (req, res) => {
