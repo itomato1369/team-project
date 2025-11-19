@@ -50,8 +50,15 @@ router.post(
 // 해당 javascript 파일의 마지막 코드, 모듈화
 // 위에 선언한 기능(변수, 함수 등)들 중 외부로 노출할 대상을 설정
 // => 다른 파일에서 require()을 통해 가져옴
+
+//지원계획신청 데이터불러오기
 router.get("/support-plan", staffService.supportPlan);
+
+//지원계획 추가
 router.post("/support-plan", staffService.createSupportPlan);
+
+router.post("/support-result", staffService.createSupportResult);
+
 router.get("/survey-select", staffService.surveySelect);
 
 router.get("/:surveyNo", staffService.getSurveyDetail);

@@ -65,6 +65,7 @@ WHERE
     s.survey_no = ?
 `;
 
+//일단 사용안할거같음
 const supportplan = `
   SELECT
     t1.support_plan_goal,
@@ -80,20 +81,21 @@ ORDER BY
     t1.created_at DESC`;
 
 const wardno = `SELECT * FROM survey WHERE survey_no = ?`;
-
+//지원계획
 const spportinsert = `
 INSERT INTO support_plan (
-  priority_no,
-  support_plan_goal,
-  business_name,
-  spend,
-  plan,
-  file_no,
-  support_plan_status,
-  writer_date
-) VALUES (?, ?, ?, ?, ?, ?, '승인대기', NOW());
+ support_plan_goal,
+ business_name,
+ spend,
+ plan,
+ file_no,
+ priority_no,       /* ✅ priority_no 추가 */
+ support_plan_status,
+ writer_date        /* ✅ writer_date 추가 */
+) VALUES ( ?, ?, ?, ?, ?, ?, ?, NOW() ) /* ✅ writer_date 위치에 NOW() 함수 사용 */
 `;
 
+//승인조회 정보
 const planitem = `    SELECT 
       support_plan_no,
       support_plan_goal,
@@ -157,6 +159,21 @@ const deleteStaffSchedule = `
 DELETE FROM available_time 
 WHERE at_no = ? AND staff_id = ? AND status = '상담가능'`;
 
+//지원결과보고서 작성
+const insertsupportresultquery = `
+INSERT INTO support_result (
+    support_title,
+    support_content,
+    support_spend,
+    support_started_at,
+    support_ended_at
+) VALUES (?, ?, ?, ?, ?)
+`;
+
+//지원결과보고서 조회
+const supportsearch = `
+`;
+
 module.exports = {
   surveySelect,
   surveyWardJoinSelect,
@@ -169,4 +186,5 @@ module.exports = {
   getReservationCounts,
   createStaffSchedule,
   deleteStaffSchedule,
+  insertsupportresultquery,
 };

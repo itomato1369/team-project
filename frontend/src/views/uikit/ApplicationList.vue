@@ -4,16 +4,13 @@ import axios from 'axios';
 import InputText from 'primevue/inputtext';
 import SupportPlanItem from '@/components/staff/SupportPlanItem.vue';
 
-// 여러 개 아코디언 열기 여부
 const ALLOW_MULTIPLE_ACCORDIONS = ref(false);
-
-// 상태
 const surveys = ref([]);
 const loading = ref(false);
 const searchKeyword = ref('');
 const activeSupportPlanNo = ref(null);
 
-// 우선순위 변환
+// 우선순위 매핑
 const mapPriority = (no) => {
   switch (no) {
     case 1:
@@ -34,26 +31,37 @@ const handleToggleDetail = (supportPlanNo) => {
   }
 };
 
-// DB 데이터 로딩
+// DB 로딩
 onBeforeMount(async () => {
   loading.value = true;
   try {
-    const res = await axios.get('/api/staff/support-plan'); // <<< 반드시 /staff 붙음
-
+    const res = await axios.get('/api/staff/support-plan');
     surveys.value = res.data.map((item) => ({
       support_plan_no: item.support_plan_no,
-      title: item.support_plan_goal,
-      writer: item.staff_name,
+      title: item.support_plan_goal || '',
+      writer: item.staff_name || '',
       createdAt: item.created_at ? item.created_at.split('T')[0] : '',
       requestDate: item.writer_date ? item.writer_date.split('T')[0] : '',
       priority: mapPriority(item.priority_no),
-      plan: item.plan,
+      plan: item.plan || '',
     }));
   } catch (err) {
     console.error('Support Plan 조회 오류:', err);
   } finally {
     loading.value = false;
   }
+});
+
+// 검색 필터 적용
+const filteredSurveys = computed(() => {
+  if (!searchKeyword.value) return surveys.value;
+  const keyword = searchKeyword.value.toLowerCase();
+  return surveys.value.filter(
+    (item) =>
+      item.title.toLowerCase().includes(keyword) ||
+      item.writer.toLowerCase().includes(keyword) ||
+      item.priority.toLowerCase().includes(keyword)
+  );
 });
 </script>
 
@@ -64,7 +72,7 @@ onBeforeMount(async () => {
       <i class="pi pi-search" />
       <InputText
         v-model="searchKeyword"
-        placeholder="사업명, 작성자 등으로 검색"
+        placeholder="지원제목, 작성자, 우선순위 등으로 검색"
         class="w-full p-inputtext-lg"
       />
     </div>
@@ -72,7 +80,7 @@ onBeforeMount(async () => {
     <!-- 리스트 -->
     <div v-if="!loading" class="flex flex-col gap-6">
       <SupportPlanItem
-        v-for="item in surveys"
+        v-for="item in filteredSurveys"
         :key="item.support_plan_no"
         :item="item"
         :is-active="activeSupportPlanNo === item.support_plan_no"
@@ -81,7 +89,6 @@ onBeforeMount(async () => {
       />
     </div>
 
-    <!-- 로딩 -->
-    <div v-else class="text-center p-6 text-lg text-gray-500">데이터를 불러오는 중입니다...</div>
+    <div v-else class="text-center p-6 text-lg text-gray-500">데이터 불러오는 중...</div>
   </div>
 </template>
