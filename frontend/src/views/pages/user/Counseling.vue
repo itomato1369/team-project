@@ -3,7 +3,7 @@ import { ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { useToast } from 'primevue/usetoast';
 import Card from 'primevue/card';
-import api from '@/api/api.js';
+import api, { userApi } from '@/api/api.js';
 
 import ConfirmationDialog from '@/components/ConfirmationDialog.vue';
 
@@ -11,6 +11,9 @@ const router = useRouter();
 const toast = useToast();
 
 // --- 1. 상태 관리 (State Management) ---
+
+const wardList = ref([]); // 피보호자 목록
+const selectedWard = ref(null); // 선택된 피보호자 (ward_no)
 
 const today = new Date();
 today.setHours(0, 0, 0, 0);
@@ -129,6 +132,16 @@ function selectTime(slotObject) {
  * [v12 수정] '상담 신청' 버튼 클릭 시
  */
 async function submitApplication() {
+  if (!selectedWard.value) {
+    toast.add({
+      severity: 'warn',
+      summary: '신청 불가',
+      detail: '먼저 상담받을 피보호자를 선택해주세요.',
+      life: 3000,
+    });
+    return;
+  }
+
   if (!selectedDate.value || !selectedTimeSlot.value) {
     toast.add({
       severity: 'warn',
@@ -148,6 +161,7 @@ async function submitApplication() {
     const payload = {
       at_no: selectedTimeSlot.value.at_no,
       start_time_stamp: selectedTimeSlot.value.start_time_stamp,
+      ward_no: selectedWard.value, // [추가] 선택된 피보호자 ID
     };
 
     // [로그 복원]
@@ -250,6 +264,24 @@ async function refreshSchedules() {
 
 onMounted(async () => {
   await refreshSchedules();
+
+  // Fetch user's wards
+  try {
+    const response = await userApi.getMyWards();
+    wardList.value = response.data.result;
+    // If there is only one ward, pre-select it
+    if (wardList.value.length === 1) {
+      selectedWard.value = wardList.value[0].ward_no;
+    }
+  } catch (error) {
+    console.error('피보호자 목록 로딩 실패:', error);
+    toast.add({
+      severity: 'error',
+      summary: '오류',
+      detail: '피보호자 목록을 불러오는 데 실패했습니다.',
+      life: 3000,
+    });
+  }
 });
 </script>
 
@@ -260,6 +292,18 @@ onMounted(async () => {
       <p class="welcome-message">
         '예약 가능'한 날짜 중 하루를 선택하세요. (오늘: {{ formatToKoreanDate(new Date()) }})
       </p>
+
+      <!-- 0. 피보호자 선택 -->
+      <div class="table-container" v-if="wardList.length > 0">
+        <Card>
+          <template #content>
+            <div class="mb-4">
+                <label for="ward-select" class="block text-xl font-medium mb-2">상담받을 피보호자 선택</label>
+                <Dropdown id="ward-select" v-model="selectedWard" :options="wardList" optionLabel="name" optionValue="ward_no" placeholder="피보호자를 선택하세요" class="w-full" />
+            </div>
+          </template>
+        </Card>
+      </div>
 
       <!-- 1. 캘린더 카드 -->
       <div class="table-container">

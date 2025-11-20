@@ -20,6 +20,11 @@ const mainRouter = [
         name: 'Contact',
         component: () => import('../views/Contact.vue'), // 예시 경로
       },
+      {
+        path: '/auth/additional-info',
+        name: 'additional-info',
+        component: () => import('@/views/pages/auth/AdditionalInfo.vue'),
+      },
       ...mainPage,
       ...staffRouter,
       ...userRouter,

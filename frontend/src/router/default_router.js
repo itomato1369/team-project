@@ -89,6 +89,7 @@ const routes = [
   //   path: '/auth/login',
   //   name: 'login',
   //   component: () => import('@/views/pages/auth/Login.vue'),
+  //   meta: { requiresAuth: false }
   // },
   {
     path: '/auth/access',

@@ -57,6 +57,9 @@ const goToSignUp = () => {
 };
 
 // TODO: Implement social login functions
+const goToGoogleLogin = () => {
+  window.location.href = '/api/auth/google';
+};
 </script>
 
 <template>
@@ -202,17 +205,8 @@ const goToSignUp = () => {
             </div>
             <p class="text-center text-muted-color mb-4">소셜 계정으로 로그인</p>
             <div class="flex flex-col sm:flex-row gap-4">
-              <Button label="네이버" class="w-full" severity="success">
-                <!-- PrimeIcon 사용 예시 (아이콘이 정확하지 않을 수 있음) -->
-                <!-- <i class="pi pi-check mr-2"></i> -->
-                네이버
-              </Button>
-              <Button label="카카오" class="w-full" severity="warning">
-                <!-- <i class="pi pi-comment mr-2"></i> -->
-                카카오
-              </Button>
-              <Button label="구글" class="w-full" severity="danger">
-                <!-- <i class="pi pi-google mr-2"></i> -->
+              <Button class="w-full" severity="danger" @click="goToGoogleLogin">
+                <i class="pi pi-google mr-2"></i>
                 구글
               </Button>
             </div>

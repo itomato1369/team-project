@@ -1,4 +1,5 @@
 require("dotenv").config({ path: "./dbConfig.env" });
+require("dotenv").config(); // .env 파일도 함께 로드
 console.log("[app.js] 1. Server process starting..."); // <-- 로그 1
 
 const express = require("express");

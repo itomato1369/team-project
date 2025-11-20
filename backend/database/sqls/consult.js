@@ -37,7 +37,7 @@ WHERE at.at_no = ?`;
  */
 const createReservation = `
 INSERT INTO reservation (
-    user_id, staff_id, name,
+    user_id, staff_id, ward_no,
     res_start, res_end, res_reason, at_no,
     res_status, created_at
 )

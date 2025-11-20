@@ -90,6 +90,16 @@ api.interceptors.response.use(
 
 // API 서비스 객체
 
+export const authApi = {
+  /**
+   * 소셜 로그인 후 추가 정보를 제출하여 가입을 완료합니다.
+   * (POST /api/auth/complete-profile)
+   */
+  completeSocialSignup: (payload) => {
+    return api.post('/api/auth/complete-profile', payload);
+  },
+};
+
 // --- (사용자용) 예약 API ---
 export const reservationApi = {
   /**
@@ -109,6 +119,16 @@ export const reservationApi = {
    */
   cancelReservation: (reservationId) => {
     return api.post(`/api/user/reservations/cancel/${reservationId}`);
+  },
+};
+
+export const userApi = {
+  /**
+   * 로그인된 사용자의 피보호자 목록을 조회합니다.
+   * (GET /api/user/wards)
+   */
+  getMyWards: () => {
+    return api.get('/api/user/wards');
   },
 };
 

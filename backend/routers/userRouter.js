@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 const consultService = require("../services/consultService");
 const userService = require("../services/userService");
-// const { verifyAccessToken } = require('../middleware/authMiddleware');
+const { verifyAccessToken } = require('../middleware/authMiddleware');
 
 // router.use(verifyAccessToken);
 
@@ -12,9 +12,7 @@ const userService = require("../services/userService");
 router.get("/schedule/available", consultService.getAvailableSchedules);
 
 // [추가] POST /api/schedule/reserve : 신규 상담 예약 생성
-// [참고] 실제로는 authMiddleware를 추가하여 로그인한 사용자만 접근하도록 해야 합니다.
-// router.post('/reserve', authMiddleware, scheduleService.createReservation);
-router.post("/schedule/reserve", consultService.createReservation);
+router.post("/schedule/reserve", verifyAccessToken, consultService.createReservation);
 
 // GET /api/reservations/my : 나의 상담 내역 조회 (UI 연동)
 // (라우터 파일의 prefix가 /api 라면, 실제 경로는 /api/reservations/my)
@@ -219,15 +217,10 @@ router.get("/users/by-institution", async (req, res) => {
 });
 
 // Ward Management Routes
-router.get("/wards", async (req, res) => {
-  const { guardianName } = req.query;
-  if (!guardianName) {
-    return res
-      .status(400)
-      .send({ err: "guardianName query parameter is required." });
-  }
+router.get("/wards", verifyAccessToken, async (req, res) => {
   try {
-    const wards = await userService.getWardsByGuardianName(guardianName);
+    const userId = req.user.id; // Get user ID from authenticated token
+    const wards = await userService.getWardsByGuardianName(userId);
     res.status(200).send({ result: wards });
   } catch (err) {
     res.status(500).send({ err: "Failed to get wards: " + err.message });

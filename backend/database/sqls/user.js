@@ -11,6 +11,31 @@ SELECT user_id,
 FROM member
 WHERE user_id = ?`;
 
+const findUserByEmail = `
+SELECT user_id, 
+       password, 
+       user_name,
+       email,
+       role AS user_role
+FROM member
+WHERE email = ?`;
+
+const createSocialUser = `
+INSERT INTO member (user_id, user_name, email, role, status, provider, social_id, created_at)
+VALUES (?, ?, ?, 'USER', 'READY', 'google', ?, NOW())
+`;
+
+const updateSocialUser = `
+UPDATE member
+SET
+    birthday = ?,
+    phone = ?,
+    address = ?,
+    status = 'ACTIVE'
+WHERE
+    user_id = ?;
+`;
+
 const findExpiringNotices = `
 SELECT notice_no
   , business_name
@@ -206,7 +231,7 @@ const wardSqls = {
     LEFT JOIN
       priority p ON w.ward_no = p.ward_no
     WHERE
-      w.guardian_name = ?
+      w.guardian_id = ?
   `,
   insertWard: `
     INSERT INTO ward (ward_rrn, name, sex, address, guardian_name, guardian_relation, disabled_level, age, created_at) 
@@ -241,6 +266,9 @@ const myInfoSqls = {
 
 module.exports = {
   findUserById,
+  findUserByEmail,
+  createSocialUser,
+  updateSocialUser,
   findExpiringNotices,
   findSurveyToUserWard,
 
