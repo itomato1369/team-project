@@ -285,6 +285,19 @@ LEFT JOIN ward w ON c.ward_no = w.ward_no
 LEFT JOIN survey s ON c.survey_no = s.survey_no
 WHERE c.consult_no = ?
 `;
+
+/**
+ * 6. 상담 일지 수정 (내용, 상태, 장애등급)
+ */
+const updateConsult = `
+UPDATE consult
+SET 
+    content = ?,
+    consult_status = ?,
+    disabled_level = ?
+WHERE consult_no = ?
+`;
+
 module.exports = {
   getAvailableSchedules,
   getUpcomingReservations,
@@ -307,4 +320,5 @@ module.exports = {
   getConsultByWard,
   getConsultByDate,
   getConsultLogDetail,
+  updateConsult,
 };

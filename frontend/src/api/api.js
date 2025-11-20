@@ -220,6 +220,14 @@ export const consultLogApi = {
   getLogDetail: (consultNo) => {
     return api.get(`/api/counseling/logs/${consultNo}`);
   },
+
+  /**
+   * 상담 일지 수정
+   * (PUT /api/counseling/logs/:consultNo)
+   */
+  updateLog: (consultNo, data) => {
+    return api.put(`/api/counseling/logs/${consultNo}`, data);
+  },
 };
 
 export default api;

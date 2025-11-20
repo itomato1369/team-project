@@ -218,3 +218,38 @@ module.exports.getDetail = async (req, res) => {
       .send({ message: "상세 정보를 불러오는 중 오류가 발생했습니다." });
   }
 };
+/**
+ * [신규] 상담 일지 수정 서비스
+ */
+module.exports.updateConsult = async (req, res) => {
+  console.log("--- updateLog Service ---");
+  try {
+    const { consultNo } = req.params;
+    const { content, consult_status, disabled_level } = req.body;
+
+    if (!consultNo) {
+      return res.status(400).send({ message: "상담 번호가 누락되었습니다." });
+    }
+
+    // 업데이트 실행
+    const result = await db.query("updateConsult", [
+      content,
+      consult_status,
+      disabled_level,
+      consultNo,
+    ]);
+
+    if (result.affectedRows === 0) {
+      return res
+        .status(404)
+        .send({ message: "수정할 상담 기록을 찾을 수 없습니다." });
+    }
+
+    res.status(200).send({
+      message: "상담 일지가 성공적으로 수정되었습니다.",
+    });
+  } catch (err) {
+    console.error("상담 일지 수정 오류:", err);
+    res.status(500).send({ message: "수정 중 오류가 발생했습니다." });
+  }
+};
