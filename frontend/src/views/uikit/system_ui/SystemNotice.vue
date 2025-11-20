@@ -98,15 +98,6 @@ onMounted(() => {
     </div>
 
     <div class="search-bar-container">
-      <!-- <div class="search-item status-select">
-        <Dropdown
-          v-model="selectedStatus"
-          :options="statusOptions"
-          optionLabel="label"
-          placeholder="상태 선택"
-        ></Dropdown>
-      </div> -->
-
       <div class="search-item institution-name-input">
         <InputText
           v-model="searchInstitution"

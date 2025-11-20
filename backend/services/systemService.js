@@ -8,12 +8,42 @@ const getApprovalCount = async () => {
   // system.js에서 작성한 쿼리문
   // selectSystem
   const approvalCount = await db.query("selectApprovalCount");
+  // 기본값 0
+  let total_count = 0;
   // 쿼리 결과에서 실제 건수 (카운트 값)을 추출하여 반환
   if (approvalCount && approvalCount.length > 0) {
-    return approvalCount[0].total_count;
+    total_count = approvalCount[0].total_count;
   }
-  // 값이 없으면
-  return 0;
+  // 값을 반환
+  return { total_count: total_count };
+};
+
+// 등록된 기관 수
+const getInstitutionCount = async () => {
+  // system.js에서 작성한 쿼리문
+  const institutionCount = await db.query("selectInstitutionCount");
+  // 기본값 0
+  let total_count = 0;
+  // 쿼리 결과에서 실제 등록된 기관 수를 추출하여 반환
+  if (institutionCount && institutionCount.length > 0) {
+    total_count = institutionCount[0].total_count;
+  }
+  // 값을 반환
+  return { total_count: total_count };
+};
+
+// 등록된 공고 수
+const getNoticeCount = async () => {
+  // system.js에서 작성한 쿼리문
+  const noticeCount = await db.query("selectNoticeCount");
+  // 기본값 0
+  let total_count = 0;
+  // 쿼리 결과에서 실제 등록된 공고 개수를 추출하여 반환
+  if (noticeCount && noticeCount.length > 0) {
+    total_count = noticeCount[0].total_count;
+  }
+  // 값을 반환
+  return { total_count: total_count };
 };
 
 // 기관 목록을 가져오기
@@ -139,6 +169,13 @@ const getAllNoticeList = async () => {
   return noticeList;
 };
 
+// 공고 상세정보 보기
+const getNoticeById = async (id) => {
+  // notice_no를 사용하여 쿼리를 실행
+  const notice = await db.query("selectedNoticeById", [id]);
+  return notice[0];
+};
+
 // 새로운 공고 등록
 const registerNotice = async (data) => {
   // registerNotice 로 INSERT할 데이터
@@ -160,15 +197,18 @@ const registerNotice = async (data) => {
 };
 
 module.exports = {
+  getApprovalCount,
+  getInstitutionCount,
+  getNoticeCount,
   getAllInstitutionList,
   getInstitutionById,
   getInstitutionListBySearch,
   registerInstitution,
   updateInstitution,
   getApprovalList,
+  getNoticeBySearch,
   acceptApproval,
   getAllNoticeList,
-  getNoticeBySearch,
-  getApprovalCount,
+  getNoticeById,
   registerNotice,
 };

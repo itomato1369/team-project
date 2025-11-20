@@ -56,6 +56,10 @@ app.use("/counseling", counselingRouter);
 // QNA 라우터
 const qnaRouter = require("./routers/qnaRouter.js");
 app.use("/qna", qnaRouter);
+// 아이디 비밀번호 찾기 모듈
+const findAccountRouter = require("./routers/accountRouter.js");
+app.use("/findaccount", findAccountRouter);
+
 // [수정] 가장 일반적인 라우터를 마지막에 등록
 const boardRouter = require("./routers/router.js");
 app.use("/", boardRouter);

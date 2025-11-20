@@ -7,18 +7,14 @@ const systemService = require("../services/systemService.js");
 const router = express.Router();
 
 // 시스템 관리자 메인 권한 승인 건수
-router.get("/approval/count", systemService.getApprovalCount);
-
-// 권한 승인 목록을 조회는 GET방식 순서 중요함 구체적인 경로를 맨위에
-// app.js 에서 이미 "/institutions을 설정함
-router.get("/approval", async (req, res) => {
-  console.log("systemRouter /approval요청 도착");
+router.get("/approval/count", async (req, res) => {
   try {
-    const list = await systemService.getApprovalList();
-    res.status(200).json(list);
+    const result = await systemService.getApprovalCount();
+    // 응답을 전송
+    res.status(200).json(result);
   } catch (error) {
-    console.error("systemRouter.js error", error);
-    res.status(500).json({ message: "권한승인 목록 실패" });
+    console.error("systemRouter.js /approval/count 오류", error);
+    res.status(500).json({ message: "승인 건수 조회 오류" });
   }
 });
 
@@ -27,7 +23,7 @@ router.get("/approval", async (req, res) => {
 // GET 조회 POST 생성 PUT 전체 수정 혹은 대체
 router.patch("/approval/:id", async (req, res) => {
   try {
-    console.log(`systemRouter.js /approval${req.params.id}도착`);
+    // console.log(`systemRouter.js /approval${req.params.id}도착`);
     // URL 에서 user_id를 추출
     const id = req.params.id;
     // 유효성 검사
@@ -60,25 +56,54 @@ router.patch("/approval/:id", async (req, res) => {
   }
 });
 
-// 공고 목록 조회
-router.get("/notices", async (req, res) => {
-  console.log("systemRouter /notices 요청 도착");
+// 권한 승인 목록을 조회는 GET방식 순서 중요함 구체적인 경로를 맨위에
+// app.js 에서 이미 "/institutions을 설정함
+router.get("/approval", async (req, res) => {
+  // console.log("systemRouter /approval요청 도착");
   try {
-    // 검색필터링
-    const status = req.query.status;
-    const institution_name = req.query.institution_name;
-    // systemService.js에서 동적 검색함수 호출
-    const noticeList = await systemService.getAllNoticeList(institution_name);
-    res.status(200).json(noticeList);
+    const list = await systemService.getApprovalList();
+    res.status(200).json(list);
   } catch (error) {
-    console.error("systemRouter.js /noticeList 오류", error);
-    res.status(500).json({ message: "공고 조회 실패" });
+    console.error("systemRouter.js error", error);
+    res.status(500).json({ message: "권한승인 목록 실패" });
+  }
+});
+
+// 등록된 공고 개수
+router.get("/notices/count", async (req, res) => {
+  // console.log("systemRouter /notices/count 요청 도착");
+  try {
+    const result = await systemService.getNoticeCount();
+    // 응답을 전송
+    res.status(200).json(result);
+  } catch (error) {
+    console.error("systemRouter.js /notices/count 오류", error);
+    res.status(500).json({ message: "등록된 공고 개수 오류" });
+  }
+});
+
+// 공고  상세 정보
+router.get("/notices/:id", async (req, res) => {
+  try {
+    // URL에서 ID 파라미터를 가져옴
+    const id = req.params.id;
+    // systemService.js의 함수 호출
+    const notice = await systemService.getNoticeById(id);
+
+    if (notice) {
+      res.status(200).json(notice);
+    } else {
+      res.status(404).json({ message: "해당 기관의 정보가 없습니다" });
+    }
+  } catch (error) {
+    console.error("systemRouter.js 공고 상세조회 실패", error);
+    res.status(500).json({ message: "공고 상세조회 실패" });
   }
 });
 
 // 공고 등록
 router.post("/notices/register", async (req, res) => {
-  console.log("systemRouter /notices/register 요청 도착");
+  // console.log("systemRouter /notices/register 요청 도착");
   try {
     // vue에서 보낸 공고 등록 정보를 받음
     const noticeData = req.body;
@@ -94,9 +119,38 @@ router.post("/notices/register", async (req, res) => {
   }
 });
 
+// 공고 목록 조회
+router.get("/notices", async (req, res) => {
+  // console.log("systemRouter /notices 요청 도착");
+  try {
+    // 검색필터링
+    const status = req.query.status;
+    const institution_name = req.query.institution_name;
+    // systemService.js에서 동적 검색함수 호출
+    const noticeList = await systemService.getAllNoticeList(institution_name);
+    res.status(200).json(noticeList);
+  } catch (error) {
+    console.error("systemRouter.js /noticeList 오류", error);
+    res.status(500).json({ message: "공고 조회 실패" });
+  }
+});
+
+// 등록된 기관 수
+// /institutions/count
+router.get("/count", async (req, res) => {
+  try {
+    const result = await systemService.getInstitutionCount();
+    // 응답을 전송
+    res.status(200).json(result);
+  } catch (error) {
+    console.error("systemRouter.js /institutions/count 오류", error);
+    res.statsu(500).json({ message: "등록된 기관 수 오류" });
+  }
+});
+
 // 기관 등록 POST
 router.post("/register", async (req, res) => {
-  console.log("systemRouter.js /register 확인");
+  // console.log("systemRouter.js /register 확인");
   try {
     // vue에서 보낸 기관 정보를 받음
     const institutionData = req.body;
@@ -112,7 +166,7 @@ router.post("/register", async (req, res) => {
   }
 });
 
-// (GET /:id)
+// 기관의 상세 정보(GET /:id)
 router.get("/:id", async (req, res) => {
   try {
     // URL 에서 ID 파라미터를 가져옴
@@ -132,7 +186,7 @@ router.get("/:id", async (req, res) => {
 });
 // 기관 정보 수정하는 PUT
 router.put("/:id", async (req, res) => {
-  console.log(`systemRouter /institutions/${req.params.id} 확인`);
+  // console.log(`systemRouter /institutions/${req.params.id} 확인`);
   try {
     // URL 파라미터에서 기관 ID 가져옴
     const id = req.params.id;
@@ -155,7 +209,7 @@ router.put("/:id", async (req, res) => {
 // 목록 조회는 GET방식
 // app.js 에서 이미 "/institutions"을 설정했음
 router.get("/", async (req, res) => {
-  console.log("systemRouter /institutions 요청 도착");
+  // console.log("systemRouter /institutions 요청 도착");
   try {
     const list = await systemService.getAllInstitutionList();
     res.status(200).json(list);

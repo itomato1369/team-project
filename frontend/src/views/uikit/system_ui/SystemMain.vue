@@ -1,11 +1,13 @@
 <script setup>
-import { ref } from 'vue';
+import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import axios from 'axios';
 
 const router = useRouter();
 
 const approvalCount = ref(0);
+const institutionCount = ref(0);
+const noticeCount = ref(0);
 
 // DB에서 권한 승인 개수를 가져옴
 const getApprovalCount = async () => {
@@ -16,9 +18,38 @@ const getApprovalCount = async () => {
     // 백엔드에서 { "total_count": 5 }
     const data = await response.data;
 
-    approvalCount.value = data;
+    approvalCount.value = data.total_count;
   } catch (error) {
     console.error('권한 승인 개수 오류', error);
+  }
+};
+
+// DB에서 등록된 기관 수를 가져옴
+const getInstitutionCount = async () => {
+  try {
+    // backend 서버의 API
+    const response = await axios.get('/api/institutions/count');
+    // 응답 데이터는 response.data 객체
+    // { "total_count" : 5 }
+    const data = await response.data;
+
+    institutionCount.value = data.total_count;
+  } catch (error) {
+    console.error('등록된 기관 수 오류', error);
+  }
+};
+
+// DB에서 등록된 공고 개수를 가져옴
+const getNoticeCount = async () => {
+  try {
+    // backend 서버의 API
+    const response = await axios.get('/api/institutions/notices/count');
+    // 응답 데이터는 response.data 객체
+    // { "total_count" : 5 }
+    const data = await response.data;
+    noticeCount.value = data.total_count;
+  } catch (error) {
+    console.error('등록된 공고 개수 오류', error);
   }
 };
 
@@ -32,8 +63,15 @@ const goToInstitutionList = () => {
 };
 // 지원계획 폼 관리 수정
 const goToSupportplan = () => {
-  router.push({ name: 'sysSupportplan' });
+  router.push({ name: 'sysNotice' });
 };
+
+// vue 컴포넌트가 마운트 된후 데이터를 가져옴
+onMounted(() => {
+  getApprovalCount();
+  getInstitutionCount();
+  getNoticeCount();
+});
 </script>
 
 <template>
@@ -49,9 +87,8 @@ const goToSupportplan = () => {
         <Card class="stat-card" @click="goToApproval()">
           <template #title>승인 대기</template>
           <template #content>
-            <!-- 추후에 승인 건수는 반응형으로 수정 -->
             <div class="stat-value">
-              <span class="count-blue">{{ getApprovalCount.data }}</span
+              <span class="count-blue">{{ approvalCount }}</span
               >건
             </div>
           </template>
@@ -60,22 +97,27 @@ const goToSupportplan = () => {
         <Card class="stat-card" @click="goToInstitutionList()">
           <template #title>등록 기관</template>
           <template #content>
-            <!-- 추후에 승인 건수는 반응형으로 수정 -->
-            <div class="stat-value"><span class="count-green">2</span>건</div>
+            <div class="stat-value">
+              <span class="count-green">{{ institutionCount }}</span
+              >건
+            </div>
           </template>
         </Card>
 
         <Card class="stat-card" @click="goToSupportplan()">
           <template #title>사업공고</template>
           <template #content>
-            <!-- 추후에 승인 건수는 반응형으로 수정 -->
-            <div class="stat-value"><span class="count-red">1</span>건</div>
+            <div class="stat-value">
+              <span class="count-red">{{ noticeCount }}</span
+              >건
+            </div>
           </template>
         </Card>
       </div>
     </div>
   </div>
 </template>
+
 <style>
 /* 전체 레이아웃 (Sidebar + Main) */
 .dashboard-layout {

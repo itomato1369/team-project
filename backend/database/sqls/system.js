@@ -4,6 +4,12 @@ const selectInstitutions = {
   // 승인 대기 건수
   selectApprovalCount: `SELECT COUNT(*) AS total_count FROM member m INNER JOIN institution i ON m.institution_no = i.institution_no WHERE m.status = 'READY'`,
 
+  // 등록된 기관 수
+  selectInstitutionCount: `SELECT COUNT (*) AS total_count FROM institution`,
+
+  // 등록된 공고 개수
+  selectNoticeCount: `SELECT COUNT(*) AS total_count FROM notice`,
+
   // 등록된 기관 조회
   selectInstitutions: `SELECT institution_no, institution_name, phone, road_address, status FROM institution`,
 
@@ -29,6 +35,9 @@ const selectInstitutions = {
   selectNotice: `SELECT notice_no, institution_name, staff_name, disabled_type, business_name, business_start FROM notice`,
 
   // 새로운 공고 등록하기
-  registerNotice: `INSERT INTO notice (business_name, institution_name, staff_name, disabled_type, business_start, business_end, content, budget, selected_count) VALUES ('?','?', '?', '?', '?', '?', '?', '?', '?')`,
+  registerNotice: `INSERT INTO notice (business_name, institution_name, staff_name, disabled_type, business_start, business_end, content, budget, selected_count) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+
+  // 공고 상세보기
+  selectedNoticeById: `SELECT notice_no, institution_name, staff_name, disabled_type, business_name, business_start, business_end, content, budget, selected_count FROM notice WHERE notice_no = ?`,
 };
 module.exports = selectInstitutions;
