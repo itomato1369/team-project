@@ -157,8 +157,10 @@ onMounted(() => {
           <!-- 상태 -->
           <Column field="status" header="상태" style="min-width: 8rem">
             <template #body="{ data }">
-              <!-- [수정] getStatusSeverity가 '취소'를 처리하도록 수정됨 -->
-              <Tag :value="data.status" :severity="getStatusSeverity(data.status)" />
+              <Tag
+                :value="data.status === '상담완료' ? '상담완료' : data.status"
+                :severity="getStatusSeverity(data.status)"
+              />
             </template>
           </Column>
 

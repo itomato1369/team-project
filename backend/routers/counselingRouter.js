@@ -16,4 +16,28 @@ router.post("/logs", verifyAccessToken, counselingService.createLog);
  */
 router.post("/logs/draft", verifyAccessToken, counselingService.saveDraft);
 
+/**
+ * 3.상담 일지 목록 조회 (GET /api/counseling/logs)
+ * - 쿼리 파라미터: searchType, keyword, searchDate
+ */
+router.get("/logs", verifyAccessToken, counselingService.getConsultList);
+
+// 4. 상세 조회 (GET /api/counseling/logs/:logId)
+router.get("/logs/:consultNo", verifyAccessToken, counselingService.getDetail);
+// 5. 상담 일지 수정 (PUT)
+router.put(
+  "/logs/:consultNo",
+  verifyAccessToken,
+  counselingService.updateConsult
+);
+/**
+ * 5. 조사지목록 조회 (GET /api/surveys/:wardId)
+ */
+
+router.get(
+  "/surveys/:wardNo",
+  verifyAccessToken,
+  counselingService.getSurveysByWard
+);
+
 module.exports = router;

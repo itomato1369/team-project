@@ -83,7 +83,8 @@ async function fetchReservations() {
       // create (2).sql 스키마에 맞게 컬럼명 재확인
       start_time: item.start_time,
       applicantName: item.applicantName, // (m.user_name)
-      patientName: item.patientName, // (res.name)
+      patientName: item.wardName, // (w.ward_name)
+      wardNo: item.wardNo, // (res.ward_no)
       reason: item.reason, // (res.res_reason)
       atNo: item.atNo, // (at.at_no)
       id: item.id, // (res.res_no)
@@ -117,7 +118,9 @@ function writeRecord(reservation) {
     path: '/counseling-logform',
     query: {
       atNo: reservation.atNo,
+      resNo: reservation.id,
       applicantName: reservation.applicantName, // 신청인(보호자) 이름
+      wardNo: reservation.wardNo, // 피보호자 ID
       wardName: reservation.patientName, // 피보호자(환자) 이름
       reservationDate: reservation.start_time, // 예약 시간
       guardianId: reservation.user_id, // 보호자 ID
@@ -311,22 +314,34 @@ async function confirmCancel() {
               <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
                 {{ reservation.patientName }}
               </td>
+
               <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600 truncate max-w-xs">
                 {{ reservation.reason }}
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-medium space-x-2">
+                <!-- consult_status가 '완료'인 경우 -->
                 <button
+                  v-if="reservation.status === '상담완료'"
                   @click="writeRecord(reservation)"
-                  class="px-3 py-1 bg-blue-500 text-white rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                  class="px-3 py-1 bg-green-500 text-white rounded-md hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
                 >
-                  기록 작성
+                  기록 보기
                 </button>
-                <button
-                  @click="openCancelModal(reservation)"
-                  class="px-3 py-1 bg-red-500 text-white rounded-md hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
-                >
-                  예약 취소
-                </button>
+                <!-- consult_status가 '완료'가 아닌 경우 -->
+                <template v-else>
+                  <button
+                    @click="writeRecord(reservation)"
+                    class="px-3 py-1 bg-blue-500 text-white rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                  >
+                    기록 작성
+                  </button>
+                  <button
+                    @click="openCancelModal(reservation)"
+                    class="px-3 py-1 bg-red-500 text-white rounded-md hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                  >
+                    예약 취소
+                  </button>
+                </template>
               </td>
             </tr>
           </tbody>

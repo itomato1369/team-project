@@ -82,15 +82,17 @@ module.exports.createReservation = async (req, res) => {
   console.log("--- createReservation Service ---");
 
   try {
-    const { at_no, start_time_stamp, name, res_reason } = req.body;
+    const { at_no, start_time_stamp, ward_no, res_reason } = req.body;
 
     console.log("Request Payload:", req.body);
 
-    const user_id = "test"; // (임시 하드코딩)
+    // Get user info from the authenticated request
+    const user_id = req.user.id;
+    const name = req.user.name;
 
-    if (!at_no || !start_time_stamp) {
+    if (!at_no || !start_time_stamp || !ward_no) {
       return res.status(400).send({
-        message: "필수 정보(at_no, start_time_stamp)가 누락되었습니다.",
+        message: "필수 정보(at_no, start_time_stamp, ward_no)가 누락되었습니다.",
       });
     }
     // 1. staff_id 조회
@@ -116,7 +118,7 @@ module.exports.createReservation = async (req, res) => {
     const params = [
       user_id,
       staff_id,
-      name || "김밥", // (임시 - 실제로는 authStore 등에서 가져와야 함)
+      ward_no,
       res_start,
       res_end,
       res_reason || "",
@@ -129,9 +131,9 @@ module.exports.createReservation = async (req, res) => {
 
     // 5. [신규] 알림(alarm) 생성 (담당자에게)
     if (newResNo) {
-      // 4. [신규] available_time 테이블의 상태를 '예약'으로 변경
-      await db.query("updateAvailableTimeStatusToBooked", [at_no]);
-      console.log(`Available time status updated to '예약' for at_no ${at_no}`);
+      // 4. [신규] available_time 테이블의 상태를 '예약'으로 변경 -> 이 로직이 전체 블록을 예약 처리해서 문제 발생. 주석 처리.
+      // await db.query("updateAvailableTimeStatusToBooked", [at_no]);
+      // console.log(`Available time status updated to '예약' for at_no ${at_no}`);
       // [수정] 쿼리 이름을 사용하도록 변경
       console.log(`Executing Query: createAlarm for res_no ${newResNo}`);
 

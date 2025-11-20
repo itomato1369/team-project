@@ -90,6 +90,16 @@ api.interceptors.response.use(
 
 // API 서비스 객체
 
+export const authApi = {
+  /**
+   * 소셜 로그인 후 추가 정보를 제출하여 가입을 완료합니다.
+   * (POST /api/auth/complete-profile)
+   */
+  completeSocialSignup: (payload) => {
+    return api.post('/api/auth/complete-profile', payload);
+  },
+};
+
 // --- (사용자용) 예약 API ---
 export const reservationApi = {
   /**
@@ -109,6 +119,16 @@ export const reservationApi = {
    */
   cancelReservation: (reservationId) => {
     return api.post(`/api/user/reservations/cancel/${reservationId}`);
+  },
+};
+
+export const userApi = {
+  /**
+   * 로그인된 사용자의 피보호자 목록을 조회합니다.
+   * (GET /api/user/wards)
+   */
+  getMyWards: () => {
+    return api.get('/api/user/wards');
   },
 };
 
@@ -200,8 +220,33 @@ export const consultLogApi = {
    * 피보호자(ward_id) 기준 조사지 목록 조회
    * (POST /api/counseling/surveys/${wardId})
    */
-  getSurveysByWard: (wardId) => {
-    return api.get(`/api/counseling/surveys/${wardId}`);
+  getSurveysByWard: (wardNo) => {
+    return api.get(`/api/counseling/surveys/${wardNo}`);
+  },
+
+  /**
+   * 상담 일지 목록을 조회합니다.
+   * (GET /api/counseling/logs)
+   * @param {object} params
+   */
+  getLogs: (params) => {
+    return api.get('/api/counseling/logs', { params });
+  },
+
+  /**
+   * 상담 일지 상세 조회 (PDF 다운로드/보기 용)
+   * (GET /api/counseling/logs/:logId)
+   */
+  getLogDetail: (consultNo) => {
+    return api.get(`/api/counseling/logs/${consultNo}`);
+  },
+
+  /**
+   * 상담 일지 수정
+   * (PUT /api/counseling/logs/:consultNo)
+   */
+  updateLog: (consultNo, data) => {
+    return api.put(`/api/counseling/logs/${consultNo}`, data);
   },
 };
 

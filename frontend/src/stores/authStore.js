@@ -81,6 +81,17 @@ export const useAuthStore = defineStore('auth', {
         this.isLoading = false;
       }
     },
+
+    async handleSocialLogin({ accessToken, refreshToken }) {
+      console.log('[AuthStore] handleSocialLogin: 호출됨');
+      this.accessToken = accessToken;
+      this.refreshToken = refreshToken;
+      
+      await this.fetchUser(); // 사용자 정보 가져오기
+      
+      console.log('[AuthStore] handleSocialLogin: 소셜 로그인 성공. 홈으로 이동합니다.');
+      router.push('/');
+    },
   },
   persist: true, // 모든 state를 localStorage에 저장
 });
