@@ -13,7 +13,7 @@ const quickMenus = ref([
   { icon: '📝', label: '사업 신청', path: 'umy' },
   { icon: '🧑‍🤝‍🧑', label: '피보호자 등록', path: 'umy' },
   { icon: '📞', label: '상담 예약', path: 'umy' },
-  { icon: '❓', label: 'Q&A', path: 'umy' },
+  { icon: '❓', label: 'Q&A', path: 'qna' },
   { icon: '📚', label: '자료실', path: 'umy' },
 ]);
 
@@ -37,8 +37,8 @@ const setExpiringNotices = async () => {
 };
 const setSurveyToUserWard = async () => {
   try {
-    const res = await axios.get('/api/user/userwiter-survey', { 
-      params: { writer: 'test' } 
+    const res = await axios.get('/api/user/userwiter-survey', {
+      params: { writer: 'test' },
     });
     console.log('mySurveyResult.data', res.data);
     surveyToUserWard.value = res.data.result;
@@ -87,7 +87,7 @@ const performSearch = (query) => {
             <router-link :to="menu.path" class="Menu_Icon_Link">
               <div class="Icon_Container">
                 <!-- <i :class="menu.icon + ' menu-icon'" aria-hidden="true"></i> -->
-                 <span class="menu-icon">{{ menu.icon }}</span>
+                <span class="menu-icon">{{ menu.icon }}</span>
               </div>
             </router-link>
             <p class="Menu_Text">{{ menu.label }}</p>
@@ -218,7 +218,7 @@ const performSearch = (query) => {
   border-radius: 10px;
   padding: 0.75rem;
 }
- /* .Menu_Group {
+/* .Menu_Group {
   flex-wrap: wrap;
   gap: 1rem;
   justify-content: center;
@@ -231,7 +231,7 @@ const performSearch = (query) => {
   text-decoration: none;
   color: inherit;
 }  */
- .Menu_Group {
+.Menu_Group {
   /* Tailwind: flex justify-between p-4 bg-white rounded-xl shadow-lg */
   flex-wrap: wrap;
   display: flex;
@@ -252,7 +252,7 @@ const performSearch = (query) => {
   text-decoration: none;
   color: #4b5563; /* text-gray-600 */
   transition: all 200ms ease-in-out;
-  flex-basis: 16%;/*  5개 메뉴가 균등하게 공간을 차지 */
+  flex-basis: 16%; /*  5개 메뉴가 균등하게 공간을 차지 */
   padding: 0.5rem;
 }
 

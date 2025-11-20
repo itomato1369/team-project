@@ -7,6 +7,7 @@ const dataBoard = require("./sqls/databoard.js");
 const institution = require("./sqls/system.js");
 const inquiry = require("./sqls/inquiry.js");
 const staff = require("./sqls/staff.js");
+const qna = require("./sqls/qna.js");
 
 module.exports = {
   ...boards,
@@ -17,4 +18,5 @@ module.exports = {
   ...staff,
   ...dataBoard,
   ...institution,
+  ...qna,
 };

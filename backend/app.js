@@ -53,6 +53,9 @@ app.use("/system/data-board", dataBoardRouter);
 const counselingRouter = require("./routers/counselingRouter.js");
 app.use("/counseling", counselingRouter);
 
+// QNA 라우터
+const qnaRouter = require("./routers/qnaRouter.js");
+app.use("/qna", qnaRouter);
 // [수정] 가장 일반적인 라우터를 마지막에 등록
 const boardRouter = require("./routers/router.js");
 app.use("/", boardRouter);

@@ -55,4 +55,34 @@ export default [
     component: () => import('@/views/pages/user/UserWardInfoInsert.vue'),
     props: true,
   },
+  {
+    path: '/qna',
+    name: 'user-qna',
+    component: () => import('@/views/pages/user/UserQna.vue'),
+    props: true,
+  },
+  {
+    path: '/qna/question',
+    name: 'question',
+    component: () => import('@/views/pages/user/Question.vue'),
+    props: true,
+  },
+  {
+    path: '/qna/question',
+    name: 'question',
+    component: () => import('@/views/pages/user/Question.vue'),
+    props: true,
+  },
+  {
+    path: '/qna/question',
+    name: 'question',
+    component: () => import('@/views/pages/user/Question.vue'),
+    props: true,
+  },
+  {
+    path: '/qna/question-detail/:question_no',
+    name: 'questionDetail',
+    component: () => import('@/views/pages/user/QnaServiceDetail.vue'),
+    props: true,
+  },
 ];

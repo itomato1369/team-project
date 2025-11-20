@@ -10,7 +10,7 @@ const {
   priorityList,
   basicInfo,
   questionList,
-  relatedNoticeContent,
+
   addForm,
   removeQuestion,
   saveTemp,
