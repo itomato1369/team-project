@@ -13,12 +13,17 @@ export default [
   {
     path: '/homepage',
     name: 'homepage',
-    component: () => import('@/components/AppHome.vue'),
+    component: () => import('@/views/pages/AppHome.vue'),
   },
   {
     path: '/signup',
     name: 'signup',
-    component: () => import('@/components/SignUp.vue'),
+    component: () => import('@/views/pages/SignUp.vue'),
+  },
+  {
+    path: '/findaccount',
+    name: 'findAccount',
+    component: () => import('@/views/pages/FindAccount.vue'),
   },
   {
     path: '/counseling-apply',

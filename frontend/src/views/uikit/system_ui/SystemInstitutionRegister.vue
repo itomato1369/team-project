@@ -44,6 +44,7 @@ const goToInstitutionList = () => {
 <template>
   <div class="institution-register-container">
     <h2 class="page-subtitle">새 기관 등록</h2>
+    <button @click="goToInstitutionList" class="btn-back-list">돌아가기</button>
   </div>
   <div class="register-card">
     <div class="info-grid">
@@ -111,6 +112,7 @@ const goToInstitutionList = () => {
   max-width: 900px;
   margin: 0 auto;
   padding: 1.5rem;
+  font-family: 'Inter', sans-serif;
 }
 
 @media (min-width: 768px) {
@@ -119,15 +121,47 @@ const goToInstitutionList = () => {
   }
 }
 
-.page-subtitle {
-  font-size: 1.5rem;
-  font-weight: bold;
+/* -------------------------------------- */
+/* 2. 헤더 섹션 (제목 및 돌아가기 버튼) 스타일 */
+/* -------------------------------------- */
+.header-section {
+  display: flex;
+  justify-content: space-between; /* 📢 이 속성으로 버튼이 오른쪽 끝으로 이동합니다. */
+  align-items: center;
   margin-bottom: 2rem;
+  padding-bottom: 0.5rem;
+}
+
+.page-subtitle {
+  font-size: 1.875rem;
+  font-weight: 700;
+  color: #1f2937;
+  letter-spacing: -0.025em;
+  margin: 0;
+}
+
+/* 돌아가기 버튼 스타일 */
+.btn-back-list {
+  padding: 0.625rem 1.25rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  border-radius: 0.5rem;
+  background-color: #e5e7eb;
   color: #374151;
+  border: none;
+  cursor: pointer;
+  transition:
+    background-color 0.15s ease-in-out,
+    box-shadow 0.15s ease-in-out;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
+
+.btn-back-list:hover {
+  background-color: #d1d5db;
 }
 
 /* -------------------------------------- */
-/* 2. 카드 스타일 (register-card) */
+/* 3. 카드 스타일 (register-card) */
 /* -------------------------------------- */
 .register-card {
   background-color: white;
@@ -139,13 +173,14 @@ const goToInstitutionList = () => {
 }
 
 /* -------------------------------------- */
-/* 3. 그리드 레이아웃 및 필드 스타일 */
+/* 4. 그리드 레이아웃 및 필드 스타일 */
 /* -------------------------------------- */
 .info-grid {
   display: grid;
   grid-template-columns: 1fr;
   column-gap: 3rem;
   row-gap: 1rem;
+  padding: 1rem;
 }
 
 @media (min-width: 768px) {
@@ -154,7 +189,7 @@ const goToInstitutionList = () => {
   }
 }
 
-/* 전체 너비 필드 (기관명, 도로명 주소, 상세주소) */
+/* 전체 너비 필드 */
 .field-full {
   grid-column: span 1;
   margin-bottom: 1rem;
@@ -162,62 +197,64 @@ const goToInstitutionList = () => {
 
 @media (min-width: 768px) {
   .field-full {
-    grid-column: span 2; /* 데스크톱: 2열 모두 차지 */
+    grid-column: span 2;
   }
 }
 
-/* 1칸 필드 (연락처, 상태 등) */
+/* 1칸 필드 */
 .register-field {
   padding-bottom: 1rem;
 }
 
 .field-label {
   font-weight: 600;
-  color: #6b7280;
+  color: #4b5563;
   display: block;
   margin-bottom: 0.25rem;
   font-size: 0.9rem;
 }
 
-/* ====================================== */
-/* 📢 입력 필드 크기 수정 부분 (중간 크기) */
-/* ====================================== */
-
-/* PrimeVue InputText 컴포넌트의 기본 너비를 100%로 설정한 뒤 개별 필드에서 최대/고정 너비를 지정합니다. */
+/* 입력 필드 크기 및 스타일 */
 .p-inputtext {
   width: 100%;
+  border-radius: 0.375rem;
+  border: 1px solid #d1d5db;
+  padding: 0.75rem 1rem;
+  transition:
+    border-color 0.15s ease-in-out,
+    box-shadow 0.15s ease-in-out;
+  outline: none;
+}
+.p-inputtext:focus {
+  border-color: #6366f1;
+  box-shadow: 0 0 0 1px #6366f1;
 }
 
-/* 기관명 입력 필드: 15글자 이상 보이고, 화면이 너무 넓어도 적당한 크기를 유지 */
-/* .field-value는 InputText에 적용된 클래스 */
+.field-value {
+  font-size: 1rem;
+  color: #1f2937;
+}
+
+/* 기관명 입력 필드 */
 .field-full .field-value {
-  /* 모바일에서는 100% 유지. 데스크톱에서 최대 400px로 제한 */
   max-width: 400px;
 }
 
-/* 도로명 주소, 상세 주소 필드: 20자 이상 보이고, 화면이 넓어도 적당한 크기를 유지 */
-/* 주소는 기관명보다 길 수 있으므로 넉넉하게 설정 */
-.field-full:nth-child(4) .field-value, /* 도로명 주소 (field-full 중 4번째) */
+/* 도로명 주소, 상세 주소 필드 */
+.field-full:nth-child(4) .field-value,
 .field-full:nth-child(5) .field-value {
-  /* 상세 주소 (field-full 중 5번째) */
   max-width: 600px;
 }
 
-/* 기관 연락처 필드: 010-1123-5555를 여유롭게 표시하는 고정 너비 */
+/* 기관 연락처 필드 */
 .register-field .field-value {
-  width: 220px; /* 넉넉하게 220px로 설정 */
+  width: 220px;
   min-width: 200px;
   max-width: 100%;
 }
 
-/* 입력 필드 폰트 크기 */
-.field-value {
-  font-size: 1.125rem;
-  color: #1f2937;
-}
-
 /* -------------------------------------- */
-/* 4. 액션 버튼 및 하단 스타일 */
+/* 5. 액션 버튼 및 하단 스타일 */
 /* -------------------------------------- */
 .action-buttons {
   display: flex;
@@ -232,5 +269,14 @@ const goToInstitutionList = () => {
   .action-buttons {
     grid-column: span 2;
   }
+}
+
+/* PrimeVue Button 기본 스타일 오버라이드 (Tailwind 느낌으로) */
+.p-button {
+  padding: 0.625rem 1.5rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  border-radius: 0.375rem;
+  transition: all 0.15s ease-in-out;
 }
 </style>
