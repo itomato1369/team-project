@@ -169,6 +169,23 @@ exports.createSupportResult = async (req, res) => {
     res.status(500).json({ message: "서버 오류", error });
   }
 };
+
+exports.supportResultSearch = async (req, res) => {
+  try {
+    // db.query가 배열을 반환하는지, 단일 객체를 반환하는지 상관없이 안전하게 처리
+    let rows = await db.query("supportsearch", []);
+
+    // rows가 배열인지 확인, 아니면 배열로 감싸기
+    if (!Array.isArray(rows)) {
+      rows = rows ? [rows] : [];
+    }
+
+    res.json(rows);
+  } catch (err) {
+    console.error("지원결과 조회 오류:", err);
+    res.status(500).json({ error: "지원결과 조회 실패" });
+  }
+};
 // 6. planItemList: support_plan 테이블에서 상세 항목 조회
 // ⭐ 삭제: supportPlan 함수가 planitem을 사용하게 되었으므로 이 함수는 제거합니다.
 /*

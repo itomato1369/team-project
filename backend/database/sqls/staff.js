@@ -65,21 +65,6 @@ WHERE
     s.survey_no = ?
 `;
 
-//일단 사용안할거같음
-const supportplan = `
-  SELECT
-    t1.support_plan_goal,
-    DATE(t1.created_at) AS 작성일,
-    t1.support_plan_status AS 우선순위_상태,
-    t1.staff_name AS 작성자_이름,
-    t1.ward_name AS 담당_구역_팀명,
-    DATE(t1.created_at) AS 요청일
-    
-FROM 
-    support_plan t1
-ORDER BY 
-    t1.created_at DESC`;
-
 const wardno = `SELECT * FROM survey WHERE survey_no = ?`;
 //지원계획
 const spportinsert = `
@@ -172,6 +157,14 @@ INSERT INTO support_result (
 
 //지원결과보고서 조회
 const supportsearch = `
+SELECT
+  support_result_no,
+  support_title,
+  support_spend,
+  support_started_at,
+  support_ended_at
+FROM support_result
+ORDER BY support_started_at DESC
 `;
 
 module.exports = {
@@ -187,4 +180,5 @@ module.exports = {
   createStaffSchedule,
   deleteStaffSchedule,
   insertsupportresultquery,
+  supportsearch,
 };

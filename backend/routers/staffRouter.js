@@ -59,6 +59,8 @@ router.post("/support-plan", staffService.createSupportPlan);
 
 router.post("/support-result", staffService.createSupportResult);
 
+router.get("/support-result", staffService.supportResultSearch);
+
 router.get("/survey-select", staffService.surveySelect);
 
 router.get("/:surveyNo", staffService.getSurveyDetail);
