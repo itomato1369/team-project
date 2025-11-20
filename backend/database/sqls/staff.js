@@ -57,12 +57,9 @@ SELECT
     w.disabled_level AS '장애유형',
     w.address AS '주소',
     w.ward_no AS '피보호자번호'
-FROM
-    survey s -- FROM 절과 테이블 지정 (survey: s)
-INNER JOIN
-    ward w ON s.ward_no = w.ward_no -- JOIN 절과 조건 지정 (ward: w)
-WHERE
-    s.survey_no = ?
+FROM survey s
+INNER JOIN ward w ON s.ward_no = w.ward_no
+WHERE s.survey_no = 1;
 `;
 
 const wardno = `SELECT * FROM survey WHERE survey_no = ?`;
@@ -154,6 +151,7 @@ SELECT
 FROM support_result
 ORDER BY support_started_at DESC
 `;
+
 //지원결과상세값
 const supportresultlistinfo = `
 SELECT 
