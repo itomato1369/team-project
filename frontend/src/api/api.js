@@ -200,8 +200,8 @@ export const consultLogApi = {
    * 피보호자(ward_id) 기준 조사지 목록 조회
    * (POST /api/counseling/surveys/${wardId})
    */
-  getSurveysByWard: (wardId) => {
-    return api.get(`/api/counseling/surveys/${wardId}`);
+  getSurveysByWard: (wardNo) => {
+    return api.get(`/api/counseling/surveys/${wardNo}`);
   },
 };
 

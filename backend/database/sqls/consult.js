@@ -81,10 +81,12 @@ SELECT
     res.user_id,
     res.res_reason AS reason,            -- (수정) reservation.res_reason
     m.user_name AS applicantName,     -- (수정) member.user_name (보호자)
-    res.name AS patientName           -- (수정) reservation.name (피보호자)
-FROM available_time at
+    res.ward_no AS wardNo,           -- (수정) reservation.ward_no (피보호자)
+    w.name AS wardName
+    FROM available_time at
 JOIN reservation res ON at.at_no = res.at_no
 JOIN member m ON res.user_id = m.user_id
+JOIN ward w ON w.guardian_id = m.user_id
 WHERE
     at.staff_id = ? AND at.status = '예약'
 ORDER BY at.start_time ASC
@@ -142,20 +144,31 @@ VALUES (?, ?, ?, ?, ?, NOW(), 0)
 `;
 
 /**
- * [신규] 상담 일지 등록 (consultation_logs 테이블)
- * - content, consult_datetime, ward_id, ward_name, staff_name, consult_status, disabled_level
+ * [신규] 상담 일지 등록 (consult 테이블)
+ * - content, consult_datetime, ward_no, ward_name, staff_id, consult_status, disabled_level
  */
 const createConsultationLog = `
-INSERT INTO consultation_logs (
-    staff_name, 
-    ward_id, 
-    ward_name, 
-    consult_datetime, 
-    disabled_level, 
-    consult_status, 
-    content
+INSERT INTO consult (
+    staff_id,
+    ward_no,
+    guardian_id,
+    consult_datetime,
+    disabled_level,
+    consult_status,
+    content,
+    survey_no,
+    res_no
 )
-VALUES (?, ?, ?, ?, ?, ?, ?)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+`;
+
+const getSurveysByWard = `
+SELECT
+    survey_no,
+    ward_no,
+    business_name
+FROM survey
+WHERE ward_no = ?;
 `;
 
 module.exports = {
@@ -173,4 +186,5 @@ module.exports = {
   updateAvailableTimeStatusToBooked,
   createAlarm,
   createConsultationLog,
+  getSurveysByWard,
 };

@@ -14,34 +14,56 @@ const surveyList = ref([]); // [신규] 조사지 목록 저장
 
 // 폼 데이터 (DB 스키마 1:1 매핑)
 const form = reactive({
-  staff_id: '', // [변경] staff_name -> staff_id (DB 스키마 기준)
+  staff_id: '', // staff_id
   staff_name: '', // (화면 표시용)
-  ward_id: '', // 피보호자 ID
-  ward_name: '', // 피보호자명
+  ward_no: '', // 피보호자 ID
+  ward_name: '', // 피보호자명(화면 표시용)
   guardian_id: '', // 보호자 ID (Nullable)
   consult_datetime: '',
   disabled_level: '중증', // [변경] 기본값 '중증'
   consult_status: '진행중',
   content: '',
-  survey_no: '', // [신규] 조사지 번호 (FK, NOT NULL)
-  res_no: null, // [신규] 예약 번호 (FK, Nullable)
+  survey_no: '', // 조사지 번호 (FK, NOT NULL)
+  res_no: null, // 예약 번호 (FK, Nullable)
 });
 
+//조사지 목록 호출 함수
+async function fetchSurveyList(wardId) {
+  try {
+    const res = await consultLogApi.getSurveysByWard(wardId);
+    surveyList.value = res.data.surveys || [];
+  } catch (err) {
+    console.error('조사지 조회 실패:', err);
+  }
+}
+
 // 상담예약목록에서 넘어온 데이터 반영
-onMounted(() => {
+onMounted(async () => {
   // 2. 로그인된 사용자(담당자) 이름 자동 할당
   if (authStore.user && authStore.user.name) {
+    form.staff_id = authStore.user.id;
     form.staff_name = authStore.user.name;
   }
 
   const query = route.query;
+  //조사지목록
+  if (query.wardNo) {
+    form.ward_no = query.wardNo;
 
+    await fetchSurveyList(query.wardNo);
+  }
+  if (query.resNo) {
+    form.res_no = query.resNo;
+  }
   // 1. 피보호자명 (wardName) -> form.ward_name
   if (query.wardName) {
     form.ward_name = query.wardName;
   }
   if (query.guardianId) {
     form.guardian_id = query.guardianId;
+  }
+  if (query.wardNo) {
+    form.ward_no = query.wardNo;
   }
   // 2. 상담 일시 (reservationDate) -> form.consult_datetime
   // HTML date 타입은 'YYYY-MM-DD' 형식을 요구하므로 포맷팅 필요
@@ -121,13 +143,24 @@ async function handleSubmit() {
 
   try {
     isSubmitting.value = true;
-
-    await consultLogApi.createLog(form);
+    // payload 준비: 서버가 요구하는 필드명과 타입에 맞게
+    const payload = {
+      content: form.content,
+      consult_datetime: form.consult_datetime, // "YYYY-MM-DD HH:mm:ss"
+      guardian_id: form.guardian_id || null,
+      staff_id: form.staff_id, // 반드시 존재해야 함
+      consult_status: form.consult_status, // '진행중' | '완료' | '취소'
+      disabled_level: form.disabled_level, // '중증' | '경증'
+      survey_no: form.survey_no ? Number(form.survey_no) : null,
+      res_no: form.res_no ? Number(form.res_no) : null,
+      ward_no: form.ward_no,
+    };
+    await consultLogApi.createLog(payload);
 
     alert('상담 일지가 성공적으로 등록되었습니다.');
 
     // 등록 성공 후 초기화 또는 이동
-    router.push('/staff/reservations');
+    router.push('/reservations');
   } catch (err) {
     console.error('등록 실패:', err);
     alert('등록 중 오류가 발생했습니다.');
@@ -163,19 +196,19 @@ async function handleSubmit() {
                 class="block w-full rounded-md border border-gray-300 px-4 py-3 text-gray-700 bg-gray-100 cursor-not-allowed focus:border-gray-300 focus:ring-0 sm:text-sm outline-none"
               />
             </div>
-
-            <!-- 상담 일시 (consult_datetime) -->
+            <!-- 조사지 선택 -->
             <div class="space-y-2">
-              <label for="consultDatetime" class="block text-sm font-bold text-gray-600">
-                상담 일시
-              </label>
-              <input
-                type="date"
-                id="consultDatetime"
-                v-model="form.consult_datetime"
-                readonly
-                class="block w-full rounded-md border border-gray-300 px-4 py-3 text-gray-700 bg-gray-100 cursor-not-allowed focus:border-gray-300 focus:ring-0 sm:text-sm outline-none"
-              />
+              <label class="block text-sm font-bold text-gray-600"> 조사지 선택 </label>
+
+              <select
+                v-model="form.survey_no"
+                class="block w-full rounded-md border border-gray-300 px-4 py-3 bg-white text-gray-900 cursor-pointer"
+              >
+                <option value="" disabled>조사지를 선택하세요</option>
+                <option v-for="s in surveyList" :key="s.survey_no" :value="s.survey_no">
+                  {{ s.business_name }}
+                </option>
+              </select>
             </div>
             <!-- 보호자명 (guardian_name) -->
             <div class="space-y-2">
@@ -206,6 +239,19 @@ async function handleSubmit() {
                 placeholder="보호자 ID"
               />
             </div>
+            <!-- 피보호자 ID (ward_no) -->
+            <div class="space-y-2">
+              <label for="wardNo" class="block text-sm font-bold text-gray-600">
+                피보호자 ID
+              </label>
+              <input
+                type="text"
+                id="wardNo"
+                v-model="form.ward_no"
+                readonly
+                class="block w-full rounded-md border border-gray-300 px-4 py-3 text-gray-700 bg-gray-100 cursor-not-allowed focus:border-gray-300 focus:ring-0 sm:text-sm outline-none"
+              />
+            </div>
 
             <!-- 피보호자명 (ward_name) -->
             <div class="space-y-2">
@@ -220,6 +266,19 @@ async function handleSubmit() {
               />
             </div>
 
+            <!-- 상담 일시 (consult_datetime) -->
+            <div class="space-y-2">
+              <label for="consultDatetime" class="block text-sm font-bold text-gray-600">
+                상담 일시
+              </label>
+              <input
+                type="date"
+                id="consultDatetime"
+                v-model="form.consult_datetime"
+                readonly
+                class="block w-full rounded-md border border-gray-300 px-4 py-3 text-gray-700 bg-gray-100 cursor-not-allowed focus:border-gray-300 focus:ring-0 sm:text-sm outline-none"
+              />
+            </div>
             <!-- 장애 정도 (disabled_level) -->
             <div class="space-y-2">
               <label for="disabledLevel" class="block text-sm font-bold text-gray-600">
@@ -231,8 +290,8 @@ async function handleSubmit() {
                   v-model="form.disabled_level"
                   class="block w-full appearance-none rounded-md border border-gray-300 bg-white px-4 py-3 pr-10 text-gray-900 focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm transition-colors cursor-pointer"
                 >
-                  <option value="심함">심함</option>
-                  <option value="심하지 않음">심하지 않음</option>
+                  <option value="중증">중증</option>
+                  <option value="경증">경증</option>
                 </select>
                 <div
                   class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-500"
@@ -268,7 +327,7 @@ async function handleSubmit() {
                 >
                   <option value="진행중">진행중</option>
                   <option value="완료">완료</option>
-                  <option value="보류">보류</option>
+                  <option value="취소">취소</option>
                 </select>
                 <div
                   class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-500"

@@ -16,4 +16,14 @@ router.post("/logs", verifyAccessToken, counselingService.createLog);
  */
 router.post("/logs/draft", verifyAccessToken, counselingService.saveDraft);
 
+/**
+ * 2. 조사지목록 조회 (GET /api/surveys/:wardId)
+ */
+
+router.get(
+  "/surveys/:wardNo",
+  verifyAccessToken,
+  counselingService.getSurveysByWard
+);
+
 module.exports = router;

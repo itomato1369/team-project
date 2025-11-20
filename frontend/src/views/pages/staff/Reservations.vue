@@ -83,7 +83,8 @@ async function fetchReservations() {
       // create (2).sql 스키마에 맞게 컬럼명 재확인
       start_time: item.start_time,
       applicantName: item.applicantName, // (m.user_name)
-      patientName: item.patientName, // (res.name)
+      patientName: item.wardName, // (w.ward_name)
+      wardNo: item.wardNo, // (res.ward_no)
       reason: item.reason, // (res.res_reason)
       atNo: item.atNo, // (at.at_no)
       id: item.id, // (res.res_no)
@@ -117,7 +118,9 @@ function writeRecord(reservation) {
     path: '/counseling-logform',
     query: {
       atNo: reservation.atNo,
+      resNo: reservation.id,
       applicantName: reservation.applicantName, // 신청인(보호자) 이름
+      wardNo: reservation.wardNo, // 피보호자 ID
       wardName: reservation.patientName, // 피보호자(환자) 이름
       reservationDate: reservation.start_time, // 예약 시간
       guardianId: reservation.user_id, // 보호자 ID
@@ -311,6 +314,7 @@ async function confirmCancel() {
               <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
                 {{ reservation.patientName }}
               </td>
+
               <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600 truncate max-w-xs">
                 {{ reservation.reason }}
               </td>
