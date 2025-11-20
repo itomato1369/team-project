@@ -80,18 +80,6 @@ INSERT INTO support_plan (
 ) VALUES ( ?, ?, ?, ?, ?, ?, ?, NOW() ) /* ✅ writer_date 위치에 NOW() 함수 사용 */
 `;
 
-//승인조회 정보
-const planitem = `    SELECT 
-      support_plan_no,
-      support_plan_goal,
-      staff_name,
-      created_at,
-      writer_date,
-      priority_no,
-      plan
-    FROM support_plan
-    ORDER BY support_plan_no DESC`;
-
 /**
  * 담당자 아이디(staff_id)으로 '상담가능' 스케줄 조회
  * - at_no: 삭제 시 필요
@@ -166,7 +154,7 @@ SELECT
 FROM support_result
 ORDER BY support_started_at DESC
 `;
-
+//지원결과상세값
 const supportresultlistinfo = `
 SELECT 
     support_content,
@@ -176,6 +164,23 @@ SELECT
     support_ended_at
 FROM support_result
 WHERE support_result_no = ?`;
+
+//승인조회 정보
+const planitem = `SELECT 
+  support_plan_no,
+  support_plan_goal,
+  staff_name,
+  created_at,
+  writer_date,
+  priority_no,
+  plan,
+  business_name,  -- 추가
+  spend           -- 추가
+FROM support_plan
+ORDER BY support_plan_no DESC;`;
+
+//승인상세조회 정보
+const planinfoitem = ``;
 
 module.exports = {
   surveySelect,
@@ -192,4 +197,5 @@ module.exports = {
   insertsupportresultquery,
   supportsearch,
   supportresultlistinfo,
+  planinfoitem,
 };

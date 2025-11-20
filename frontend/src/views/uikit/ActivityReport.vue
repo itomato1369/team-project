@@ -26,11 +26,11 @@ function initFilters() {
 const getStatusSeverity = (status) => {
   switch (status) {
     case '접수':
-      return 'info';
+      return '0';
     case '심사중':
-      return 'warning';
+      return '1';
     case '반려':
-      return 'danger';
+      return '2';
     default:
       return null;
   }

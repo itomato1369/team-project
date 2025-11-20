@@ -1,164 +1,113 @@
 <script setup>
-// This component is now read-only, so interactive components are not needed.
+import { ref, watch } from 'vue';
+import InputText from 'primevue/inputtext';
+import Textarea from 'primevue/textarea';
+import Select from 'primevue/select';
 
-// This component would receive props with the actual data
 const props = defineProps({
-  item: Object,
+  item: Object, // 부모에서 전달받는 한 건의 서포트 플랜
+  dropdownItems: Array, // 사업 선택 드롭다운
 });
+
+// 로컬 복사 (읽기 전용)
+const localForm = ref({ ...props.item });
+
+// props.item이 바뀌면 localForm 갱신
+watch(
+  () => props.item,
+  (newVal) => {
+    localForm.value = { ...newVal };
+  }
+);
+
+// 금액 3자리 콤마 포맷
+const formatAmount = (amount) => {
+  if (amount === null || amount === undefined) return '';
+  const onlyNums = String(amount).replace(/[^0-9]/g, '');
+  return onlyNums ? Number(onlyNums).toLocaleString() : '';
+};
 </script>
 
 <template>
-  <div class="support-detail-container">
-    <h3 class="detail-title">지원 사유</h3>
-    <table class="detail-table">
-      <tbody>
-        <tr>
-          <th>중점 지원 필요</th>
-          <td>2년 이내에 지원 필요</td>
-          <td class="checkbox-cell">■ 예</td>
-          <td class="checkbox-cell">□ 아니오</td>
-        </tr>
-        <tr>
-          <td colspan="4" class="sub-item">실제 문항이 들어갈 자리입니다.</td>
-        </tr>
-        <tr>
-          <th>계획 수립 필요</th>
-          <td>지원이 필요한 시점이 2년 이상 5년 미만인 경우</td>
-          <td class="checkbox-cell">■ 예</td>
-          <td class="checkbox-cell">□ 아니오</td>
-        </tr>
-        <tr>
-          <td colspan="4" class="sub-item nested">
-            <p>2년 이상 후에 필요한 지원이 예상됨</p>
-            <ul>
-              <li>구체적 사유 1</li>
-              <li>구체적 사유 2</li>
-              <li>구체적 사유 3</li>
-            </ul>
-            <p>필요시기: 2024년 3월 12일</p>
-          </td>
-        </tr>
-        <tr>
-          <th>교통</th>
-          <td>처음 요청일자: 2024년 2월 11일</td>
-          <td class="checkbox-cell">■ 예</td>
-          <td class="checkbox-cell">□ 아니오</td>
-        </tr>
-        <tr>
-          <td colspan="4" class="sub-item">실제 문항이 들어갈 자리입니다.</td>
-        </tr>
-      </tbody>
-    </table>
+  <div class="border rounded-md p-4 mt-2 shadow-sm bg-gray-50">
+    <div class="flex flex-col gap-4">
+      <!-- 목표 -->
+      <div>
+        <label class="font-semibold text-gray-700">목표</label>
+        <InputText v-model="localForm.support_plan_goal" readonly class="w-full bg-gray-100" />
+      </div>
 
-    <div class="form-section">
-      <div class="form-field span-2">
-        <label for="project">사업</label>
-        <p id="project" class="readonly-field">발달장애인 공공후견지원</p>
+      <!-- 담당자 -->
+      <div>
+        <label class="font-semibold text-gray-700">작성자</label>
+        <InputText v-model="localForm.staff_name" readonly class="w-full bg-gray-100" />
       </div>
-      <div class="form-field span-2">
-        <label for="content">내용</label>
-        <p id="content" class="readonly-field textarea-field">
-          반려된 지원 계획의 내용(수정 가능함)
-        </p>
-      </div>
-      <div class="form-field">
-        <label for="amount">금액</label>
-        <p id="amount" class="readonly-field">1,000,000</p>
-      </div>
-      <div class="form-field">
-        <label>첨부</label>
-        <div class="attachments readonly-field">
-          <span>첨부된 파일01.확장자</span>
-          <span>첨부된 파일02.확장자</span>
+
+      <!-- 지원계획 & 예상지원금액 -->
+      <div class="flex gap-4">
+        <div class="w-1/2">
+          <label class="font-semibold text-gray-700">지원계획</label>
+          <InputText v-model="localForm.business_name" readonly class="w-full bg-gray-100" />
+        </div>
+        <div class="w-1/2">
+          <label class="font-semibold text-gray-700">예상지원금액</label>
+          <InputText
+            :value="formatAmount(localForm.spend)"
+            readonly
+            class="w-full text-right bg-gray-100"
+          />
         </div>
       </div>
-    </div>
 
-    <!-- Actions removed as per request -->
+      <!-- 작성일 & 요청일 -->
+      <div class="flex gap-4">
+        <div class="w-1/2">
+          <label class="font-semibold text-gray-700">작성일</label>
+          <InputText v-model="localForm.created_at" readonly class="w-full bg-gray-100" />
+        </div>
+        <div class="w-1/2">
+          <label class="font-semibold text-gray-700">요청일</label>
+          <InputText v-model="localForm.writer_date" readonly class="w-full bg-gray-100" />
+        </div>
+      </div>
+
+      <!-- 우선순위 -->
+      <div>
+        <label class="font-semibold text-gray-700">우선순위</label>
+        <InputText v-model="localForm.priority_no" readonly class="w-full bg-gray-100" />
+      </div>
+
+      <!-- 내용 -->
+      <div>
+        <label class="font-semibold text-gray-700">내용</label>
+        <Textarea v-model="localForm.plan" rows="4" readonly class="w-full bg-gray-100" />
+      </div>
+
+      <!-- PDF 목록 -->
+      <div v-if="localForm.file_names && localForm.file_names.length">
+        <label class="font-semibold text-gray-700">업로드 PDF</label>
+        <ul class="list-disc ml-5 text-sm text-gray-600">
+          <li v-for="(file, idx) in localForm.file_names.split(',')" :key="idx">{{ file }}</li>
+        </ul>
+      </div>
+      <div v-else class="text-sm text-gray-400">첨부 파일 없음</div>
+
+      <!-- 승인/반려 버튼 -->
+      <div class="flex justify-end gap-4 mt-6">
+        <!-- 반려 버튼 -->
+        <button
+          class="px-6 py-2 bg-red-500 text-white font-semibold rounded-lg hover:bg-red-600 transition-colors"
+        >
+          반려
+        </button>
+
+        <!-- 승인 버튼 -->
+        <button
+          class="px-6 py-2 bg-green-500 text-white font-semibold rounded-lg hover:bg-green-600 transition-colors"
+        >
+          승인
+        </button>
+      </div>
+    </div>
   </div>
 </template>
-
-<style scoped>
-.support-detail-container {
-  background-color: #fff8f8; /* Light pink background */
-  border: 1px solid #e91e63;
-  border-radius: 8px;
-  padding: 2rem;
-  margin-top: 1rem;
-}
-.detail-title {
-  font-size: 1.5rem;
-  font-weight: bold;
-  margin-bottom: 1.5rem;
-}
-.detail-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-bottom: 2rem;
-}
-.detail-table th,
-.detail-table td {
-  border: 1px solid #ddd;
-  padding: 0.75rem;
-  text-align: left;
-  vertical-align: middle;
-}
-.detail-table th {
-  background-color: #fce4ec;
-  width: 150px;
-}
-.checkbox-cell {
-  width: 80px;
-  text-align: center;
-}
-.sub-item {
-  padding-left: 2rem !important;
-  background-color: #fff;
-}
-.nested {
-  padding-left: 4rem !important;
-}
-.nested ul {
-  padding-left: 1.5rem;
-  margin: 0.5rem 0;
-}
-
-/* --- Form Section Layout --- */
-.form-section {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1.5rem;
-  align-items: start;
-}
-.form-field {
-  display: flex;
-  flex-direction: column;
-}
-.form-field.span-2 {
-  grid-column: span 2;
-}
-.form-field label {
-  font-weight: bold;
-  display: block;
-  margin-bottom: 0.5rem;
-}
-.readonly-field {
-  background-color: #f3f4f6;
-  border: 1px solid #d1d5db;
-  border-radius: 6px;
-  padding: 0.75rem;
-  min-height: 40px; /* Match input height */
-  width: 100%;
-  box-sizing: border-box;
-}
-.textarea-field {
-  min-height: 80px;
-}
-.attachments span {
-  display: block;
-  color: #007bff;
-  cursor: pointer;
-  text-decoration: underline;
-}
-</style>
-아코디언_배징웃.txt 5KB

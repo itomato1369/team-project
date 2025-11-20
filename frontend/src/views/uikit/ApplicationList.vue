@@ -38,12 +38,16 @@ onBeforeMount(async () => {
     const res = await axios.get('/api/staff/support-plan');
     surveys.value = res.data.map((item) => ({
       support_plan_no: item.support_plan_no,
-      title: item.support_plan_goal || '',
-      writer: item.staff_name || '',
-      createdAt: item.created_at ? item.created_at.split('T')[0] : '',
-      requestDate: item.writer_date ? item.writer_date.split('T')[0] : '',
+      support_plan_goal: item.support_plan_goal || '',
+      staff_name: item.staff_name || '',
+      created_at: item.created_at ? item.created_at.split('T')[0] : '',
+      writer_date: item.writer_date ? item.writer_date.split('T')[0] : '',
+      priority_no: item.priority_no,
       priority: mapPriority(item.priority_no),
+      business_name: item.business_name || '',
+      spend: item.spend || 0,
       plan: item.plan || '',
+      file_names: item.file_names || '',
     }));
   } catch (err) {
     console.error('Support Plan 조회 오류:', err);
@@ -58,8 +62,8 @@ const filteredSurveys = computed(() => {
   const keyword = searchKeyword.value.toLowerCase();
   return surveys.value.filter(
     (item) =>
-      item.title.toLowerCase().includes(keyword) ||
-      item.writer.toLowerCase().includes(keyword) ||
+      item.support_plan_goal.toLowerCase().includes(keyword) ||
+      item.staff_name.toLowerCase().includes(keyword) ||
       item.priority.toLowerCase().includes(keyword)
   );
 });
@@ -78,7 +82,7 @@ const filteredSurveys = computed(() => {
     </div>
 
     <!-- 리스트 -->
-    <div v-if="!loading" class="flex flex-col gap-6">
+    <div v-if="!loading" class="flex flex-col gap-4">
       <SupportPlanItem
         v-for="item in filteredSurveys"
         :key="item.support_plan_no"

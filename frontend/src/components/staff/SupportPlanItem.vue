@@ -3,8 +3,8 @@ import { computed } from 'vue';
 import SupportPlanDetail from './SupportPlanDetail.vue';
 
 const props = defineProps({
-  item: Object,
-  isActive: Boolean,
+  item: Object, // 서버에서 받아온 한 건의 서포트 플랜
+  isActive: Boolean, // 아코디언 상태
   allowMultiple: Boolean,
 });
 
@@ -28,11 +28,12 @@ const handleButtonClick = () => {
     <!-- 제목 / 작성자 -->
     <div class="flex justify-between items-start">
       <div>
+        <!-- 제목 = support_plan_goal 재사용 -->
         <h2 class="text-2xl font-bold text-gray-900">
-          {{ item.title }}
-          <span class="text-gray-500 text-base ml-2">{{ item.createdAt }}</span>
+          {{ item.support_plan_goal }}
+          <span class="text-gray-500 text-base ml-2">{{ item.created_at }}</span>
         </h2>
-        <p class="text-gray-500 text-base mt-1">작성자: {{ item.writer }}</p>
+        <p class="text-gray-500 text-base mt-1">작성자: {{ item.staff_name }}</p>
       </div>
       <button class="px-4 py-2 text-base border rounded-lg hover:bg-gray-100">담당자</button>
     </div>
@@ -45,7 +46,7 @@ const handleButtonClick = () => {
 
       <div class="flex items-center gap-4">
         <span class="text-gray-600 text-base font-semibold">
-          요청일: {{ item.requestDate || '-' }}
+          요청일: {{ item.writer_date || '-' }}
         </span>
         <button
           @click="handleButtonClick"
