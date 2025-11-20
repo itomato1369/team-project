@@ -29,6 +29,11 @@ const model = ref([
         icon: 'pi pi-fw pi-home',
         to: { name: 'reservations' },
       },
+      {
+        label: '담당자 상담기록관리',
+        icon: 'pi pi-fw pi-home',
+        to: { name: 'counselinglist' },
+      },
       { label: '담당자신청서조회', icon: 'pi pi-fw pi-home', to: '/activityreport' },
       { label: '지원결과보고서조회', icon: 'pi pi-fw pi-home', to: '/supportresultlist' },
       { label: '관리자사업승인요청조회', icon: 'pi pi-fw pi-home', to: '/applicationlist' },

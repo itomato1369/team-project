@@ -203,6 +203,23 @@ export const consultLogApi = {
   getSurveysByWard: (wardNo) => {
     return api.get(`/api/counseling/surveys/${wardNo}`);
   },
+
+  /**
+   * 상담 일지 목록을 조회합니다.
+   * (GET /api/counseling/logs)
+   * @param {object} params
+   */
+  getLogs: (params) => {
+    return api.get('/api/counseling/logs', { params });
+  },
+
+  /**
+   * 상담 일지 상세 조회 (PDF 다운로드/보기 용)
+   * (GET /api/counseling/logs/:logId)
+   */
+  getLogDetail: (consultNo) => {
+    return api.get(`/api/counseling/logs/${consultNo}`);
+  },
 };
 
 export default api;

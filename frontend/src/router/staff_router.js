@@ -53,6 +53,11 @@ const staffRouter = [
         name: 'counseling-logform',
         component: () => import('@/views/pages/staff/CounselingLogForm.vue'),
       },
+      {
+        path: '/counselinglist',
+        name: 'counselinglist',
+        component: () => import('@/views/pages/staff/CounselingList.vue'),
+      },
     ],
   },
 ];

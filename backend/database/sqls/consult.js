@@ -180,6 +180,111 @@ SET res_status = '상담완료'
 WHERE res_no = ?
 `;
 
+/**
+ * 상담 일지 목록 조회 (기본 - 담당자 기준 전체, 최신순)
+ * consult(c), member(m:보호자), ward(w:피보호자), survey(s:조사지) 조인
+ */
+const getConsultBase = `
+SELECT 
+    c.consult_no,
+    c.consult_datetime,
+    c.consult_status,
+    c.content,
+    m.user_name AS guardian_name,
+    w.name AS ward_name,
+    IFNULL(s.business_name, '일반 상담') AS survey_type
+FROM consult c
+LEFT JOIN member m ON c.guardian_id = m.user_id
+JOIN ward w ON c.ward_no = w.ward_no
+LEFT JOIN survey s ON c.survey_no = s.survey_no
+WHERE c.staff_id = ?
+ORDER BY c.consult_datetime DESC
+`;
+
+/**
+ * 상담 일지 검색 - 보호자명 (guardian_name)
+ */
+const getConsultByGuardian = `
+SELECT 
+    c.consult_no,
+    c.consult_datetime,
+    c.consult_status AS status,
+    c.content,
+    m.user_name AS guardian_name,
+    w.name AS ward_name,
+    IFNULL(s.business_name, '일반 상담') AS survey_type
+FROM consult c
+LEFT JOIN member m ON c.guardian_id = m.user_id
+JOIN ward w ON c.ward_no = w.ward_no
+LEFT JOIN survey s ON c.survey_no = s.survey_no
+WHERE c.staff_id = ? AND m.user_name LIKE ?
+ORDER BY c.consult_datetime DESC
+`;
+
+/**
+ * 상담 일지 검색 - 피보호자명 (ward_name)
+ */
+const getConsultByWard = `
+SELECT 
+    c.consult_no,
+    c.consult_datetime,
+    c.consult_status AS status,
+    c.content,
+    m.user_name AS guardian_name,
+    w.name AS ward_name,
+    IFNULL(s.business_name, '일반 상담') AS survey_type
+FROM consult c
+LEFT JOIN member m ON c.guardian_id = m.user_id
+JOIN ward w ON c.ward_no = w.ward_no
+LEFT JOIN survey s ON c.survey_no = s.survey_no
+WHERE c.staff_id = ? AND w.name LIKE ?
+ORDER BY c.consult_datetime DESC
+`;
+
+/**
+ * 상담 일지 검색 - 상담일시 (Date)
+ * 입력된 날짜(YYYY-MM-DD)에 해당하는 기록 조회
+ */
+const getConsultByDate = `
+SELECT 
+    c.consult_no,
+    c.consult_datetime,
+    c.consult_status AS status,
+    c.content,
+    m.user_name AS guardian_name,
+    w.name AS ward_name,
+    IFNULL(s.business_name, '일반 상담') AS survey_type
+FROM consult c
+LEFT JOIN member m ON c.guardian_id = m.user_id
+JOIN ward w ON c.ward_no = w.ward_no
+LEFT JOIN survey s ON c.survey_no = s.survey_no
+WHERE c.staff_id = ? AND DATE(c.consult_datetime) = ?
+ORDER BY c.consult_datetime DESC
+`;
+
+const getConsultLogDetail = `
+SELECT 
+    c.consult_no,
+    c.consult_datetime,
+    c.consult_status,
+    c.content,
+    c.disabled_level,
+    c.staff_id,
+    c.ward_no,
+    c.guardian_id,
+    c.survey_no,
+    c.res_no,
+    m_staff.user_name AS staff_name,
+    m_guard.user_name AS guardian_name,
+    w.name AS ward_name,
+    s.business_name AS survey_name
+FROM consult c
+LEFT JOIN member m_staff ON c.staff_id = m_staff.user_id
+LEFT JOIN member m_guard ON c.guardian_id = m_guard.user_id
+LEFT JOIN ward w ON c.ward_no = w.ward_no
+LEFT JOIN survey s ON c.survey_no = s.survey_no
+WHERE c.consult_no = ?
+`;
 module.exports = {
   getAvailableSchedules,
   getUpcomingReservations,
@@ -197,4 +302,9 @@ module.exports = {
   createConsultationLog,
   getSurveysByWard,
   updateReservationToBooked,
+  getConsultBase,
+  getConsultByGuardian,
+  getConsultByWard,
+  getConsultByDate,
+  getConsultLogDetail,
 };
