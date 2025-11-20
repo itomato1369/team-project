@@ -57,8 +57,12 @@ const goToInquiryDetail = (survey) => {
 
 // Placeholder functions for existing buttons
 const showUserSupportPlan = (project) => {
-  console.log('project.support_plan_no:', project.inquiry_no);
-  router.push({ name: 'user-support-plan-detail', params: { inquiry_no: project.inquiry_no } });
+  console.log('project.inquiry_no:', project.inquiry_no);
+  console.log('project.ward_no:', project.inquiry_no);
+  router.push({
+    name: 'user-support-plan-detail',
+    params: { inquiry_no: project.inquiry_no, ward_no: project.ward_no },
+  });
 };
 
 const showUserSupportResult = (project) => {

@@ -37,13 +37,13 @@ router.get("/user-notices", async (req, res) => {
 
 // Called by: src/views/UserDashboard.vue
 router.get("/userwiter-survey", async (req, res) => {
-  const { writer } = req.query;
-  if (!writer) {
+  const { userId } = req.query; // inquiry writer, PK
+  if (!userId) {
     return res.status(400).send({ err: "Writer query parameter is required." });
   }
   let survey = [];
   try {
-    survey = await userService.getSurveyToUserWard(writer);
+    survey = await userService.getSurveyToUserWard(userId);
   } catch (err) {
     res.send({ err: "userwiter-survey Err: " + err });
   }
@@ -218,22 +218,23 @@ router.get("/users/by-institution", async (req, res) => {
   }
 });
 
-// Ward Management Routes
+// D:\Dev\git\team-project\frontend\src\views  UserMyPage.vue -> UserWardInfoUpdate.vue
 router.get("/wards", async (req, res) => {
-  const { guardianName } = req.query;
-  if (!guardianName) {
+  const { guardianId } = req.query;
+  if (!guardianId) {
     return res
       .status(400)
-      .send({ err: "guardianName query parameter is required." });
+      .send({ err: "guardianId query parameter is required." });
   }
   try {
-    const wards = await userService.getWardsByGuardianName(guardianName);
+    const wards = await userService.getWardsByGuardianId(guardianId);
     res.status(200).send({ result: wards });
   } catch (err) {
     res.status(500).send({ err: "Failed to get wards: " + err.message });
   }
 });
 
+// D:\Dev\git\team-project\frontend\src\views  UserMyPage.vue -> UserWardInfoInsert.vue
 router.post("/wards", async (req, res) => {
   try {
     const result = await userService.addWard(req.body);
@@ -253,7 +254,42 @@ router.put("/wards/:ward_no", async (req, res) => {
   }
 });
 
+router.put("/institution/:institutionNo/status", async (req, res) => {
+  try {
+    const { institutionNo } = req.params;
+    const statusData = req.body;
+    const result = await userService.updateInstitutionStatus(
+      institutionNo,
+      statusData
+    );
+    if (result.affectedRows > 0) {
+      res.status(200).send({ message: "Institution status updated." });
+    } else {
+      res.status(404).send({ message: "Institution not found." });
+    }
+  } catch (err) {
+    res
+      .status(500)
+      .send({ err: "Failed to update institution status: " + err.message });
+  }
+});
+
 // My Info Management Routes
+router.get("/institution-info/:userId", async (req, res) => {
+  const { userId } = req.params;
+  try {
+    const institutionInfo = await userService.getInstitutionInfo(userId);
+    if (!institutionInfo) {
+      return res.status(404).send({ message: "Institution info not found." });
+    }
+    res.status(200).send({ result: institutionInfo });
+  } catch (err) {
+    res
+      .status(500)
+      .send({ err: "Failed to get institution info: " + err.message });
+  }
+});
+
 router.get("/me", async (req, res) => {
   const { userId } = req.query;
   if (!userId) {
@@ -263,7 +299,7 @@ router.get("/me", async (req, res) => {
   }
   try {
     const user = await userService.getUserByUserId(userId);
-    console.log("userRouter가 반환하는 user는?", user);
+    // console.log("userRouter가 반환하는 user는?", user);
     res.status(200).send({ result: user });
   } catch (err) {
     res.status(500).send({ err: "Failed to get user info: " + err.message });
@@ -319,6 +355,22 @@ router.post("/apply-institution", async (req, res) => {
     res
       .status(500)
       .send({ err: "Failed to apply to institution: " + err.message });
+  }
+});
+
+// Called by: src/views/UserSupportPlanDetail.vue
+router.get("/support-plan", async (req, res) => {
+  // const { inquiry_no, ward_no } = req.params;
+  try {
+    const supportPlan = await userService.getSupportPlanDetail(req.query);
+    if (!supportPlan) {
+      return res.status(404).send({ message: "Support plan not found." });
+    }
+    res.status(200).send({ result: supportPlan });
+  } catch (err) {
+    return res
+      .status(500)
+      .send({ err: "Failed to get support plan detail: " + err.message });
   }
 });
 

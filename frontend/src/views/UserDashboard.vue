@@ -38,7 +38,7 @@ const setExpiringNotices = async () => {
 const setSurveyToUserWard = async () => {
   try {
     const res = await axios.get('/api/user/userwiter-survey', {
-      params: { writer: 'test' },
+      params: { userId: 'test' },
     });
     console.log('mySurveyResult.data', res.data);
     surveyToUserWard.value = res.data.result;
@@ -123,7 +123,7 @@ const performSearch = (query) => {
               :class="{ 'item-open': selectedSurveyNo === item.survey_no }"
             >
               <span>{{ item.business_name }}</span>
-              <span class="date">{{ item.updated_at }}</span>
+              <span class="date">{{ item.created_at }}</span>
 
               <i
                 :class="[

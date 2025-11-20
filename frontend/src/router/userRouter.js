@@ -45,14 +45,22 @@ export default [
     component: () => import('@/components/UserInquiryDetail.vue'),
   },
   {
+    // 피보호자 추가
     path: '/user/ward/insert',
     name: 'user-ward-insert',
     component: () => import('@/views/pages/user/UserWardInfoInsert.vue'),
   },
   {
+    // 피보호자 수정
     path: '/user/ward/edit/:ward_no',
     name: 'user-ward-edit',
     component: () => import('@/views/pages/user/UserWardInfoInsert.vue'),
+    props: true,
+  },
+  {
+    path: '/user/support-plan/:inquiry_no/:ward_no',
+    name: 'user-support-plan-detail',
+    component: () => import('@/views/UserSupportPlanDetail.vue'),
     props: true,
   },
   {
@@ -83,6 +91,5 @@ export default [
     path: '/qna/question-detail/:question_no',
     name: 'questionDetail',
     component: () => import('@/views/pages/user/QnaServiceDetail.vue'),
-    props: true,
   },
 ];

@@ -8,7 +8,8 @@ import Divider from 'primevue/divider';
 import Accordion from 'primevue/accordion';
 import AccordionTab from 'primevue/accordiontab';
 
-const logInUserId = 'test'; // As per instructions
+// 동일한 컴포넌트라서 사실 여기에서 로그인한 사용자 id받아와서 적용시키는게 중요함 이것만하면 내정보관리는 문제없음.
+const logInUserId = 'test';
 
 // --- Main Data State ---
 const currentUser = ref(null);
@@ -38,8 +39,10 @@ const loadMyInfo = async () => {
     const userRes = await axios.get('/api/user/me', { params: { userId: logInUserId } });
     currentUser.value = userRes.data.result;
 
-    const instRes = await axios.get('/api/user/institutions');
-    institutions.value = instRes.data.result;
+    if (currentUser.value.role === 'USER') {
+      const instRes = await axios.get('/api/user/institutions');
+      institutions.value = instRes.data.result;
+    }
   } catch (error) {
     console.error('내 정보를 불러오는 데 실패했습니다:', error);
     if (error.response) {
@@ -64,7 +67,7 @@ const splitAddress = (fullAddress) => {
   const parts = (fullAddress || '').split('!');
   postcode.value = parts[0] || '';
   address.value = parts[1] || '';
-  detailedAddress.value = ''; // 상세주소는 사용자가 직접 입력하도록 초기화
+  detailedAddress.value = parts[2] || ''; // 상세주소는 사용자가 직접 입력하도록 초기화
 };
 
 // currentUser가 로드되면 editableUserInfo를 설정
@@ -185,12 +188,19 @@ const applyToInstitution = async () => {
   }
 };
 
-const currentInstitutionName = computed(() => {
-  if (currentUser.value && currentUser.value.institution_no && institutions.value.length) {
-    const found = institutions.value.find(
-      (inst) => inst.institution_no === currentUser.value.institution_no
-    );
-    return found ? found.institution_name : '알 수 없는 기관';
+const institutionStatusText = computed(() => {
+  if (!currentUser.value || !currentUser.value.institution_status) {
+    return '';
+  }
+
+  const status = currentUser.value.institution_status;
+  if (status === '1s') {
+    return '(운영중)';
+  } else if (status === '2s') {
+    const date = new Date(currentUser.value.closed_at);
+    return `(휴업, ${date.toLocaleDateString()} 까지)`;
+  } else if (status === '3s') {
+    return '(폐업)';
   }
   return '';
 });
@@ -333,28 +343,41 @@ const currentInstitutionName = computed(() => {
     <Divider />
 
     <!-- Institution Section -->
-    <h5>기관 정보</h5>
-    <div v-if="!currentUser.institution_no">
-      <p>소속된 기관이 없습니다. 기관을 선택하여 신청해주세요.</p>
-      <div class="p-fluid p-formgrid p-grid" style="margin-top: 1rem">
-        <div class="p-field p-col-12 p-md-6">
-          <label for="institution">기관 선택</label>
-          <Dropdown
-            id="institution"
-            v-model="selectedInstitution"
-            :options="institutions"
-            optionLabel="institution_name"
-            placeholder="기관을 선택하세요"
-          ></Dropdown>
-        </div>
-        <div class="p-field p-col-12 p-md-2" style="margin-top: 1.75rem">
-          <Button label="신청하기" @click="applyToInstitution"></Button>
+    <div v-if="currentUser.role === 'USER'">
+      <h5>기관 정보</h5>
+      <div v-if="!currentUser.institution_no">
+        <p>소속된 기관이 없습니다. 기관을 선택하여 신청해주세요.</p>
+        <div class="p-fluid p-formgrid p-grid" style="margin-top: 1rem">
+          <div class="p-field p-col-12 p-md-6">
+            <label for="institution">기관 선택</label>
+            <Dropdown
+              id="institution"
+              v-model="selectedInstitution"
+              :options="institutions"
+              optionLabel="institution_name"
+              placeholder="기관을 선택하세요"
+            ></Dropdown>
+          </div>
+          <div class="p-field p-col-12 p-md-2" style="margin-top: 1.75rem">
+            <Button label="신청하기" @click="applyToInstitution"></Button>
+          </div>
         </div>
       </div>
-    </div>
-    <div v-else>
-      <p><strong>소속 기관:</strong> {{ currentInstitutionName }}</p>
-      <p><strong>승인 상태:</strong> {{ currentUser.status }}</p>
+      <div v-else>
+        <p>
+          <strong>소속 기관:</strong> {{ currentUser.institution_name }} {{ institutionStatusText }}
+        </p>
+        <p
+          v-if="
+            currentUser.institution_status === '3s' &&
+            currentUser.closed_notice &&
+            currentUser.closed_notice.trim() !== ''
+          "
+        >
+          <strong>기관 공지:</strong> {{ currentUser.closed_notice }}
+        </p>
+        <p><strong>승인 상태:</strong> {{ currentUser.status }}</p>
+      </div>
     </div>
   </div>
   <p v-else class="placeholder-text">사용자 정보를 불러오는 중입니다...</p>

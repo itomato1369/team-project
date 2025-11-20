@@ -16,6 +16,7 @@ const formatDate = (date) => {
   return formattedDate;
 };
 
+// 프론트엔드 호출처: 확인 필요
 const getExpiringNotices = async () => {
   const userNoticesResult = await mapper.query("findExpiringNotices", []);
   const res = userNoticesResult.map((item) => {
@@ -25,18 +26,20 @@ const getExpiringNotices = async () => {
   return res;
 };
 
-const getSurveyToUserWard = async (userName) => {
+// 프론트엔드 호출처: 확인 필요
+const getSurveyToUserWard = async (userId) => {
   // 1. await로 DB 조회 결과를 '먼저' 받아옵니다. (결과: 배열)
-  const surveyResults = await mapper.query("findSurveyToUserWard", userName);
+  const surveyResults = await mapper.query("findSurveyToUserWard", userId);
 
   // 2. 받아온 '배열'에 .map()을 적용합니다.
   const res = surveyResults.map((item) => {
-    item.updated_at = formatDate(item.updated_at);
+    item.created_at = formatDate(item.created_at);
     return item;
   });
   return res;
 };
 
+// 프론트엔드 호출처: 확인 필요
 const getBoardList = async (searchParams) => {
   const { term, type } = searchParams;
   let res = [];
@@ -74,8 +77,9 @@ const getBoardList = async (searchParams) => {
   return resultList;
 };
 
-const getUserSurveys = async (userName) => {
-  const surveyResults = await mapper.query("findUserSurveys", userName);
+// 프론트엔드 호출처: 확인 필요
+const getUserSurveys = async (userId) => {
+  const surveyResults = await mapper.query("findUserSurveys", userId);
 
   const res = surveyResults.map((item) => {
     item.deadline = formatDate(item.deadline);
@@ -84,6 +88,7 @@ const getUserSurveys = async (userName) => {
   return res;
 };
 
+// 프론트엔드 호출처: 확인 필요
 const getInquiries = async () => {
   const inquiryResults = await mapper.query("findInquiries");
 
@@ -98,6 +103,7 @@ const getInquiries = async () => {
   return res;
 };
 
+// 프론트엔드 호출처: 확인 필요
 const getInquiryDetail = async (inquiryNo) => {
   const inquiryDetailResult = await mapper.query(
     "findInquiryDetail",
@@ -117,6 +123,7 @@ const getInquiryDetail = async (inquiryNo) => {
   return item;
 };
 
+// 프론트엔드 호출처: 확인 필요
 const getInquiryQuestions = async (inquiryNo) => {
   const questions = await mapper.query("findInquiryQuestions", inquiryNo);
   return questions.map((q) => ({
@@ -128,6 +135,7 @@ const getInquiryQuestions = async (inquiryNo) => {
   }));
 };
 
+// 프론트엔드 호출처: 확인 필요
 const saveInquiryAnswers = async (saveData) => {
   const { inquiryDetail, answers } = saveData;
   const filteredAnswers = answers.filter(
@@ -170,16 +178,19 @@ const saveInquiryAnswers = async (saveData) => {
   }
 };
 
+// 프론트엔드 호출처: 확인 필요
 const getSurveyByInquiryContent = async (inquiryName) => {
   const survey = await mapper.query("findSurveyByInquiryContent", inquiryName);
   return survey[0];
 };
 
+// 프론트엔드 호출처: 확인 필요
 const getSurveyResults = async (surveyNo) => {
   const results = await mapper.query("findSurveyResultsBySurveyNo", surveyNo);
   return results;
 };
 
+// 프론트엔드 호출처: 확인 필요
 const updateSurveyAndResults = async (surveyNo, updateData) => {
   const { answers, modificationReason, purpose, content } = updateData;
   const filteredAnswers = answers.filter(
@@ -224,6 +235,7 @@ const updateSurveyAndResults = async (surveyNo, updateData) => {
   }
 };
 
+// 프론트엔드 호출처: 확인 필요
 const getMyPageSurveys = async (writer) => {
   const surveys = await mapper.query("findSurveysForMyPage", writer);
   // Format dates before sending
@@ -233,23 +245,26 @@ const getMyPageSurveys = async (writer) => {
   }));
 };
 
+// 프론트엔드 호출처: 확인 필요
 const getUsersByInstitution = async (institutionNo) => {
   // 해당 institution_no를 가진 이용자 목록 조회
   const users = await mapper.query("getUsersByInstitutionNo", [institutionNo]);
   return users;
 };
 
-const getWardsByGuardianName = async (guardianName) => {
-  return await mapper.query("findWardsByGuardianName", [guardianName]);
+// 프론트엔드 호출처: 확인 필요 (UserWardInfoInsert.vue, UserWardInfoUpdate.vue 에서 사용될 수 있음)
+const getWardsByGuardianId = async (guardianId) => {
+  return await mapper.query("findWardsByGuardianId", guardianId);
 };
 
+// 프론트엔드 호출처: 확인 필요 (UserWardInfoInsert.vue 에서 사용될 수 있음)
 const addWard = async (wardData) => {
   const {
     ward_rrn,
     name,
     sex,
     address,
-    guardian_name,
+    guardian_id,
     guardian_relation,
     disabled_level,
     age,
@@ -263,37 +278,49 @@ const addWard = async (wardData) => {
     name,
     sex,
     address,
-    guardian_name,
+    guardian_id,
     guardian_relation,
     disabled_level,
     age,
   ]);
 };
 
+// 프론트엔드 호출처: 확인 필요 (UserWardInfoUpdate.vue 에서 사용될 수 있음)
 const updateWard = async (wardNo, wardData) => {
   const { address, disabled_level } = wardData;
   return await mapper.query("updateWard", [address, disabled_level, wardNo]);
 };
 
-// src/components/UserMyInfoUpdate.vue
+// 프론트엔드 호출처: frontend/src/components/UserMyInfoUpdate.vue
 const getUserByUserId = async (userId) => {
   const user = await mapper.query("findUserByUserId", userId);
   return user[0];
 };
 
+// 프론트엔드 호출처: frontend/src/components/InstitutionState.vue
+// (AdminMyPage.vue 및 StaffMyPage.vue 에 포함)
+const getInstitutionInfo = async (userId) => {
+  const adminInfo = await mapper.query("getInstitutionInfo", userId);
+  return adminInfo[0];
+};
+
+// 프론트엔드 호출처: 확인 필요
 const getAllInstitutions = async () => {
   return await mapper.query("findAllInstitutions", []);
 };
 
+// 프론트엔드 호출처: 확인 필요
 const applyToInstitution = async (userId, institutionNo) => {
   return await mapper.query("applyToInstitution", [institutionNo, userId]);
 };
 
+// 프론트엔드 호출처: frontend/src/components/UserMyInfoUpdate.vue
 const updateUserInfo = async (userId, userData) => {
   const { phone, address, email } = userData;
   return await mapper.query("updateUser", [phone, address, email, userId]);
 };
 
+// 프론트엔드 호출처: frontend/src/components/UserMyInfoUpdate.vue
 const changePassword = async (userId, passwordData) => {
   const { currentPassword, newPassword } = passwordData;
   const user = (await mapper.query("findUserById", [userId]))[0];
@@ -311,6 +338,35 @@ const changePassword = async (userId, passwordData) => {
   return await mapper.query("updatePassword", [hashedNewPassword, userId]);
 };
 
+// 프론트엔드 호출처: frontend/src/views/UserSupportPlanDetail.vue
+const getSupportPlanDetail = async (reqData) => {
+  const { inquiry_no, ward_no } = reqData;
+  const result = await mapper.query("findSupportPlanDetailByInquiryNo", [
+    inquiry_no,
+    ward_no,
+  ]);
+  if (!Array.isArray(result) || result.length === 0) {
+    return null;
+  }
+  const item = result[0];
+  item.created_at = formatDate(item.created_at);
+  item.updated_at = formatDate(item.updated_at);
+  return item;
+};
+
+// 프론트엔드 호출처: frontend/src/components/InstitutionState.vue
+const updateInstitutionStatus = async (institutionNo, data) => {
+  const { status, closed_at, closed_notice } = data;
+  console.log([status, closed_at, closed_notice, institutionNo]);
+  const result = await mapper.query("updateInstitutionStatus", [
+    status,
+    closed_at,
+    closed_notice,
+    institutionNo,
+  ]);
+  return result;
+};
+
 module.exports = {
   getExpiringNotices,
   getSurveyToUserWard,
@@ -325,7 +381,7 @@ module.exports = {
   updateSurveyAndResults,
   getMyPageSurveys,
   getUsersByInstitution,
-  getWardsByGuardianName,
+  getWardsByGuardianId,
   addWard,
   updateWard,
   getUserByUserId,
@@ -333,4 +389,7 @@ module.exports = {
   applyToInstitution,
   updateUserInfo,
   changePassword,
+  getSupportPlanDetail,
+  getInstitutionInfo,
+  updateInstitutionStatus,
 };

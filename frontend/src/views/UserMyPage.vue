@@ -25,7 +25,7 @@ const router = useRouter();
 const viewMode = ref('list');
 const selectedProject = ref(null);
 const activeTab = ref(0); // 기본값을 0으로 설정
-const loggedInUserName = 'test'; // As per instructions
+const loggedInUserId = 'test'; // As per instructions
 
 const tabTitles = ['신청 사업 목록', '상담내역', '내 정보 관리', '피보호자 관리'];
 const currentTabTitle = computed(() => tabTitles[activeTab.value] || '마이페이지');
@@ -118,7 +118,7 @@ const goBackToList = () => {
         <UserMyInfoUpdate />
       </TabPanel>
       <TabPanel header="피보호자 관리">
-        <UserWardInfoUpdate :userName="loggedInUserName" />
+        <UserWardInfoUpdate :userId="loggedInUserId" />
       </TabPanel>
     </TabView>
   </div>

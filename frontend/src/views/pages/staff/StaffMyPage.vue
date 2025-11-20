@@ -1,5 +1,6 @@
 <script setup>
 import { onMounted, ref } from 'vue';
+import axios from 'axios';
 
 // PrimeVue 컴포넌트
 import TabView from 'primevue/tabview';
@@ -8,22 +9,36 @@ import Button from 'primevue/button';
 
 // 컴포넌트
 import StaffUserList from '@/components/staff/StaffUserList.vue';
+import UserMyInfoUpdate from '@/components/UserMyInfoUpdate.vue';
+import InstitutionState from '@/components/InstitutionState.vue';
 
 // --- 상태 관리 ---
-const activeTab = ref(1);
+const activeTab = ref(0);
+const staffInfo = ref(null);
+const logInUserId = 'staff'; // 하드코딩된 스태프 ID
+
+// --- 데이터 로딩 ---
+const loadStaffInfo = async () => {
+  try {
+    const response = await axios.get(`/api/user/institution-info/${logInUserId}`); // 동일 API 사용
+    staffInfo.value = response.data.result;
+  } catch (error) {
+    console.error('스태프 정보를 불러오는 데 실패했습니다:', error);
+  }
+};
 
 onMounted(() => {
-  activeTab.value = 0;
+  loadStaffInfo();
 });
 </script>
 
 <template>
-  <div class="card">
+  <div class="card" v-if="staffInfo">
     <!-- 1. 상단 영역 -->
     <div class="header-container">
       <div class="header-left">
         <h1 class="page-title">마이페이지</h1>
-        <p class="user-info">ㅇㅇㅇ님(00기관 담당자) <span class="status-badge">승인완료</span></p>
+        <p class="user-info">{{ staffInfo.user_name }}님({{ staffInfo.institution_name }} 담당자)</p>
       </div>
       <div class="header-right">
         <Button label="메인 페이지로" icon="pi pi-arrow-left" />
@@ -38,10 +53,16 @@ onMounted(() => {
       <TabPanel header="상담 목록">
         <p>상담 목록 컨텐츠가 준비중입니다.</p>
       </TabPanel>
+      <TabPanel header="기관상태">
+        <InstitutionState />
+      </TabPanel>
       <TabPanel header="내 정보 관리">
-        <p>내 정보 관리 컨텐츠가 준비중입니다.</p>
+        <UserMyInfoUpdate />
       </TabPanel>
     </TabView>
+  </div>
+  <div v-else>
+    <p>스태프 정보를 불러오는 중입니다...</p>
   </div>
 </template>
 

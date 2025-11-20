@@ -25,16 +25,16 @@ const findSurveyToUserWard = `
 SELECT 
     s.survey_no, 
     s.business_name, 
-    s.updated_at
+    s.created_at
 FROM 
     member m
 JOIN 
-    ward w ON m.user_id = w.guardian_name 
+    ward w ON m.user_id = w.guardian_id 
 JOIN 
     survey s ON w.ward_no = s.ward_no
 WHERE 
-    m.user_name = ?
-ORDER BY s.updated_at DESC
+    m.user_id = ?
+ORDER BY s.created_at DESC
 `;
 
 const findBoardList = `
@@ -98,7 +98,7 @@ SELECT
 FROM
     notice n
 CROSS JOIN
-    (SELECT ward_no, name FROM ward WHERE guardian_name = ( SELECT user_id FROM member WHERE user_name = ? )) w
+    (SELECT ward_no, name FROM ward WHERE guardian_id = ( SELECT user_id FROM member WHERE user_id = ? )) w
 LEFT JOIN
     survey s ON w.ward_no = s.ward_no AND n.business_name = s.business_name
 ORDER BY
@@ -113,7 +113,8 @@ SELECT
     s.business_name,
     s.created_at,
     s.status,
-    i.inquiry_no
+    i.inquiry_no,
+    s.ward_no
 FROM survey s
 LEFT JOIN notice n ON s.business_name = n.business_name
 LEFT JOIN inquiry i ON s.content = i.inquiry_name
@@ -182,6 +183,22 @@ VALUES (?, ?, ?, ?, ?, ?, NOW(), NOW())
 INSERT INTO survey_result (business_no, survey_answer, survey_no)
 VALUES ?
 `,
+
+  findSupportPlanDetailByInquiryNo: `
+SELECT
+    sp.business_name,
+    sp.support_plan_goal,
+    sp.plan,
+    sp.support_plan_status
+FROM
+    support_plan sp
+WHERE
+    sp.notice_no = (SELECT notice_no FROM inquiry WHERE inquiry_no = ?)
+    AND sp.ward_name = (SELECT name FROM ward WHERE ward_no = ?)
+ORDER BY
+    sp.created_at DESC
+LIMIT 1
+`,
 };
 
 const getUsersByInstitutionNo = `
@@ -197,7 +214,7 @@ WHERE
 `;
 
 const wardSqls = {
-  findWardsByGuardianName: `
+  findWardsByGuardianId: `
     SELECT
       w.*,
       p.priority_status
@@ -206,10 +223,10 @@ const wardSqls = {
     LEFT JOIN
       priority p ON w.ward_no = p.ward_no
     WHERE
-      w.guardian_name = ?
+      w.guardian_id = ?
   `,
   insertWard: `
-    INSERT INTO ward (ward_rrn, name, sex, address, guardian_name, guardian_relation, disabled_level, age, created_at) 
+    INSERT INTO ward (ward_rrn, name, sex, address, guardian_id, guardian_relation, disabled_level, age, created_at) 
     VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW())
   `,
   updateWard: `
@@ -221,9 +238,38 @@ const wardSqls = {
 
 const myInfoSqls = {
   findUserByUserId: `
-    SELECT * 
-    FROM member 
-    WHERE user_id = ?
+    SELECT 
+    m.user_id,
+    m.user_name,
+    m.email,
+    m.phone,
+    m.address,
+    m.birthday,
+    m.role,
+    m.status,
+    m.institution_no,
+    i.institution_name,
+    i.status as institution_status,
+    i.closed_at,
+    i.closed_notice
+    FROM member m
+    LEFT JOIN institution i ON m.institution_no = i.institution_no
+    WHERE m.user_id = ?
+  `,
+  getInstitutionInfo: `
+    SELECT
+      m.user_id,
+      m.user_name,
+      m.email,
+      m.phone,
+      m.role,
+      i.institution_no,
+      i.institution_name,
+      i.status,
+      i.closed_at
+    FROM member m
+    LEFT JOIN institution i ON m.institution_no = i.institution_no
+    WHERE m.user_id = ? AND m.role IN ('ADMIN', 'STAFF', 'SYS')
   `,
   applyToInstitution: `
     UPDATE member SET institution_no = ?, status = 'READY' WHERE user_id = ?
@@ -236,6 +282,9 @@ const myInfoSqls = {
   `,
   updatePassword: `
     UPDATE member SET password = ? WHERE user_id = ?
+  `,
+  updateInstitutionStatus: `
+    UPDATE institution SET status = ?, closed_at = ?, closed_notice = ?, updated_at = NOW() WHERE institution_no = ?
   `,
 };
 

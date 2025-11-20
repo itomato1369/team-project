@@ -8,7 +8,7 @@ import Column from 'primevue/column';
 import Tag from 'primevue/tag';
 
 const props = defineProps({
-  userName: {
+  userId: {
     type: String,
     required: true,
   },
@@ -20,7 +20,7 @@ const wards = ref([]);
 const loadWards = async () => {
   try {
     const response = await axios.get('/api/user/wards', {
-      params: { guardianName: props.userName },
+      params: { guardianId: props.userId },
     });
     wards.value = response.data.result;
   } catch (error) {
