@@ -268,6 +268,7 @@ onMounted(async () => {
   // Fetch user's wards
   try {
     const response = await userApi.getMyWards();
+    console.log('Fetched Wards Data:', JSON.stringify(response.data.result, null, 2)); // 데이터 확인용 로그
     wardList.value = response.data.result;
     // If there is only one ward, pre-select it
     if (wardList.value.length === 1) {
@@ -298,8 +299,18 @@ onMounted(async () => {
         <Card>
           <template #content>
             <div class="mb-4">
-                <label for="ward-select" class="block text-xl font-medium mb-2">상담받을 피보호자 선택</label>
-                <Dropdown id="ward-select" v-model="selectedWard" :options="wardList" optionLabel="name" optionValue="ward_no" placeholder="피보호자를 선택하세요" class="w-full" />
+              <label for="ward-select" class="block text-xl font-medium mb-2"
+                >상담받을 피보호자 선택</label
+              >
+              <Dropdown
+                id="ward-select"
+                v-model="selectedWard"
+                :options="wardList"
+                optionLabel="name"
+                optionValue="ward_no"
+                placeholder="피보호자를 선택하세요"
+                class="w-full"
+              />
             </div>
           </template>
         </Card>

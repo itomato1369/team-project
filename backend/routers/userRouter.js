@@ -224,7 +224,7 @@ router.get("/users/by-institution", async (req, res) => {
 router.get("/wards", verifyAccessToken, async (req, res) => {
   try {
     const userId = req.user.id; // Get user ID from authenticated token
-    const wards = await userService.getWardsByGuardianName(userId);
+    const wards = await userService.getWardsByGuardianId(userId);
     res.status(200).send({ result: wards });
   } catch (err) {
     res.status(500).send({ err: "Failed to get wards: " + err.message });
