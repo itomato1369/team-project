@@ -5,12 +5,15 @@ import Button from 'primevue/button';
 import axios from 'axios';
 import 'primeicons/primeicons.css';
 import { useRouter } from 'vue-router'; // useRouter 추가
+import { useAuthStore } from '@/stores/authStore';
+
 const router = useRouter(); // 라우터 인스턴스
+const authStore = useAuthStore();
 
 const quickMenus = ref([
   // ... (기존 quickMenus 데이터)
   { icon: '📄', label: '사업 공고', path: 'umy' },
-  { icon: '📝', label: '사업 신청', path: 'umy' },
+  { icon: '📝', label: '사업 신청', path: 'ui' },
   { icon: '🧑‍🤝‍🧑', label: '피보호자 등록', path: 'umy' },
   { icon: '📞', label: '상담 예약', path: 'umy' },
   { icon: '❓', label: 'Q&A', path: 'qna' },
@@ -38,7 +41,7 @@ const setExpiringNotices = async () => {
 const setSurveyToUserWard = async () => {
   try {
     const res = await axios.get('/api/user/userwiter-survey', {
-      params: { userId: 'test' },
+      params: { userId: authStore.user.id },
     });
     console.log('mySurveyResult.data', res.data);
     surveyToUserWard.value = res.data.result;

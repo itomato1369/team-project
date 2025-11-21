@@ -2,7 +2,7 @@
 import axios from 'axios';
 import { ref, onMounted, computed } from 'vue';
 import { useRouter } from 'vue-router';
-
+import { useAuthStore } from '@/stores/authStore';
 const props = defineProps({
   ward_no: {
     type: String,
@@ -12,16 +12,17 @@ const props = defineProps({
 
 // const route = useRoute();
 const router = useRouter();
+const authStore = useAuthStore();
 
 const isEditMode = computed(() => !!props.ward_no);
 
 const ward = ref({
   name: '',
   ward_rrn: '',
-  sex: 'MALE',
-  age: null,
+  sex: '',
+  age: '',
   address: '',
-  guardian_id: 'test', // Changed from guardian_name, assuming 'test' is the logged-in user's ID
+  guardian_id: authStore.user.id,
   guardian_relation: '',
   disabled_level: '',
 });
@@ -31,7 +32,7 @@ const fetchWardData = async () => {
   try {
     // In a real scenario, a dedicated endpoint `/api/user/wards/:ward_no` would be better.
     // For now, we filter from the list fetched for the guardian.
-    const response = await axios.get('/api/user/wards', {
+    const response = await axios.get('/api/user/wardlist', {
       params: { guardianId: ward.value.guardian_id },
     });
     const wardData = response.data.result.find((w) => w.ward_no === parseInt(props.ward_no));

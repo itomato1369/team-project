@@ -15,11 +15,15 @@ const rejectReason = ref('');
 const currentItemToReject = ref(null);
 
 // 권한 승인 목록 조회
+// 권한 승인 목록 조회
 const getApprovalList = async () => {
   try {
-    // backend 서버의 API
     const response = await axios.get('/api/institutions/approval');
-    approvalList.value = response.data;
+
+    // 너가 사용 중인 role 코드 기준으로 필터링
+    const allowedRoles = ['USER', '1a', 'STAFF', '2a'];
+
+    approvalList.value = response.data.filter((item) => allowedRoles.includes(item.role));
   } catch (error) {
     console.error('권한 승인 대기 목록 오류', error);
   }

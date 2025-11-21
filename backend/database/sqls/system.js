@@ -26,7 +26,7 @@ const selectInstitutions = {
   // 권한 승인 목록 institution_no로 INNER JOIN
   selectApprovalList: `SELECT m.user_id, m.user_name, m.role, m.created_at, m.status, i.institution_no, i.institution_name FROM member m
   INNER JOIN institution i ON m.institution_no = i.institution_no
-  WHERE m.status = 'READY'`,
+  WHERE m.status = 'READY' AND m.institution_no IS NOT NULL`,
 
   // 권한 승인 상태 'READY' => 'ACTIVE'
   acceptApproval: `UPDATE member SET status = 'ACTIVE' WHERE user_id = ?`,

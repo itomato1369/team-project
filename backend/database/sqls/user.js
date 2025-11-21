@@ -7,6 +7,7 @@ SELECT user_id,
        password, 
        user_name,
        email,
+       institution_no,
        role AS user_role
 FROM member
 WHERE user_id = ?`;
@@ -148,7 +149,12 @@ ORDER BY s.created_at DESC
 `,
 
   findSurveyByInquiryContent: `
-SELECT * FROM survey WHERE content = ?
+select 
+  s.*
+from survey s
+join 
+  inquiry i on s.content = i.inquiry_name
+where i.inquiry_no = ?
 `,
 
   updateSurvey: `
@@ -176,6 +182,7 @@ SELECT
 FROM inquiry i
 LEFT JOIN notice n ON i.notice_no = n.notice_no
 WHERE i.inquiry_status = 1`,
+
   inquiryList: `select 
  business_no
 , answer_list
@@ -288,13 +295,14 @@ const myInfoSqls = {
       m.email,
       m.phone,
       m.role,
+      m.status,
       i.institution_no,
       i.institution_name,
-      i.status,
+      i.status as institution_status,
       i.closed_at
     FROM member m
     LEFT JOIN institution i ON m.institution_no = i.institution_no
-    WHERE m.user_id = ? AND m.role IN ('ADMIN', 'STAFF', 'SYS')
+    WHERE m.user_id = ?
   `,
   applyToInstitution: `
     UPDATE member SET institution_no = ?, status = 'READY' WHERE user_id = ?

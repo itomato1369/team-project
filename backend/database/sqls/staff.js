@@ -64,17 +64,18 @@ WHERE s.survey_no = 1;
 
 const wardno = `SELECT * FROM survey WHERE survey_no = ?`;
 //지원계획
-const spportinsert = `
+const supportinsert = `
 INSERT INTO support_plan (
- support_plan_goal,
- business_name,
- spend,
- plan,
- file_no,
- priority_no,       
- support_plan_status,
- writer_date        
-) VALUES ( ?, ?, ?, ?, ?, ?, ?, NOW() ) 
+  ward_no,
+  support_plan_goal,
+  plan,
+  business_name,
+  spend,
+  file_no,
+  support_plan_status,
+  staff_name,
+  writer_date
+) VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW())
 `;
 
 /**
@@ -178,6 +179,23 @@ const planitem = `SELECT
 FROM support_plan
 ORDER BY support_plan_no DESC`;
 
+//담당자승인조회 정보
+const Staffplanitem = `SELECT 
+  support_plan_no,
+  support_plan_goal,
+  staff_name,
+  created_at,
+  writer_date,
+  priority_no,
+  plan,
+  business_name,  
+  spend,          
+  support_plan_status,
+  ward_no
+FROM support_plan
+WHERE ward_no = ?
+ORDER BY support_plan_no DESC`;
+
 //승인상세조회 승인
 const updateplanstatus = `
 UPDATE support_plan
@@ -192,7 +210,7 @@ module.exports = {
   supportPlan,
   wardsearch,
   wardno,
-  spportinsert,
+  supportinsert,
   planitem,
   getAvailableSlots,
   getReservationCounts,
@@ -202,4 +220,5 @@ module.exports = {
   supportsearch,
   supportresultlistinfo,
   updateplanstatus,
+  Staffplanitem,
 };
