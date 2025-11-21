@@ -3,8 +3,6 @@
 
 const express = require("express");
 const signupService = require("../services/signupService.js");
-const bcrypt = require("bcrypt"); // 비밀번호 보안
-const db = require("../database/mappers/mapper.js");
 const router = express.Router();
 
 // // POST /signup

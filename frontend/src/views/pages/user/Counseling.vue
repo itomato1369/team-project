@@ -4,8 +4,10 @@ import { useRouter } from 'vue-router';
 import { useToast } from 'primevue/usetoast';
 import Card from 'primevue/card';
 import api, { userApi } from '@/api/api.js';
+import { useAuthStore } from '@/stores/authStore';
 
 import ConfirmationDialog from '@/components/ConfirmationDialog.vue';
+import TimeSlotList from '@/components/TimeSlotList.vue'; // [수정] 컴포넌트 import
 
 const router = useRouter();
 const toast = useToast();
@@ -43,8 +45,10 @@ let availableDateSet = new Set();
 // 선택된 날짜에 해당하는 예약 가능 시간 목록
 const availableTimes = ref([]);
 
-// [참고] 실제로는 로그인 스토어(authStore)에서 가져와야 합니다.
-const userName = ref('홍길동');
+const authStore = useAuthStore(); // authStore 인스턴스 생성
+const userId = computed(() => authStore.user?.user_id);
+const userName = computed(() => authStore.user?.name);
+console.log('로그인한 사용자 아이디: ', userId);
 
 // --- 2. 헬퍼 함수 (Helper Functions) ---
 
@@ -295,13 +299,17 @@ onMounted(async () => {
       </p>
 
       <!-- 0. 피보호자 선택 -->
-      <div class="table-container" v-if="wardList.length > 0">
-        <Card>
+      <div
+        class="table-container flex justify-center items-center w-full"
+        v-if="wardList.length > 0"
+      >
+        <Card class="w-full">
           <template #content>
-            <div class="mb-4">
-              <label for="ward-select" class="block text-xl font-medium mb-2"
-                >상담받을 피보호자 선택</label
-              >
+            <div class="mb-4 text-center max-w-xl mx-auto">
+              <label for="ward-select" class="block text-xl font-medium mb-2">
+                상담받을 피보호자 선택
+              </label>
+
               <Dropdown
                 id="ward-select"
                 v-model="selectedWard"
@@ -338,11 +346,7 @@ onMounted(async () => {
                 @date-select="onDateSelect"
                 class="w-full"
               >
-                <!--
-                    [v15 수정] 이 속성의 주석을 제거하여
-                    예약 불가능한 날짜를 클릭할 수 없도록 합니다.
-                  -->
-                :disabledDates="isDateDisabled"
+                <!-- :disabledDates="isDateDisabled" -->
               </Calendar>
             </div>
             <!-- (대안) 예약 가능 날짜가 아예 없는 경우 -->
@@ -367,37 +371,20 @@ onMounted(async () => {
                 {{ formatToKoreanDate(selectedDate) }}
               </h6>
 
-              <!-- 오전 -->
-              <div v-if="morningTimes.length > 0" class="mb-4">
-                <div class="font-semibold text-lg mb-3">오전</div>
-                <div class="flex flex-wrap gap-3">
-                  <!-- [v12 수정] v-for="slot in morningTimes" / :key="slot.start_time_stamp" -->
-                  <Button
-                    v-for="slot in morningTimes"
-                    :key="slot.start_time_stamp"
-                    :label="slot.time"
-                    :outlined="selectedTimeSlot?.start_time_stamp !== slot.start_time_stamp"
-                    @click="selectTime(slot)"
-                    style="min-width: 80px"
-                  />
-                </div>
-              </div>
+              <!-- [수정] 오전/오후 시간 목록을 TimeSlotList 컴포넌트로 변경 -->
+              <TimeSlotList
+                title="오전"
+                :time-slots="morningTimes"
+                :selected-slot="selectedTimeSlot"
+                @select-time="selectTime"
+              />
 
-              <!-- 오후 -->
-              <div v-if="afternoonTimes.length > 0" class="mb-4">
-                <div class="font-semibold text-lg mb-3">오후</div>
-                <div class="flex flex-wrap gap-3">
-                  <!-- [v12 수정] v-for="slot in afternoonTimes" / :key="slot.start_time_stamp" -->
-                  <Button
-                    v-for="slot in afternoonTimes"
-                    :key="slot.start_time_stamp"
-                    :label="slot.time"
-                    :outlined="selectedTimeSlot?.start_time_stamp !== slot.start_time_stamp"
-                    @click="selectTime(slot)"
-                    style="min-width: 80px"
-                  />
-                </div>
-              </div>
+              <TimeSlotList
+                title="오후"
+                :time-slots="afternoonTimes"
+                :selected-slot="selectedTimeSlot"
+                @select-time="selectTime"
+              />
 
               <!-- 상담 신청 버튼 -->
               <div class="text-center mt-5">
