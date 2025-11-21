@@ -53,7 +53,7 @@ const handleLogin = async () => {
 // 3. 회원가입 페이지 이동 함수 (두 번째 코드에서 가져옴)
 const goToSignUp = () => {
   console.log('Navigating to sign up page...');
-  // router.push('/signup');
+  router.push('/signup');
 };
 
 // TODO: Implement social login functions

@@ -21,13 +21,30 @@ export const useAuthStore = defineStore('auth', {
         const response = await api.post('/api/auth/login', credentials);
         const { accessToken, refreshToken, user } = response.data;
 
-        console.log('[AuthStore] login: 성공', { user, accessToken: accessToken.substring(0, 10) + '...' });
+        console.log('[AuthStore] login: 성공', {
+          user,
+          accessToken: accessToken.substring(0, 10) + '...',
+        });
 
         this.accessToken = accessToken;
         this.refreshToken = refreshToken;
         this.user = user;
 
-        router.push('/');
+        switch (user.role) {
+          case 'USER':
+            router.push('/ud');
+            break;
+          case 'STAFF':
+            router.push('/smy');
+            break;
+          case 'ADMIN':
+            router.push('/amy');
+            break;
+
+          default:
+            router.push('/');
+            break;
+        }
         return true;
       } catch (error) {
         console.error('[AuthStore] login: 실패', error.response?.data || error.message);
@@ -63,7 +80,10 @@ export const useAuthStore = defineStore('auth', {
         console.log('[AuthStore] refreshAccessToken: 성공. 새 Access Token 발급.');
         return true;
       } catch (error) {
-        console.error('[AuthStore] refreshAccessToken: 실패', error.response?.data || error.message);
+        console.error(
+          '[AuthStore] refreshAccessToken: 실패',
+          error.response?.data || error.message
+        );
         this.logout();
         return false;
       }
@@ -86,9 +106,9 @@ export const useAuthStore = defineStore('auth', {
       console.log('[AuthStore] handleSocialLogin: 호출됨');
       this.accessToken = accessToken;
       this.refreshToken = refreshToken;
-      
+
       await this.fetchUser(); // 사용자 정보 가져오기
-      
+
       console.log('[AuthStore] handleSocialLogin: 소셜 로그인 성공. 홈으로 이동합니다.');
       router.push('/');
     },
