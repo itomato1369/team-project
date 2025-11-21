@@ -19,7 +19,7 @@ const wards = ref([]);
 
 const loadWards = async () => {
   try {
-    const response = await axios.get('/api/user/wards', {
+    const response = await axios.get('/api/user/wardlist', {
       params: { guardianId: props.userId },
     });
     wards.value = response.data.result;

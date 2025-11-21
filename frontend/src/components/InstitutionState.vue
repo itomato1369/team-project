@@ -6,13 +6,16 @@ import Button from 'primevue/button';
 import Dropdown from 'primevue/dropdown';
 import Calendar from 'primevue/calendar';
 import Textarea from 'primevue/textarea';
+import { useAuthStore } from '@/stores/authStore';
 
 const route = useRoute();
+const authStore = useAuthStore();
 
 // --- 상태 관리 ---
 const institutionInfo = ref(null); // 기관 및 관리자 정보를 저장할 변수
 const isEditing = ref(false); // '변경하기' 모드 활성화 상태
-const logInUserId = ref(''); // 동적으로 설정될 사용자 ID
+const logInUserId = ref('');
+logInUserId.value = authStore.user.id; // 로그인사용자 id 정보 피니아로 받아옴
 
 const statusOptions = ref([
   { value: '1s', label: '운영' },
@@ -65,12 +68,6 @@ const loadInstitutionInfo = async () => {
 };
 
 onMounted(() => {
-  // URL 경로를 기반으로 사용자 ID 설정
-  if (route.path.includes('/amy')) {
-    logInUserId.value = 'admin';
-  } else if (route.path.includes('/smy')) {
-    logInUserId.value = 'staff';
-  }
   loadInstitutionInfo();
 });
 

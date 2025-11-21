@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted, computed, watch } from 'vue';
+import { ref, onMounted, computed, watch, defineProps } from 'vue';
 import axios from 'axios';
 import Dropdown from 'primevue/dropdown';
 import Button from 'primevue/button';
@@ -8,11 +8,14 @@ import Divider from 'primevue/divider';
 import Accordion from 'primevue/accordion';
 import AccordionTab from 'primevue/accordiontab';
 
-// 동일한 컴포넌트라서 사실 여기에서 로그인한 사용자 id받아와서 적용시키는게 중요함 이것만하면 내정보관리는 문제없음.
-const logInUserId = 'test';
+const props = defineProps({
+  userInfo: {
+    type: Object,
+    required: true,
+  },
+});
 
 // --- Main Data State ---
-const currentUser = ref(null);
 const institutions = ref([]);
 
 // --- UI Control State ---
@@ -34,25 +37,21 @@ const address = ref('');
 const detailedAddress = ref('');
 
 // --- Data Loading ---
-const loadMyInfo = async () => {
+const loadInstitutions = async () => {
+  // 기관 목록은 역할에 관계없이 필요할 수 있으므로 항상 로드
   try {
-    const userRes = await axios.get('/api/user/me', { params: { userId: logInUserId } });
-    currentUser.value = userRes.data.result;
-
     const instRes = await axios.get('/api/user/institutions');
     institutions.value = instRes.data.result;
   } catch (error) {
-    console.error('내 정보를 불러오는 데 실패했습니다:', error);
-    if (error.response) {
-      console.error('Error Response Data:', error.response.data);
-      console.error('Error Response Status:', error.response.status);
-    }
+    console.error('기관 목록을 불러오는 데 실패했습니다:', error);
   }
 };
 
 onMounted(() => {
-  loadMyInfo();
-  // Dynamically load Daum Postcode script
+  if (props.userInfo && !props.userInfo.institution_no) {
+    loadInstitutions();
+  }
+  // Daum Postcode script
   if (typeof window.daum === 'undefined' || !window.daum.Postcode) {
     const script = document.createElement('script');
     script.src = '//t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js';
@@ -65,23 +64,25 @@ const splitAddress = (fullAddress) => {
   const parts = (fullAddress || '').split('!');
   postcode.value = parts[0] || '';
   address.value = parts[1] || '';
-  detailedAddress.value = parts[2] || ''; // 상세주소는 사용자가 직접 입력하도록 초기화
+  detailedAddress.value = parts[2] || '';
 };
 
-// currentUser가 로드되면 editableUserInfo를 설정
+// userInfo prop이 변경되면 editableUserInfo를 업데이트
 watch(
-  currentUser,
+  () => props.userInfo,
   (newVal) => {
     if (newVal) {
       editableUserInfo.value = { ...newVal };
-      // 주소 분리
       splitAddress(newVal.address);
+      // 기관이 없는 경우에만 기관 목록을 새로 로드
+      if (!newVal.institution_no && institutions.value.length === 0) {
+        loadInstitutions();
+      }
     }
   },
-  { immediate: true }
+  { immediate: true, deep: true }
 );
 
-// Watch for changes in password fields to clear the error
 watch(
   passwordData,
   () => {
@@ -92,10 +93,9 @@ watch(
 
 // --- Event Handlers ---
 const toggleEdit = (isCancel = false) => {
-  if (isCancel && currentUser.value) {
-    editableUserInfo.value = { ...currentUser.value };
-    // 취소 시 주소도 원복
-    splitAddress(currentUser.value.address);
+  if (isCancel && props.userInfo) {
+    editableUserInfo.value = { ...props.userInfo };
+    splitAddress(props.userInfo.address);
   }
   isEditing.value = !isEditing.value;
 };
@@ -105,45 +105,37 @@ const openPostcodeSearch = () => {
     oncomplete: (data) => {
       let fullAddress = data.address;
       let extraAddress = '';
-
       if (data.addressType === 'R') {
-        if (data.bname !== '') {
-          extraAddress += data.bname;
-        }
-        if (data.buildingName !== '') {
+        if (data.bname !== '') extraAddress += data.bname;
+        if (data.buildingName !== '')
           extraAddress += extraAddress !== '' ? `, ${data.buildingName}` : data.buildingName;
-        }
         fullAddress += extraAddress !== '' ? ` (${extraAddress})` : '';
       }
-      // 분리된 필드에 할당
       postcode.value = data.zonecode;
       address.value = fullAddress;
-      detailedAddress.value = ''; // 상세주소는 사용자가 직접 입력하도록 초기화
+      detailedAddress.value = '';
     },
   }).open();
 };
 
 const resetPasswordFields = () => {
   passwordData.value = { currentPassword: '', newPassword: '', confirmPassword: '' };
-  passwordError.value = ''; // Clear error on cancel
+  passwordError.value = '';
 };
 
 const updateUserInfo = async () => {
   try {
-    // 주소 합치기
     const combinedAddress = `${postcode.value}!${address.value}!${detailedAddress.value}`;
-
     await axios.put('/api/user/me', {
-      userId: currentUser.value.user_id,
+      userId: props.userInfo.user_id,
       ...editableUserInfo.value,
-      address: combinedAddress, // 합친 주소로 전송
+      address: combinedAddress,
     });
-
-    // 성공 후 currentUser 업데이트
-    await loadMyInfo();
-
-    isEditing.value = false;
+    // 부모에게 데이터 새로고침을 요청하는 이벤트를 발생시킬 수 있음
+    // context.emit('updated');
     alert('사용자 정보가 수정되었습니다.');
+    isEditing.value = false;
+    // 여기서는 간단히 페이지 새로고침 또는 부모의 함수를 호출해야함
   } catch (error) {
     console.error('사용자 정보 수정에 실패했습니다:', error);
     alert('사용자 정보 수정에 실패했습니다.');
@@ -151,14 +143,14 @@ const updateUserInfo = async () => {
 };
 
 const changePassword = async () => {
-  passwordError.value = ''; // Reset error
+  passwordError.value = '';
   if (passwordData.value.newPassword !== passwordData.value.confirmPassword) {
     passwordError.value = '새 비밀번호가 일치하지 않습니다.';
     return;
   }
   try {
     await axios.put('/api/user/password', {
-      userId: currentUser.value.user_id,
+      userId: props.userInfo.user_id,
       ...passwordData.value,
     });
     alert('비밀번호가 성공적으로 변경되었습니다.');
@@ -176,36 +168,43 @@ const applyToInstitution = async () => {
   }
   try {
     await axios.post('/api/user/apply-institution', {
-      userId: currentUser.value.user_id,
+      userId: props.userInfo.user_id,
       institutionNo: selectedInstitution.value.institution_no,
     });
-    alert('신청이 완료되었습니다.');
-    loadMyInfo(); // Refresh user info
+    alert('신청이 완료되었습니다. 관리자 승인 후 적용됩니다.');
+    // 여기도 부모에게 상태 업데이트를 알려야 함
   } catch (error) {
     console.error('기관 신청에 실패했습니다:', error);
   }
 };
 
-const institutionStatusText = computed(() => {
-  if (!currentUser.value || !currentUser.value.institution_status) {
-    return '';
+const userStatusText = computed(() => {
+  if (!props.userInfo || !props.userInfo.status) return '';
+  switch (props.userInfo.status) {
+    case 'READY':
+      return '승인대기중';
+    case 'ACTIVE':
+      return '승인';
+    default:
+      return props.userInfo.status;
   }
+});
 
-  const status = currentUser.value.institution_status;
-  if (status === '1s') {
-    return '(운영중)';
-  } else if (status === '2s') {
-    const date = new Date(currentUser.value.closed_at);
+const institutionStatusText = computed(() => {
+  if (!props.userInfo || !props.userInfo.institution_status) return '';
+  const status = props.userInfo.institution_status;
+  if (status === '1s') return '(운영중)';
+  if (status === '2s') {
+    const date = new Date(props.userInfo.closed_at);
     return `(휴업, ${date.toLocaleDateString()} 까지)`;
-  } else if (status === '3s') {
-    return '(폐업)';
   }
+  if (status === '3s') return '(폐업)';
   return '';
 });
 </script>
 
 <template>
-  <div class="card" v-if="currentUser">
+  <div class="card" v-if="userInfo">
     <!-- User Profile Section -->
     <h5>내 정보 수정</h5>
     <div class="p-fluid">
@@ -286,7 +285,6 @@ const institutionStatusText = computed(() => {
             <label for="currentPassword" class="p-col-12 p-mb-2 p-md-2 p-mb-md-0">
               현재 비밀번호
             </label>
-            <!-- Password Error Message Display -->
             <div v-if="passwordError" class="p-field p-grid" style="margin-top: 1rem">
               <div class="p-col-12 p-md-10 p-md-offset-2">
                 <small class="p-error" style="font-size: 1.2rem; color: red">{{
@@ -341,39 +339,41 @@ const institutionStatusText = computed(() => {
     <Divider />
 
     <!-- Institution Section -->
-    <h5>기관 정보</h5>
-    <div v-if="!currentUser.institution_no">
-      <p>소속된 기관이 없습니다. 기관을 선택하여 신청해주세요.</p>
-      <div class="p-fluid p-formgrid p-grid" style="margin-top: 1rem">
-        <div class="p-field p-col-12 p-md-6">
-          <label for="institution">기관 선택</label>
-          <Dropdown
-            id="institution"
-            v-model="selectedInstitution"
-            :options="institutions"
-            optionLabel="institution_name"
-            placeholder="기관을 선택하세요"
-          ></Dropdown>
-        </div>
-        <div class="p-field p-col-12 p-md-2" style="margin-top: 1.75rem">
-          <Button label="신청하기" @click="applyToInstitution"></Button>
+    <div v-if="['1a', '2a', '3a'].includes(userInfo.role)">
+      <h5>기관 정보</h5>
+      <div v-if="!userInfo.institution_no">
+        <p>소속된 기관이 없습니다. 기관을 선택하여 신청해주세요.</p>
+        <div class="p-fluid p-formgrid p-grid" style="margin-top: 1rem">
+          <div class="p-field p-col-12 p-md-6">
+            <label for="institution">기관 선택</label>
+            <Dropdown
+              id="institution"
+              v-model="selectedInstitution"
+              :options="institutions"
+              optionLabel="institution_name"
+              placeholder="기관을 선택하세요"
+            ></Dropdown>
+          </div>
+          <div class="p-field p-col-12 p-md-2" style="margin-top: 1.75rem">
+            <Button label="신청하기" @click="applyToInstitution"></Button>
+          </div>
         </div>
       </div>
-    </div>
-    <div v-else>
-      <p>
-        <strong>소속 기관:</strong> {{ currentUser.institution_name }} {{ institutionStatusText }}
-      </p>
-      <p
-        v-if="
-          currentUser.institution_status === '3s' &&
-          currentUser.closed_notice &&
-          currentUser.closed_notice.trim() !== ''
-        "
-      >
-        <strong>기관 공지:</strong> {{ currentUser.closed_notice }}
-      </p>
-      <p><strong>승인 상태:</strong> {{ currentUser.status }}</p>
+      <div v-else>
+        <p>
+          <strong>소속 기관:</strong> {{ userInfo.institution_name }} {{ institutionStatusText }}
+        </p>
+        <p
+          v-if="
+            userInfo.institution_status === '3s' &&
+            userInfo.closed_notice &&
+            userInfo.closed_notice.trim() !== ''
+          "
+        >
+          <strong>기관 공지:</strong> {{ userInfo.closed_notice }}
+        </p>
+        <p><strong>승인 상태:</strong> {{ userStatusText }}</p>
+      </div>
     </div>
   </div>
   <p v-else class="placeholder-text">사용자 정보를 불러오는 중입니다...</p>
