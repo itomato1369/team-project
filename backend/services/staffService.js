@@ -25,6 +25,11 @@ exports.getStaffPlanItems = async (req, res) => {
     res
       .status(500)
       .send({ message: "담당자 승인 조회 중 오류가 발생했습니다." });
+<<<<<<< HEAD
+=======
+  }
+};
+>>>>>>> e032e9b0439b4d3d31ef38d8a480348c3147e2df
 // 오늘의 상담 건수 조회
 exports.getTodayConsultCount = async (req, res) => {
   try {
@@ -549,10 +554,7 @@ exports.cancelStaffReservation = async (req, res) => {
   }
 
   try {
-    const result = await db.query("cancelStaffReservation", [
-      at_no,
-      staff_id,
-    ]);
+    const result = await db.query("cancelStaffReservation", [at_no, staff_id]);
 
     if (result.affectedRows === 0) {
       // 본인 스케줄이 아니거나, '예약' 상태가 아님

@@ -311,6 +311,7 @@ onMounted(() => {
 }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 /* ======================================= */
 /* 3. 반려 모달 (Dialog) 내부 스타일 (오타 및 문법 수정) */
 /* ======================================= */
@@ -321,6 +322,9 @@ onMounted(() => {
 =======
 .p-dialog-content .p-fluid .field label {
 >>>>>>> 389f20958437bede85ef2044269f4e32be89abed
+=======
+.p-dialog-content .p-fluid .field label {
+>>>>>>> e032e9b0439b4d3d31ef38d8a480348c3147e2df
   display: block;
   margin-bottom: 8px;
   font-weight: 600;
@@ -329,6 +333,7 @@ onMounted(() => {
 }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 /* 텍스트 영역 (Textarea) 스타일 */
 /* ⚠️ 오타 수정됨: p-inputttext -> p-inputtext */
 :deep(.p-dialog-content .p-fluid .field textarea.p-inputtext) {
@@ -336,6 +341,9 @@ onMounted(() => {
 =======
 .p-dialog-content .p-fluid .field textarea.p-inputtext {
 >>>>>>> 389f20958437bede85ef2044269f4e32be89abed
+=======
+.p-dialog-content .p-fluid .field textarea.p-inputtext {
+>>>>>>> e032e9b0439b4d3d31ef38d8a480348c3147e2df
   width: 100%;
   min-height: 120px;
   padding: 12px;
@@ -348,6 +356,7 @@ onMounted(() => {
 }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 /* 텍스트 영역 포커스 스타일 */
 /* ⚠️ 오타 수정됨: p-inputttext -> p-inputtext */
 :deep(.p-dialog-content .p-fluid .field textarea.p-inputtext:focus) {
@@ -355,11 +364,15 @@ onMounted(() => {
 =======
 .p-dialog-content .p-fluid .field textarea.p-inputtext:focus {
 >>>>>>> 389f20958437bede85ef2044269f4e32be89abed
+=======
+.p-dialog-content .p-fluid .field textarea.p-inputtext:focus {
+>>>>>>> e032e9b0439b4d3d31ef38d8a480348c3147e2df
   border-color: #4a6fa5;
   box-shadow: 0 0 0 0.2rem rgba(74, 111, 165, 0.2);
   outline: none;
 }
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 /* 모바일 반응형 디자인 */
 :deep(.p-dialog) {
@@ -370,6 +383,11 @@ onMounted(() => {
 .p-dialog {
   /* width는 inline style 대신 CSS로 조절 가능 */
 >>>>>>> 389f20958437bede85ef2044269f4e32be89abed
+=======
+/* 모바일 반응형 */
+.p-dialog {
+  /* width는 inline style 대신 CSS로 조절 가능 */
+>>>>>>> e032e9b0439b4d3d31ef38d8a480348c3147e2df
 }
 
 @media (max-width: 768px) {
