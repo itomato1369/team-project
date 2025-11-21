@@ -9,7 +9,9 @@ const surveys = ref([]);
 const loading = ref(false);
 const searchKeyword = ref('');
 const activeSupportPlanNo = ref(null);
+const props = defineProps(['ward-id']);
 
+console.log(props);
 // 우선순위 매핑
 const mapPriority = (no) => {
   switch (no) {
@@ -49,6 +51,7 @@ onBeforeMount(async () => {
       plan: item.plan || '',
       file_names: item.file_names || '',
       support_plan_status: item.support_plan_status || item.status || '', // ✅ 상태 포함
+      ward_no: ward_no,
     }));
   } catch (err) {
     console.error('Support Plan 조회 오류:', err);

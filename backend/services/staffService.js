@@ -1,5 +1,33 @@
 const db = require("../database/mappers/mapper");
 
+exports.getStaffPlanItems = async (req, res) => {
+  const ward_no = req.query.ward_no;
+
+  if (!ward_no) {
+    return res
+      .status(400)
+      .send({ message: "피보호자 번호(ward_no)가 필요합니다." });
+  }
+
+  try {
+    // Staffplanitem 쿼리 사용
+    const result = await db.query("Staffplanitem", [ward_no]);
+
+    if (!result || result.length === 0) {
+      return res
+        .status(404)
+        .send({ message: "해당 보호자의 승인 내역이 없습니다." });
+    }
+
+    res.status(200).json(result);
+  } catch (error) {
+    console.error("getStaffPlanItems DB 쿼리 오류:", error);
+    res
+      .status(500)
+      .send({ message: "담당자 승인 조회 중 오류가 발생했습니다." });
+  }
+};
+
 exports.surveySelect = async (req, res) => {
   console.log("Survey List 조회");
   try {

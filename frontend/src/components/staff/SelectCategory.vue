@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, defineProps } from 'vue';
 import axios from 'axios';
 import SurveyDetail from '@/components/SurveyDetail.vue';
 import SupportList from '@/components/staff/SupportList.vue';
@@ -14,7 +14,9 @@ const surveyList = ref([]);
 const selectedInquiryId = ref(null);
 const isModalVisible = ref(false);
 const loading = ref(true);
+const props = defineProps(['ward-id']);
 
+console.log(props);
 // --- Data Fetching ---
 const fetchMyPageSurveys = async () => {
   loading.value = true;
@@ -75,7 +77,7 @@ const onRowSelect = (event) => {
           </div>
         </TabPanel>
         <TabPanel value="1" class="p-4">
-          <SupportList />
+          <SupportList :ward-id="wardId" />
         </TabPanel>
         <TabPanel value="2">
           <div class="p-4">
