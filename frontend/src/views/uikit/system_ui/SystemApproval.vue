@@ -310,6 +310,7 @@ onMounted(() => {
   display: block;
 }
 
+<<<<<<< HEAD
 /* ======================================= */
 /* 3. 반려 모달 (Dialog) 내부 스타일 (오타 및 문법 수정) */
 /* ======================================= */
@@ -317,6 +318,9 @@ onMounted(() => {
 /* PrimeVue의 p-dialog-content 안에 있는 필드 스타일 */
 :deep(.p-dialog-content .p-fluid .field label) {
   /* ⚠️ 수정됨: :deep() 문법 조정 */
+=======
+.p-dialog-content .p-fluid .field label {
+>>>>>>> 389f20958437bede85ef2044269f4e32be89abed
   display: block;
   margin-bottom: 8px;
   font-weight: 600;
@@ -324,10 +328,14 @@ onMounted(() => {
   font-size: 0.95rem;
 }
 
+<<<<<<< HEAD
 /* 텍스트 영역 (Textarea) 스타일 */
 /* ⚠️ 오타 수정됨: p-inputttext -> p-inputtext */
 :deep(.p-dialog-content .p-fluid .field textarea.p-inputtext) {
   /* ⚠️ 수정됨: :deep() 문법 조정 및 오타 수정 */
+=======
+.p-dialog-content .p-fluid .field textarea.p-inputtext {
+>>>>>>> 389f20958437bede85ef2044269f4e32be89abed
   width: 100%;
   min-height: 120px;
   padding: 12px;
@@ -339,24 +347,33 @@ onMounted(() => {
   resize: vertical;
 }
 
+<<<<<<< HEAD
 /* 텍스트 영역 포커스 스타일 */
 /* ⚠️ 오타 수정됨: p-inputttext -> p-inputtext */
 :deep(.p-dialog-content .p-fluid .field textarea.p-inputtext:focus) {
   /* ⚠️ 수정됨: :deep() 문법 조정 및 오타 수정 */
+=======
+.p-dialog-content .p-fluid .field textarea.p-inputtext:focus {
+>>>>>>> 389f20958437bede85ef2044269f4e32be89abed
   border-color: #4a6fa5;
   box-shadow: 0 0 0 0.2rem rgba(74, 111, 165, 0.2);
   outline: none;
 }
 
+<<<<<<< HEAD
 /* 모바일 반응형 디자인 */
 :deep(.p-dialog) {
   /* ⚠️ 수정됨: :deep() 문법 조정 */
   /* 원래는 이 스타일이 global하게 적용되므로, 이 스타일만 남겨둠 */
+=======
+/* 모바일 반응형 */
+.p-dialog {
+  /* width는 inline style 대신 CSS로 조절 가능 */
+>>>>>>> 389f20958437bede85ef2044269f4e32be89abed
 }
 
 @media (max-width: 768px) {
-  /* 템플릿에서 width: '50vw'를 사용하고 있으므로, 작은 화면에서만 오버라이드 */
-  :deep(.p-dialog) {
+  .p-dialog {
     width: 90vw !important;
   }
 }

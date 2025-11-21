@@ -10,6 +10,12 @@ router.get("/", staffService.surveySelect);
 // wardsearch
 router.get("/wardsearch", staffService.wardsearch);
 
+router.get(
+  "/consults/today",
+  verifyAccessToken,
+  staffService.getTodayConsultCount
+);
+
 // 1. 담당자 스케줄 조회 (캘린더 로드 시)
 // (경로: /api/staff/schedules)
 router.get("/schedules", verifyAccessToken, staffService.getSchedules);

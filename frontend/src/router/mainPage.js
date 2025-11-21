@@ -5,11 +5,11 @@ export default [
     component: () => import('../views/pages/Login.vue'),
     meta: { requiresAuth: false }, // 인증X
   },
-  {
-    path: '/home',
-    name: 'userhome',
-    component: () => import('@/components/AppMain.vue'),
-  },
+  // {
+  //   path: '/home',
+  //   name: 'userhome',
+  //   component: () => import('@/components/AppMain.vue'),
+  // },
   {
     path: '/homepage',
     name: 'homepage',

@@ -3,6 +3,13 @@ const db = require("../database/mappers/mapper.js");
 const bcrypt = require("bcrypt"); // 비밀번호 보안
 const jwt = require("jsonwebtoken"); // USER,STAFF,ADMIN,SYS확인
 
+// 아이디 중복 체크 검사 버튼
+const isUserIdCheck = async (userId) => {
+  const rows = await db.query("checkUserById", [userId]);
+  // 이미 가입된 이용자면true
+  return rows.length > 0;
+};
+
 //
 const register = async (userData) => {
   const { userId, password, name, birthDate, email, phone, fullAddress, role } =
@@ -15,7 +22,7 @@ const register = async (userData) => {
     throw error;
   }
   // 아이디 중복 검사
-  const existingUser = await db.query("findUserById", [userId]);
+  const existingUser = await db.query("checkUserById", [userId]);
   if (existingUser && existingUser.length > 0) {
     const error = new Error("이미 가입된 이용자입니다");
     error.statusCode = 409;
@@ -51,4 +58,5 @@ const register = async (userData) => {
 
 module.exports = {
   register,
+  isUserIdCheck,
 };

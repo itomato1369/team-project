@@ -4,22 +4,19 @@ import { useRouter } from 'vue-router'; // 라우팅을 위해 추가n
 import axios from 'axios';
 
 // 상태 변수 정의 (추가된 필드 포함)
-const selectedRole = ref('1a'); // 권한 별 로그인 코드설계 참조
+const selectedRole = ref('1a'); // 기본 값은 'USER' '1a'
 const userId = ref(''); // 아이디
 const password = ref(''); // 비밀번호
 const confirmPassword = ref(''); // 비밀번호 확인
 const name = ref('');
 const email = ref('');
 const phone = ref('');
-
 const zipcode = ref(''); // 우편번호
 const addressMain = ref(''); // 기본 주소
 const addressDetail = ref(''); // 상세 주소
-
 const birthYear = ref(''); // 생년월일
 const birthMonth = ref('');
 const birthDay = ref('');
-
 const agreeTerms = ref(false); // 약관 동의
 
 const apiLoadError = ref(''); // Daum API 연동 에러 상태 변수
@@ -27,16 +24,43 @@ const apiLoadError = ref(''); // Daum API 연동 에러 상태 변수
 const passwordError = ref('');
 const termsError = ref('');
 
+const idCheckMessage = ref(''); // 아이디 중복 메시지 표시
+const serverError = ref(''); // 서버에서 받은 에러 메시지 표시
+
 const router = useRouter();
 
 // 주소 찾기 표시/숨김 상태
 const isPostcodeOpen = ref(false);
+
+// 아이디 중복 확인 함수
+const checkIdDuplicate = async () => {
+  idCheckMessage.value = '';
+
+  if (!userId.value) {
+    idCheckMessage.value = '아이디를 입력해주세요';
+    return;
+  }
+
+  try {
+    const res = await axios.get('/api/register/check', { params: { userId: userId.value } });
+
+    // 아이디 중복 확인
+    if (res.data.exists) {
+      idCheckMessage.value = '이미 가입된 아이디 입니다';
+    } else {
+      idCheckMessage.value = '사용 가능한 아이디 입니다';
+    }
+  } catch (error) {
+    idCheckMessage.value = '아이디 중복 검사 중 오류발생';
+  }
+};
 
 // 회원가입 제출 처리 함수
 const handleSignUp = async () => {
   // 에러 메시지 초기화
   passwordError.value = '';
   termsError.value = '';
+  serverError.value = '';
   // 유효성 검사
   if (password.value !== confirmPassword.value) {
     passwordError.value = '비밀번호와 비밀번호 확인이 일치하지 않습니다.';
@@ -73,12 +97,27 @@ const handleSignUp = async () => {
   } catch (error) {
     // 요청 실패
     console.error('회원가입 실패');
+    // 이미 등록된 이용자
+    if (error.response) {
+      // 이미 등록된 이용자 관련 에러
+      const errorMessage = error.response.data.message;
+
+      if (errorMessage && errorMessage.includes('이미 등록된')) {
+        serverError.value = '이미 등록된 이용자입니다!';
+      } else {
+        // 기타 에러 메시지 표시
+        serverError.value = errorMessage || '회원가입 중 서버 오류';
+      }
+    } else {
+      // 네트워크 오류 등 응답이 없는 경우
+      serverError.value = '네트워크 오류가 발생했습니다. 다시 시도해 주세요';
+    }
   }
 };
 
-// 로그인 페이지로 이동
+// 이전 페이지로 이동
 const goToLogin = () => {
-  router.push({ name: 'login' });
+  router.back();
 };
 
 // 우편번호 검색 함수 (모달 열기)
@@ -127,8 +166,8 @@ const closePostcode = () => {
 </script>
 
 <template>
-  <div class="login-container">
-    <div class="login-box">
+  <div class="signup-container">
+    <div class="signup-box">
       <!-- 역할 탭: 디자인 동일하게 유지 -->
       <div class="role-tabs">
         <button
@@ -153,16 +192,21 @@ const closePostcode = () => {
 
       <!-- 회원가입 폼 (로그인 폼 레이아웃 복제) -->
       <form @submit.prevent="handleSignUp">
+        <p v-if="serverError" class="error-message server-error-box">{{ serverError }}</p>
         <!-- 1. 아이디 -->
         <div class="form-group">
           <label for="user-id">아이디</label>
-          <input
-            id="user-id"
-            type="text"
-            v-model="userId"
-            placeholder="아이디를 입력해주세요"
-            required
-          />
+          <div class="id-input-group">
+            <input
+              id="user-id"
+              type="text"
+              v-model="userId"
+              placeholder="아이디를 입력해주세요"
+              required
+            />
+            <button type="button" class="btn-id-check" @click="checkIdDuplicate">중복체크</button>
+          </div>
+          <p v-if="idCheckMessage" class="inline-error-message">{{ idCheckMessage }}</p>
         </div>
         <!-- 2. 비밀번호 -->
         <div class="form-group">
@@ -294,25 +338,31 @@ const closePostcode = () => {
 
 <style scoped>
 /* =======================================================
-   로그인 컴포넌트에서 제공된 기본 스타일 (디자인 통일성 유지)
-   ======================================================= */
-.login-container {
+   회원가입 레이아웃
+======================================================= */
+.signup-container {
   display: flex;
   justify-content: center;
-  align-items: center;
-  min-height: 100vh;
+  align-items: flex-start;
+  padding: 50px;
   background-color: #f4f7f6;
+  min-height: 100vh;
 }
 
-.login-box {
-  width: 400px;
-  padding: 2rem;
+.signup-box {
+  width: 100%;
+  max-width: 450px;
+  padding: 40px;
   background: #ffffff;
   border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  border: 1px solid #ddd;
+  box-sizing: border-box;
 }
 
-/* 1. 역할 탭 */
+/* =======================================================
+   역할 선택 탭
+======================================================= */
 .role-tabs {
   display: flex;
   margin-bottom: 1.5rem;
@@ -340,14 +390,16 @@ const closePostcode = () => {
 
 .tab-button.active {
   background-color: #007bff;
-  color: white;
+  color: #fff;
   border-color: #007bff;
   font-weight: bold;
 }
 
-/* 2. 폼 그룹 */
+/* =======================================================
+   Form 기본 구조
+======================================================= */
 .form-group {
-  margin-bottom: 1rem;
+  margin-bottom: 20px;
 }
 
 .form-group label {
@@ -363,22 +415,141 @@ const closePostcode = () => {
   border-radius: 4px;
   box-sizing: border-box;
 }
+
+/* =======================================================
+   아이디 입력 + 중복체크 버튼 (가로 배치)
+======================================================= */
+.id-input-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.id-input-group input {
+  flex: 1;
+  max-width: 235px;
+}
+
+.id-input-group .btn-id-check {
+  padding: 0.75rem 1rem;
+  background-color: #555;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  white-space: nowrap;
+  font-size: 0.9rem;
+  font-weight: 600;
+  transition: background 0.2s ease;
+}
+
+.id-input-group .btn-id-check:hover {
+  background-color: #444;
+}
+
+/* =======================================================
+   생년월일
+======================================================= */
 .birth-input-group {
   display: flex;
-  gap: 8px; /* 입력 필드 사이 간격 */
+  gap: 8px;
 }
 
-/* 생년월일 입력 필드는 모두 동일한 너비로 설정 */
 .birth-input-group input {
-  flex: 1; /* 가용 공간을 균등하게 분할 */
-  min-width: 0; /* flex 컨테이너 내에서 overflow 방지 */
+  flex: 1;
+  min-width: 0;
 }
 
-/* 3. 로그인 옵션 (회원가입 약관 동의로 사용) */
-.login-options {
+/* =======================================================
+   주소 입력
+======================================================= */
+.address-input-group {
   display: flex;
-  justify-content: space-between;
+  gap: 10px;
+}
+
+.address-input-group input#address-zip {
+  width: 120px;
+}
+
+.btn-zipcode-search {
+  padding: 10px 15px;
+  background-color: #555;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  white-space: nowrap;
+  font-weight: 600;
+}
+
+.btn-zipcode-search:hover {
+  background-color: #444;
+}
+
+/* 에러 메시지 */
+.error-message {
+  color: #e53935;
+  font-size: 0.9em;
+  margin-top: -10px;
+  margin-bottom: 10px;
+  padding-left: 5px;
+  font-weight: bold;
+}
+
+.inline-error-message {
+  color: #e74c3c;
+  font-size: 0.85rem;
+  margin-top: 5px;
+}
+
+/* 서버 에러 박스 */
+.server-error-box {
+  background-color: #fcebeb;
+  color: #c0392b;
+  padding: 10px;
+  border-radius: 4px;
+  border: 1px solid #c0392b;
+  margin-bottom: 20px;
+  text-align: center;
+  font-weight: 500;
+}
+
+/* =======================================================
+   우편번호 모달
+======================================================= */
+.postcode-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  justify-content: center;
   align-items: center;
+  z-index: 2000;
+}
+
+.postcode-modal-content {
+  background: white;
+  padding: 20px;
+  border-radius: 6px;
+  max-width: 640px;
+}
+
+.close-btn {
+  color: blue;
+  padding: 10px;
+  border: 1px solid;
+  border-radius: 8px;
+  margin-bottom: 10px;
+}
+
+/* =======================================================
+   약관 동의
+======================================================= */
+.login-options {
   font-size: 0.85rem;
   margin-bottom: 1.5rem;
 }
@@ -390,22 +561,12 @@ const closePostcode = () => {
 
 .remember-me input {
   margin-right: 0.25rem;
-  /* 회원가입 시 input 크기 조정 */
   width: auto;
-  padding: 0;
-}
-.inline-error-message {
-  color: #ef4444; /* Red 500 */
-  font-size: 0.875rem; /* text-sm */
-  margin-top: 5px;
 }
 
-/* 링크는 회원가입 페이지에서는 제거되었지만 클래스 구조 유지를 위해 CSS는 남겨둡니다. */
-.links {
-  display: none;
-}
-
-/* 4. 액션 버튼 */
+/* =======================================================
+   버튼: 회원가입 / 취소
+======================================================= */
 .action-buttons {
   display: flex;
   flex-direction: column;
@@ -422,107 +583,20 @@ const closePostcode = () => {
 }
 
 .btn-login {
-  /* 회원가입 완료 버튼 */
   background-color: #007bff;
   color: white;
 }
 
+.btn-login:hover {
+  background-color: #0066d6;
+}
+
 .btn-signup {
-  /* 로그인 돌아가기 버튼 */
-  background-color: #f0f0f0;
-  color: #333;
-}
-
-/* =======================================================
-   주소 필드를 위한 추가 스타일 (기존 폼 스타일 유지하면서 배치)
-   ======================================================= */
-
-.address-input-group {
-  display: flex;
-  gap: 8px; /* 입력창과 버튼 사이 간격 */
-}
-
-/* 우편번호 입력창 스타일 */
-.address-input-group input {
-  flex-grow: 0; /* 우편번호 칸을 작게 유지 */
-  width: 120px;
-}
-
-/* 우편번호 찾기 버튼 스타일 */
-.btn-zipcode-search {
-  flex-grow: 1; /* 나머지 공간을 채움 */
-  padding: 0 0.75rem; /* form-group input과 높이 맞추기 위해 폼 그룹 인풋과 동일한 패딩 사용 */
-  border: 1px solid #ccc;
-  background-color: #f0f0f0;
-  color: #333;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 0.9rem;
-  font-weight: 600;
-  transition: background-color 0.2s;
-  height: 41px; /* input과 높이를 맞추기 위해 명시적 높이 설정 (input padding 기준) */
-}
-
-.btn-zipcode-search:hover {
-  background-color: #e0e0e0;
-}
-
-/* 에러 메시지 스타일 */
-.error-message {
-  color: #e53935; /* 밝은 빨간색 */
-  font-size: 0.9em;
-  margin-top: -10px; /* 주소 필드 그룹과 붙이기 위해 마진 조정 */
-  margin-bottom: 10px;
-  padding-left: 5px;
-  font-weight: bold;
-}
-
-/* ... (기존 스타일) ... */
-
-/* 예시로 필요한 스타일들을 추가 (login-container, form-group 등) */
-.login-container {
-  display: flex;
-  justify-content: center;
-  padding: 50px;
-}
-
-.login-box {
-  width: 100%;
-  max-width: 450px;
-  padding: 40px;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-}
-
-.form-group {
-  margin-bottom: 20px;
-}
-
-/* 주소 입력 그룹 스타일 */
-.address-input-group {
-  display: flex;
-  gap: 10px;
-}
-
-.address-input-group input {
-  flex-grow: 1;
-}
-
-.btn-zipcode-search {
-  padding: 10px 15px;
-  background-color: #555;
+  background-color: #6c757d;
   color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  white-space: nowrap; /* 버튼 텍스트 줄바꿈 방지 */
 }
-.close-btn {
-  color: blue;
-  padding: 10px;
-  border: 1px, solid;
-  border-radius: 8px;
-  margin-bottom: 10px;
+
+.btn-signup:hover {
+  background-color: #5a6268;
 }
 </style>

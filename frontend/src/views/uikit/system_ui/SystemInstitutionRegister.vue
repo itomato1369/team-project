@@ -38,12 +38,12 @@ const registerInstitution = async () => {
 
 const goToInstitutionList = () => {
   // 현재 라우터 기준으로 뒤로
-  router.back();
+  router.push({ name: 'sysInstitutionList' });
 };
 </script>
 <template>
   <div class="institution-register-container">
-    <h2 class="page-subtitle">새 기관 등록</h2>
+    <h2 class="page-subtitle">신규 기관 등록</h2>
     <button @click="goToInstitutionList" class="btn-back-list">돌아가기</button>
   </div>
   <div class="register-card">

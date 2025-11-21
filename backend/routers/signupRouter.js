@@ -3,11 +3,27 @@
 
 const express = require("express");
 const signupService = require("../services/signupService.js");
-const bcrypt = require("bcrypt"); // 비밀번호 보안
-const db = require("../database/mappers/mapper.js");
 const router = express.Router();
 
-// // POST /signup
+// 아이디 중복 체크
+// GET /register/check
+router.get("/check", async (req, res) => {
+  try {
+    const { userId } = req.query;
+    if (!userId) {
+      return res.status(400).json({ error: "userId가 필요합니다" });
+    }
+    // exists가 true이면 이미 가입된 이용자
+    const exists = await signupService.isUserIdCheck(userId);
+    res.status(200).json({ exists });
+  } catch (error) {
+    console.error("아이디 중복 체크 오류", error);
+    res.status(500).json({ error: "아이디 중복체크 중 오류" });
+  }
+});
+
+// // POST
+// app.js에  /register라고 설정
 router.post("/", async (req, res) => {
   try {
     // body에서 vue.js가 보낸 데이터 추출

@@ -295,6 +295,7 @@ const completeSocialSignup = async (req, res) => {
 };
 
 module.exports = {
+  findUserById,
   login,
   refresh,
   googleCallback,
