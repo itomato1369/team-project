@@ -2,31 +2,25 @@
 import { ref, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import axios from 'axios';
-import { createApp } from 'vue';
-import PrimeVue from 'primevue/config';
-import ToastService from 'primevue/toastservice';
 import { useToast } from 'primevue/usetoast';
+import { useAuthStore } from '@/stores/authStore';
 
-// PrimeVue Component Imports for <template>
 import Toast from 'primevue/toast';
 import Card from 'primevue/card';
 import Fieldset from 'primevue/fieldset';
 import Panel from 'primevue/panel';
 import Button from 'primevue/button';
-import ProgressSpinner from 'primevue/progressspinner'; // For loading state
+import ProgressSpinner from 'primevue/progressspinner';
 
-const toast = useToast(); // PrimeVue Toast Hook
-const app = createApp();
-// Note: Initializing PrimeVue within a component file is often unnecessary
-// if it's initialized globally, but kept for compatibility with the original script structure.
-app.use(PrimeVue);
-app.use(ToastService);
+const toast = useToast();
+const authStore = useAuthStore();
 const router = useRouter();
 const route = useRoute();
 
 const question_id = route.params.question_no;
 const question = ref(null);
 const isLoading = ref(true);
+const answerContent = ref('');
 
 onMounted(async () => {
   try {
@@ -40,7 +34,6 @@ onMounted(async () => {
       detail: '질문 상세 조회에 실패했습니다.',
       life: 3000,
     });
-    // router.push('/qna'); // 실패 시 목록으로 이동
   } finally {
     isLoading.value = false;
   }
@@ -57,11 +50,51 @@ function formatDate(value) {
     minute: '2-digit',
   });
 }
+
+async function saveAnswer() {
+  if (!answerContent.value.trim()) {
+    toast.add({
+      severity: 'warn',
+      summary: '알림',
+      detail: '답변 내용을 입력하세요.',
+      life: 3000,
+    });
+    return;
+  }
+
+  try {
+    await axios.post(`/api/qna/answer`, {
+      question_no: question_id, // 질문 번호
+      content: answerContent.value, // 답변 내용
+      writer: authStore.user.name, // 작성자 이름
+      user_id: authStore.user.id, // 작성자 ID
+    });
+
+    toast.add({
+      severity: 'success',
+      summary: '알림',
+      detail: '답변이 성공적으로 저장되었습니다.',
+      life: 3000,
+    });
+
+    // 화면 업데이트
+    question.value.answer_content = answerContent.value;
+    question.value.answer_created_at = new Date();
+    answerContent.value = '';
+  } catch (err) {
+    console.error(err);
+    toast.add({
+      severity: 'error',
+      summary: '알림',
+      detail: '답변 저장에 실패했습니다.',
+      life: 3000,
+    });
+  }
+}
 </script>
 
 <template>
   <Toast />
-  <!-- Center the content on larger screens and add responsive padding -->
   <div class="p-4 sm:p-6 lg:p-8 max-w-5xl mx-auto">
     <Card class="rounded-xl shadow-2xl p-fluid">
       <template #title>
@@ -78,56 +111,35 @@ function formatDate(value) {
         </div>
 
         <div v-else-if="question" class="flex flex-col gap-6">
-          <!-- 1. Question Metadata (Fieldset) -->
+          <!-- 1. Question Metadata -->
           <Fieldset legend="기본 정보" :toggleable="false">
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <!-- Title -->
               <div class="flex flex-col">
-                <label class="font-semibold text-surface-600 dark:text-surface-400 mb-1"
-                  >제목</label
-                >
-                <div
-                  class="p-3 border rounded-lg bg-surface-50 dark:bg-surface-800 border-surface-200 dark:border-surface-700 shadow-sm text-lg font-medium"
-                >
+                <label class="font-semibold mb-1">제목</label>
+                <div class="p-3 border rounded-lg bg-surface-50 shadow-sm text-lg font-medium">
                   {{ question.title }}
                 </div>
               </div>
-
-              <!-- Writer -->
               <div class="flex flex-col">
-                <label class="font-semibold text-surface-600 dark:text-surface-400 mb-1"
-                  >문의자</label
-                >
-                <div
-                  class="p-3 border rounded-lg bg-surface-50 dark:bg-surface-800 border-surface-200 dark:border-surface-700 shadow-sm"
-                >
+                <label class="font-semibold mb-1">문의자</label>
+                <div class="p-3 border rounded-lg bg-surface-50 shadow-sm">
                   {{ question.writer }}
                 </div>
               </div>
-
-              <!-- Question Date -->
               <div class="flex flex-col">
-                <label class="font-semibold text-surface-600 dark:text-surface-400 mb-1"
-                  >질문일시</label
-                >
-                <div
-                  class="p-3 border rounded-lg bg-surface-50 dark:bg-surface-800 border-surface-200 dark:border-surface-700 shadow-sm"
-                >
+                <label class="font-semibold mb-1">질문일시</label>
+                <div class="p-3 border rounded-lg bg-surface-50 shadow-sm">
                   {{ formatDate(question.created_at) }}
                 </div>
               </div>
-
-              <!-- Answer Date -->
               <div class="flex flex-col">
-                <label class="font-semibold text-surface-600 dark:text-surface-400 mb-1"
-                  >답변일시</label
-                >
+                <label class="font-semibold mb-1">답변일시</label>
                 <div
                   class="p-3 border rounded-lg shadow-sm"
                   :class="
                     question.answer_created_at
-                      ? 'bg-green-100 text-green-800 border-green-300 dark:bg-green-900 dark:text-green-200 dark:border-green-700'
-                      : 'bg-orange-100 text-orange-800 border-orange-300 dark:bg-orange-900 dark:text-orange-200 dark:border-orange-700'
+                      ? 'bg-green-100 text-green-800 border-green-300'
+                      : 'bg-orange-100 text-orange-800 border-orange-300'
                   "
                 >
                   {{ formatDate(question.answer_created_at) || '미답변' }}
@@ -136,30 +148,41 @@ function formatDate(value) {
             </div>
           </Fieldset>
 
-          <!-- 2. Question Content (Panel) -->
+          <!-- 2. Question Content -->
           <Panel header="질문 내용" class="mt-4 shadow-md">
             <div
-              class="whitespace-pre-wrap text-base p-4 bg-surface-50 dark:bg-surface-800 border border-surface-200 dark:border-surface-700 rounded-lg min-h-[100px]"
+              class="whitespace-pre-wrap text-base p-4 bg-surface-50 border rounded-lg min-h-[100px]"
             >
               {{ question.content }}
             </div>
           </Panel>
 
-          <!-- 3. Answer Content (Panel) -->
-          <Panel
-            header="답변 내용"
-            class="mt-4 shadow-md"
-            :class="question.answer_content ? 'border-primary-500' : 'border-surface-300'"
-          >
+          <!-- 3. Answer Content -->
+          <Panel header="답변 내용" class="mt-4 shadow-md">
+            <!-- 답변이 이미 있는 경우 -->
             <div
               v-if="question.answer_content"
-              class="whitespace-pre-wrap text-base p-4 bg-blue-50 dark:bg-blue-900 border border-blue-200 dark:border-blue-700 rounded-lg min-h-[100px]"
+              class="whitespace-pre-wrap text-base p-4 bg-blue-50 border rounded-lg min-h-[100px]"
             >
               {{ question.answer_content }}
             </div>
+
+            <!-- staff/admin 답변 작성 UI -->
+            <div v-else-if="['2a', '3a'].includes(authStore.user.role)">
+              <Fieldset legend="답변 작성">
+                <textarea
+                  v-model="answerContent"
+                  class="p-inputtextarea w-full h-32"
+                  placeholder="여기에 답변을 작성하세요."
+                ></textarea>
+                <Button label="답변 저장" icon="pi pi-check" class="mt-2" @click="saveAnswer" />
+              </Fieldset>
+            </div>
+
+            <!-- 일반 사용자용 미답변 메시지 -->
             <div
               v-else
-              class="text-gray-500 italic p-4 bg-surface-50 dark:bg-surface-800 border border-surface-200 dark:border-surface-700 rounded-lg min-h-[100px] flex items-center justify-center"
+              class="text-gray-500 italic p-4 bg-surface-50 border rounded-lg min-h-[100px] flex items-center justify-center"
             >
               <i class="pi pi-info-circle mr-2"></i>
               아직 답변이 등록되지 않았습니다. 관리자의 답변을 기다려 주세요.
@@ -183,9 +206,5 @@ function formatDate(value) {
 </template>
 
 <style scoped>
-/*
-  PrimeVue uses Tailwind CSS utility classes heavily, 
-  making custom CSS mostly unnecessary unless complex overrides are needed.
-  The p-fluid class on the Card ensures forms/elements inside take full width.
-*/
+/* 필요 시 추가 스타일링 가능 */
 </style>

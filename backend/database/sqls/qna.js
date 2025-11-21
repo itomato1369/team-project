@@ -68,12 +68,46 @@ UPDATE question
 SET answer_yn = 1
 WHERE question_no = ? AND answer_yn = 0;
 `;
-
+// const insertAnswer = `
+// INSERT INTO answer (
+//     writer,
+//     content,
+//     created_at  -- created_at 컬럼이 DEFAULT 값이 없다면, 여기에 NOW()를 사용합니다.
+//     question_no,
+//     user_id,
+// )
+// VALUES (
+//     ?,          -- 1. writer (답변자 이름)
+//     ?,          -- 2. content (답변 내용)
+//     NOW()       -- 5. 현재 시각 (만약 created_at에 DEFAULT가 없다면 필요)
+//     ?,          -- 3. question_no (FK)
+//     ?,          -- 4. user_id (답변자 ID)
+// );
+// `;
+const insertAnswer = `INSERT INTO answer (
+    writer, 
+    content, 
+    created_at,
+    question_no, 
+    user_id
+)
+VALUES (
+    (SELECT user_name FROM member WHERE user_id = ?),  -- writer: member에서 가져오기
+    ?,                                                -- content
+    NOW(),                                            -- created_at
+    ?,                                                -- question_no
+    ?                                                 -- user_id
+);`;
 // supportPlan: supportplan_no 컬럼을 id와 name으로 매핑합니다.
 const supportPlan = `SELECT supportplan_no AS id, supportplan_no AS name FROM question`;
 
 const answer = `SELECT answer_no,writer,content,created_at,question_no, user_id FROM answer`;
-
+const insertAnswer1 = `
+      UPDATE question
+      SET answer_content = ?,
+          answer_created_at = NOW()
+      WHERE question_id = ?
+    `;
 module.exports = {
   qna,
   insertQna,
@@ -82,4 +116,5 @@ module.exports = {
   answer,
   updateAnswer,
   countAnswers,
+  insertAnswer,
 };
