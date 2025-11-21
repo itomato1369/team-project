@@ -3,13 +3,13 @@ import Dialog from 'primevue/dialog';
 import Button from 'primevue/button';
 
 // [1] Props: 부모 컴포넌트로부터 표시 여부(visible)와
-// 팝업에 표시될 데이터(userName, confirmationDateTime)를 전달받습니다.
+// 팝업에 표시될 피보호자명(wardName), 예약시간(confirmationDateTime)을 전달받습니다.
 defineProps({
   visible: {
     type: Boolean,
     default: false,
   },
-  userName: String,
+  wardName: String,
   confirmationDateTime: String,
 });
 
@@ -17,6 +17,7 @@ defineProps({
 // 부모 컴포넌트에게 이벤트로 알립니다.
 const emit = defineEmits(['close', 'goToHistory']);
 </script>
+
 <template>
   <Dialog
     :visible="visible"
@@ -31,8 +32,7 @@ const emit = defineEmits(['close', 'goToHistory']);
 
       <!-- 중앙 정렬 보장 -->
       <p class="line-height-3 w-full text-center">
-        {{ userName }}님 {{ confirmationDateTime }}<br />
-        상담이 예약되었습니다.
+        {{ wardName }}님 {{ confirmationDateTime }} 상담이 예약되었습니다.
       </p>
     </div>
 

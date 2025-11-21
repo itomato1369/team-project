@@ -1,200 +1,113 @@
 <script setup>
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 import { useAuthStore } from '@/stores/authStore';
-
 import AppMenuItem from './AppMenuItem.vue';
 
 const authStore = useAuthStore();
 
+// 메뉴 데이터 + 권한 정보 추가
 const model = ref([
   {
     label: 'Home',
-    items: [{ label: 'Dashboard', icon: 'pi pi-fw pi-home', to: '/' }],
+    items: [
+      { label: 'Dashboard', icon: 'pi pi-fw pi-home', to: '/', roles: ['1a', '2a', '3a'] },
+      { label: '로그인', icon: 'pi pi-fw pi-sign-in', to: '/login', roles: ['guest'] }, // guest: 비로그인
+      {
+        label: '로그아웃',
+        icon: 'pi pi-fw pi-sign-out',
+        command: () => authStore.logout(),
+        roles: ['1a', '2a', '3a'],
+      }, // 로그인
+    ],
   },
   {
-    label: 'UI Components',
+    label: '이용자',
     items: [
-      { label: '로그인', icon: 'pi pi-fw pi-sign-in', to: '/login' },
-      { label: '로그아웃', icon: 'pi pi-fw pi-sign-out', command: () => authStore.logout() },
-      { label: '담당자 대시보드', icon: 'pi pi-fw pi-home', to: { name: 'staffhome' } },
-      { label: '이용자 상담신청', icon: 'pi pi-fw pi-home', to: { name: 'counseling-apply' } },
-      { label: '이용자 상담내역', icon: 'pi pi-fw pi-home', to: { name: 'counseling-history' } },
+      {
+        label: '이용자 상담신청',
+        icon: 'pi pi-fw pi-home',
+        to: { name: 'counseling-apply' },
+        roles: ['1a'],
+      },
+      {
+        label: '이용자 상담내역',
+        icon: 'pi pi-fw pi-home',
+        to: { name: 'counseling-history' },
+        roles: ['1a'],
+      },
+      { label: '마이 페이지', icon: 'pi pi-fw pi-home', to: '/umy', roles: ['1a'] },
+    ],
+  },
+  {
+    label: '담당자',
+    items: [
+      {
+        label: '담당자 대시보드',
+        icon: 'pi pi-fw pi-home',
+        to: { name: 'staffhome' },
+        roles: ['2a'],
+      },
       {
         label: '담당자 상담스케줄설정',
         icon: 'pi pi-fw pi-home',
         to: { name: 'staffschedule-settings' },
+        roles: ['2a'],
       },
       {
         label: '담당자 상담예약관리',
         icon: 'pi pi-fw pi-home',
         to: { name: 'reservations' },
+        roles: ['2a'],
       },
       {
         label: '담당자 상담기록관리',
         icon: 'pi pi-fw pi-home',
         to: { name: 'counselinglist' },
+        roles: ['2a'],
       },
-      { label: '담당자신청서조회', icon: 'pi pi-fw pi-home', to: '/activityreport' },
-      { label: '지원계획조회', icon: 'pi pi-fw pi-home', to: '/applicationlist' },
-      { label: '지원결과조회', icon: 'pi pi-fw pi-home', to: '/supportresultlist' },
-      { label: '이용자승인대기목록', icon: 'pi pi-fw pi-home', to: '/applicationform' },
-      { label: 'Form Layout', icon: 'pi pi-fw pi-id-card', to: '/uikit/formlayout' },
-      { label: 'Input', icon: 'pi pi-fw pi-check-square', to: '/uikit/input' },
-      { label: 'Button', icon: 'pi pi-fw pi-mobile', to: '/uikit/button', class: 'rotated-icon' },
-      { label: 'Table', icon: 'pi pi-fw pi-table', to: '/uikit/table' },
-      { label: 'List', icon: 'pi pi-fw pi-list', to: '/uikit/list' },
-      { label: 'Tree', icon: 'pi pi-fw pi-share-alt', to: '/uikit/tree' },
-      { label: 'Panel', icon: 'pi pi-fw pi-tablet', to: '/uikit/panel' },
-      { label: 'Overlay', icon: 'pi pi-fw pi-clone', to: '/uikit/overlay' },
-      { label: 'Media', icon: 'pi pi-fw pi-image', to: '/uikit/media' },
-      { label: 'Menu', icon: 'pi pi-fw pi-bars', to: '/uikit/menu' },
-      { label: 'Message', icon: 'pi pi-fw pi-comment', to: '/uikit/message' },
-      { label: 'File', icon: 'pi pi-fw pi-file', to: '/uikit/file' },
-      { label: 'Chart', icon: 'pi pi-fw pi-chart-bar', to: '/uikit/charts' },
-      { label: 'Timeline', icon: 'pi pi-fw pi-calendar', to: '/uikit/timeline' },
-      { label: 'Misc', icon: 'pi pi-fw pi-circle', to: '/uikit/misc' },
+      { label: '담당자신청서조회', icon: 'pi pi-fw pi-home', to: '/activityreport', roles: ['2a'] },
+      { label: '지원계획조회', icon: 'pi pi-fw pi-home', to: '/applicationlist', roles: ['2a'] },
+      { label: '지원결과조회', icon: 'pi pi-fw pi-home', to: '/supportresultlist', roles: ['2a'] },
     ],
   },
   {
-    label: 'Prime Blocks',
-    icon: 'pi pi-fw pi-prime',
+    label: '관리자',
     items: [
       {
-        label: 'Free Blocks',
-        icon: 'pi pi-fw pi-eye',
-        to: '/blocks',
-      },
-      {
-        label: 'All Blocks',
-        icon: 'pi pi-fw pi-globe',
-        url: 'https://blocks.primevue.org/',
-        target: '_blank',
-      },
-    ],
-  },
-  {
-    label: 'Pages',
-    icon: 'pi pi-fw pi-briefcase',
-    to: '/pages',
-    items: [
-      {
-        label: 'Landing',
-        icon: 'pi pi-fw pi-globe',
-        to: '/landing',
-      },
-      {
-        label: 'Auth',
-        icon: 'pi pi-fw pi-user',
-        items: [
-          {
-            label: 'Login',
-            icon: 'pi pi-fw pi-sign-in',
-            to: '/auth/login',
-          },
-          {
-            label: 'Error',
-            icon: 'pi pi-fw pi-times-circle',
-            to: '/auth/error',
-          },
-          {
-            label: 'Access Denied',
-            icon: 'pi pi-fw pi-lock',
-            to: '/auth/access',
-          },
-        ],
-      },
-      {
-        label: 'Crud',
-        icon: 'pi pi-fw pi-pencil',
-        to: '/pages/crud',
-      },
-      {
-        label: 'Not Found',
-        icon: 'pi pi-fw pi-exclamation-circle',
-        to: '/pages/notfound',
-      },
-      {
-        label: 'Empty',
-        icon: 'pi pi-fw pi-circle-off',
-        to: '/pages/empty',
-      },
-    ],
-  },
-  {
-    label: 'Hierarchy',
-    items: [
-      {
-        label: 'Submenu 1',
-        icon: 'pi pi-fw pi-bookmark',
-        items: [
-          {
-            label: 'Submenu 1.1',
-            icon: 'pi pi-fw pi-bookmark',
-            items: [
-              { label: 'Submenu 1.1.1', icon: 'pi pi-fw pi-bookmark' },
-              { label: 'Submenu 1.1.2', icon: 'pi pi-fw pi-bookmark' },
-              { label: 'Submenu 1.1.3', icon: 'pi pi-fw pi-bookmark' },
-            ],
-          },
-          {
-            label: 'Submenu 1.2',
-            icon: 'pi pi-fw pi-bookmark',
-            items: [{ label: 'Submenu 1.2.1', icon: 'pi pi-fw pi-bookmark' }],
-          },
-        ],
-      },
-      {
-        label: 'Submenu 2',
-        icon: 'pi pi-fw pi-bookmark',
-        items: [
-          {
-            label: 'Submenu 2.1',
-            icon: 'pi pi-fw pi-bookmark',
-            items: [
-              { label: 'Submenu 2.1.1', icon: 'pi pi-fw pi-bookmark' },
-              { label: 'Submenu 2.1.2', icon: 'pi pi-fw pi-bookmark' },
-            ],
-          },
-          {
-            label: 'Submenu 2.2',
-            icon: 'pi pi-fw pi-bookmark',
-            items: [{ label: 'Submenu 2.2.1', icon: 'pi pi-fw pi-bookmark' }],
-          },
-        ],
-      },
-    ],
-  },
-  {
-    label: 'Get Started',
-    items: [
-      {
-        label: 'Documentation',
-        icon: 'pi pi-fw pi-book',
-        to: '/documentation',
-      },
-      {
-        label: 'View Source',
-        icon: 'pi pi-fw pi-github',
-        url: 'https://github.com/primefaces/sakai-vue',
-        target: '_blank',
-      },
-      {
-        label: '마이 페이지',
+        label: '이용자승인대기목록',
         icon: 'pi pi-fw pi-home',
-        to: '/umy',
+        to: '/applicationform',
+        roles: ['3a'],
       },
+      { label: 'Landing', icon: 'pi pi-fw pi-globe', to: '/landing', roles: ['3a'] },
+      { label: 'Crud', icon: 'pi pi-fw pi-pencil', to: '/pages/crud', roles: ['3a'] },
     ],
   },
 ]);
+
+// 권한 기반 메뉴 필터링
+const filteredMenu = computed(() => {
+  const role = authStore.isLoggedIn ? authStore.userRole : 'guest'; // 로그인 여부에 따라 role 결정
+
+  return model.value
+    .map((menu) => {
+      if (!menu.items) return null;
+      const filteredItems = menu.items.filter((item) => item.roles.includes(role));
+      if (filteredItems.length === 0) return null;
+      return { ...menu, items: filteredItems };
+    })
+    .filter(Boolean);
+});
 </script>
 
 <template>
   <ul class="layout-menu">
-    <template v-for="(item, i) in model" :key="item">
-      <app-menu-item v-if="!item.separator" :item="item" :index="i"></app-menu-item>
-      <li v-if="item.separator" class="menu-separator"></li>
+    <template v-for="(item, i) in filteredMenu" :key="i">
+      <app-menu-item :item="item" :index="i"></app-menu-item>
     </template>
   </ul>
 </template>
 
-<style lang="scss" scoped></style>
+<style scoped lang="scss">
+/* 필요 시 스타일 추가 */
+</style>

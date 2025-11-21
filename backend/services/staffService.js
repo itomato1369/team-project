@@ -326,7 +326,7 @@ exports.getSchedules = async (req, res) => {
 
   try {
     // 1. '상담가능' 슬롯 조회 (at_no 포함)
-    const availableSlots = await db.query("getAvailableSlots", [staff_name]); // 2. '예약확정' 건수 조회
+    const availableSlots = await db.query("getAvailableSlots", [staff_id]); // 2. '예약확정' 건수 조회
     const reservationCounts = await db.query("getReservationCounts", [
       staff_id,
     ]); // 3. 프론트엔드가 요구하는 scheduledData 객체로 가공
@@ -370,7 +370,7 @@ exports.getSchedules = async (req, res) => {
  * [신규] 2. 담당자 스케줄 생성 (POST /api/staff/schedule/create)
  */
 exports.createSchedule = async (req, res) => {
-  const staff_name = req.user.name; // 인증된 담당자 이름
+  const staff_id = req.user.id; // 인증된 담당자 ID
   const { start_time, end_time, recurring_rules } = req.body;
 
   if (!start_time || !end_time) {
@@ -450,7 +450,7 @@ exports.createSchedule = async (req, res) => {
       const params = [
         datePair.start, // Date 객체
         datePair.end, // Date 객체
-        staff_name,
+        staff_id,
         recurring_rule_char,
       ];
       await db.query("createStaffSchedule", params);
@@ -470,7 +470,7 @@ exports.createSchedule = async (req, res) => {
  * [신규] 3. 담당자 스케줄 삭제 (DELETE /api/staff/schedule/delete/:at_no)
  */
 exports.deleteSchedule = async (req, res) => {
-  const staff_name = req.user.name; // 인증된 담당자 이름
+  const staff_id = req.user.id; // 인증된 담당자 ID
   const { at_no } = req.params; // URL 파라미터에서 at_no 추출
 
   if (!at_no) {
@@ -478,7 +478,7 @@ exports.deleteSchedule = async (req, res) => {
   }
 
   try {
-    const result = await db.query("deleteStaffSchedule", [at_no, staff_name]);
+    const result = await db.query("deleteStaffSchedule", [at_no, staff_id]);
 
     if (result.affectedRows === 0) {
       // 본인 스케줄이 아니거나, 이미 삭제되었거나, '상담가능' 상태가 아님
@@ -501,15 +501,15 @@ exports.deleteSchedule = async (req, res) => {
  * - (요구사항 1, 2)
  */
 exports.getStaffReservations = async (req, res) => {
-  const staff_name = req.user.name; // 인증된 담당자 이름
+  const staff_id = req.user.id; // 인증된 담당자 ID
   const { searchType, startDate, endDate, keyword } = req.query;
 
-  if (!staff_name) {
+  if (!staff_id) {
     return res.status(401).send({ message: "인증 정보가 없습니다." });
   }
 
   try {
-    const queryParams = [staff_name];
+    const queryParams = [staff_id];
     let queryName = "getStaffReservationsBase"; // 기본 쿼리 // 검색 조건에 따라 쿼리 이름과 파라미터 동적 변경
 
     if (searchType === "date" && startDate && endDate) {
@@ -536,7 +536,7 @@ exports.getStaffReservations = async (req, res) => {
  * - (요구사항 3)
  */
 exports.cancelStaffReservation = async (req, res) => {
-  const staff_name = req.user.name; // 인증된 담당자 이름
+  const staff_id = req.user.id; // 인증된 담당자 ID
   const { at_no } = req.params;
 
   if (!at_no) {
@@ -544,14 +544,14 @@ exports.cancelStaffReservation = async (req, res) => {
       .status(400)
       .send({ message: "취소할 예약 ID(at_no)가 필요합니다." });
   }
-  if (!staff_name) {
+  if (!staff_id) {
     return res.status(401).send({ message: "인증 정보가 없습니다." });
   }
 
   try {
     const result = await db.query("cancelStaffReservation", [
       at_no,
-      staff_name,
+      staff_id,
     ]);
 
     if (result.affectedRows === 0) {
@@ -571,3 +571,4 @@ exports.cancelStaffReservation = async (req, res) => {
     res.status(500).send({ message: "예약 취소 중 오류가 발생했습니다." });
   }
 };
+

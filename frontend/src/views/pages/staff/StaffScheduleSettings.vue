@@ -10,19 +10,26 @@ import StaffScheduleModal from '@/components/staff/StaffScheduleModal.vue';
 
 // --- 1. 상태 관리 (State) ---
 const toast = useToast();
-// ... (기존 상태: isLoading, currentDate 등) ...
 const isLoading = ref(true);
-const currentDate = ref(new Date());
+const currentDate = ref(new Date()); // 로컬 시간 기준
 const modalVisible = ref(false);
-const selectedDate = ref('');
+const selectedDate = ref(''); // YYYY-MM-DD 로컬 포맷
 const scheduledData = reactive({});
 
 // --- 2. 헬퍼 함수 ---
-function formatDateISO(date) {
-  return date.toISOString().split('T')[0];
+// 로컬 시간 기준으로 YYYY-MM-DD 문자열 생성 (UTC 변환 사용하지 않음)
+function formatDateISO_Local(date) {
+  if (!(date instanceof Date)) return '';
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  const d = String(date.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
 }
+
+// 기존의 월/연도 포맷(표시용)
 function formatMonthYear(date) {
-  return `${date.getFullYear()}년 ${String(date.getMonth() + 1).padStart(2, '0')}월`;
+  const d = date instanceof Date ? date : new Date(date);
+  return `${d.getFullYear()}년 ${String(d.getMonth() + 1).padStart(2, '0')}월`;
 }
 
 // --- 3. API 로직 ---
@@ -30,9 +37,10 @@ async function loadStaffSchedules() {
   isLoading.value = true;
   try {
     const response = await api.get('/api/staff/schedules');
-    Object.keys(scheduledData).forEach((key) => {
-      delete scheduledData[key];
-    });
+    // scheduledData를 덮어쓰기 대신 안전하게 갱신
+    Object.keys(scheduledData).forEach((k) => delete scheduledData[k]);
+    // API에서 오는 데이터가 이미 'YYYY-MM-DD' 키 구조라면 그대로 사용
+    // 만약 API가 타임스탬프 리스트를 준다면 여기서 키를 formatDateISO_Local로 변환해 맞춰줘야 함
     Object.assign(scheduledData, response.data);
   } catch (error) {
     console.error('스케줄 로딩 실패:', error);
@@ -52,6 +60,7 @@ onMounted(() => {
 });
 
 // --- 4. 캘린더 로직 ---
+// calendarCells에서 사용하는 날짜 키는 모두 formatDateISO_Local로 통일
 const calendarCells = computed(() => {
   const cells = [];
   const year = currentDate.value.getFullYear();
@@ -65,25 +74,35 @@ const calendarCells = computed(() => {
   const lastDayPrevMonth = new Date(year, month, 0).getDate();
   for (let i = startDayOfWeek; i > 0; i--) {
     const day = lastDayPrevMonth - i + 1;
-    cells.push({ key: `prev-${day}`, day, classes: 'calendar-day disabled-day', clickable: false });
+    cells.push({
+      key: `prev-${day}`,
+      day,
+      classes: 'calendar-day disabled-day',
+      clickable: false,
+    });
   }
 
-  const todayStr = formatDateISO(new Date());
+  const todayStr = formatDateISO_Local(new Date());
   for (let day = 1; day <= daysInMonth; day++) {
+    // 로컬 날짜 객체 (로컬 자정)
     const dateObj = new Date(year, month, day);
-    const dateISO = formatDateISO(dateObj);
+    const dateISO = formatDateISO_Local(dateObj); // 로컬 기준 포맷
     const isToday = dateISO === todayStr;
 
     const cellClasses = ['calendar-day', 'bg-white', 'text-gray-900', 'cursor-pointer'];
 
-    const cellSchedules = scheduledData[dateISO]
-      ?.filter((s) => s.type === 'reservation')
-      .map((s) => ({
-        label: s.label,
-        classes: 'schedule-tag tag-reservation',
-      }));
+    // scheduledData 키가 이미 'YYYY-MM-DD' 로컬 포맷이라 가정
+    const rawSchedules = scheduledData[dateISO];
+    const cellSchedules = rawSchedules
+      ? rawSchedules
+          .filter((s) => s.type === 'reservation')
+          .map((s) => ({
+            label: s.label,
+            classes: 'schedule-tag tag-reservation',
+          }))
+      : undefined;
 
-    if (scheduledData[dateISO]?.some((s) => s.type === 'available')) {
+    if (rawSchedules?.some((s) => s.type === 'available')) {
       cellClasses.push('bg-green-50');
     }
 
@@ -113,16 +132,22 @@ const calendarCells = computed(() => {
 });
 
 function prevMonth() {
-  currentDate.value = new Date(currentDate.value.setMonth(currentDate.value.getMonth() - 1));
+  // 안전하게 월만 변경 (일자가 엉키지 않도록 1일로 정규화)
+  const y = currentDate.value.getFullYear();
+  const m = currentDate.value.getMonth() - 1;
+  currentDate.value = new Date(y, m, 1);
   loadStaffSchedules();
 }
 function nextMonth() {
-  currentDate.value = new Date(currentDate.value.setMonth(currentDate.value.getMonth() + 1));
+  const y = currentDate.value.getFullYear();
+  const m = currentDate.value.getMonth() + 1;
+  currentDate.value = new Date(y, m, 1);
   loadStaffSchedules();
 }
 
 function openModal(date) {
-  selectedDate.value = formatDateISO(date);
+  // date는 Date 객체 (calendarCells에서 전달)
+  selectedDate.value = formatDateISO_Local(date); // 로컬 기준 YYYY-MM-DD
   modalVisible.value = true;
 }
 </script>
@@ -217,7 +242,6 @@ function openModal(date) {
 </template>
 
 <style scoped>
-/* (스타일은 변경 사항 없음) */
 .calendar-day {
   min-height: 120px;
   padding: 8px;

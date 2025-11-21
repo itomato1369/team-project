@@ -53,6 +53,15 @@ module.exports.createLog = async (req, res) => {
     // 예약 상태 업데이트
     console.log("Executing Query (updateReservationToBooked):", res_no);
     await connection.query(sqlList.updateReservationToBooked, [res_no]);
+
+    // [신규] 상담상태가 '완료'이고, 연결된 조사지가 있으면 해당 조사지 상태를 '심사중'으로 변경
+    if (consult_status === "완료" && survey_no) {
+      console.log(
+        `상담 완료, 조사지(${survey_no}) 상태를 '심사중'으로 변경합니다.`
+      );
+      await connection.query(sqlList.updateSurveyStatus, [survey_no]);
+    }
+
     // 문제없으면 커밋
     await connection.commit();
     res.status(201).send({
@@ -223,6 +232,7 @@ module.exports.getDetail = async (req, res) => {
  */
 module.exports.updateConsult = async (req, res) => {
   console.log("--- updateLog Service ---");
+  const connection = await db.connectionPool.getConnection();
   try {
     const { consultNo } = req.params;
     const { content, consult_status, disabled_level } = req.body;
@@ -231,25 +241,56 @@ module.exports.updateConsult = async (req, res) => {
       return res.status(400).send({ message: "상담 번호가 누락되었습니다." });
     }
 
-    // 업데이트 실행
-    const result = await db.query("updateConsult", [
+    await connection.beginTransaction();
+
+    // 1. 기존 상담 정보 조회 (survey_no 확인용)
+    const [existingLog] = await connection.query(sqlList.getConsultLogDetail, [
+      consultNo,
+    ]);
+
+    if (!existingLog) {
+      await connection.rollback();
+      return res
+        .status(404)
+        .send({ message: "수정할 상담 기록을 찾을 수 없습니다." });
+    }
+
+    // 2. 상담 일지 수정
+    const updateResult = await connection.query(sqlList.updateConsult, [
       content,
       consult_status,
       disabled_level,
       consultNo,
     ]);
 
-    if (result.affectedRows === 0) {
+    if (updateResult.affectedRows === 0) {
+      // 이 경우는 거의 없지만, 방어 코드로 유지
+      await connection.rollback();
       return res
         .status(404)
         .send({ message: "수정할 상담 기록을 찾을 수 없습니다." });
     }
+
+    // 3. [신규] 상담상태가 '완료'이고, 연결된 조사지가 있으면 해당 조사지 상태를 '심사중'으로 변경
+    if (consult_status === "완료" && existingLog.survey_no) {
+      console.log(
+        `상담 완료, 조사지(${existingLog.survey_no}) 상태를 '심사중'으로 변경합니다.`
+      );
+      await connection.query(sqlList.updateSurveyStatus, [
+        existingLog.survey_no,
+      ]);
+    }
+
+    await connection.commit();
 
     res.status(200).send({
       message: "상담 일지가 성공적으로 수정되었습니다.",
     });
   } catch (err) {
     console.error("상담 일지 수정 오류:", err);
+    if (connection) await connection.rollback();
     res.status(500).send({ message: "수정 중 오류가 발생했습니다." });
+  } finally {
+    if (connection) connection.release();
   }
 };

@@ -23,7 +23,7 @@ router.get("/google/callback", authService.googleCallback);
 router.post("/login", async (req, res) => {
   try {
     const { userId, password } = req.body;
-    console.log(`data : ${userId}, ${password}`);
+    // console.log(`data : ${userId}, ${password}`);
 
     const { jsonResponse } = await authService.login(userId, password);
     console.log("dd: ", jsonResponse);

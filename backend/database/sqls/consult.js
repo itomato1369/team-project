@@ -8,7 +8,7 @@ SELECT
     at.start_time,
     at.end_time
 FROM available_time at
-JOIN member m ON at.staff_id = m.user_id AND m.role = 'STAFF'
+JOIN member m ON at.staff_id = m.staff_id
 WHERE at.status = '상담가능'
   AND at.end_time > NOW()
 ORDER BY at.start_time`;
@@ -28,7 +28,7 @@ AND res_start > NOW()`;
 const getStaffIdByAtNo = `
 SELECT m.user_id AS staff_id
 FROM available_time at
-JOIN member m ON at.staff_id = m.user_id AND m.role = 'STAFF'
+JOIN member m ON at.staff_id = m.user_id
 WHERE at.at_no = ?`;
 
 /**
@@ -298,6 +298,15 @@ SET
 WHERE consult_no = ?
 `;
 
+/**
+ * [신규] 조사지 상태 변경
+ */
+const updateSurveyStatus = `
+UPDATE survey
+SET status = '심사중'
+WHERE survey_no = ?
+`;
+
 module.exports = {
   getAvailableSchedules,
   getUpcomingReservations,
@@ -321,4 +330,5 @@ module.exports = {
   getConsultByDate,
   getConsultLogDetail,
   updateConsult,
+  updateSurveyStatus,
 };
