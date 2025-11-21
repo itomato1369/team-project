@@ -1,10 +1,21 @@
 <script setup>
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 import InputText from 'primevue/inputtext';
 import Textarea from 'primevue/textarea';
 import Select from 'primevue/select';
 import Button from 'primevue/button';
 import axios from 'axios';
+import { useAuthStore } from '@/stores/authStore';
+const authStore = useAuthStore(); // authStore 인스턴스 생성
+const staffName = computed(() => authStore.user?.name);
+
+// ⭐ 부모로부터 받은 wardId (ward_no)
+const props = defineProps({
+  wardId: {
+    type: [String, Number],
+    required: false, // optional로 변경
+  },
+});
 
 // 전역 고유 id 카운터
 let formId = 0;
@@ -12,11 +23,11 @@ let formId = 0;
 // 폼 초기화 함수
 const createForm = () => ({
   id: formId++,
-  writer: '', // 목표
-  manager: '', // 담당자
+  writer: '',
+  staff: '', // 담당자
   dropdownItem: null, // 사업선택
   amount: '', // 금액
-  content: '', // 내용
+  plan: '', // 내용
   selectedFiles: [], // pdf파일
   priority: null, // 우선순위
 });
@@ -45,28 +56,35 @@ const handleFiles = (event, form) => {
   form.selectedFiles = Array.from(event.target.files);
 };
 
-// 승인요청 버튼 클릭 → 해당 폼 값만 서버로 전송
+// ⭐ 승인요청 (ward_no 포함)
 const requestApproval = async (form) => {
-  // 필수값 체크
-  if (!form.writer || !form.dropdownItem || !form.content) {
+  if (!form.writer || !form.dropdownItem || !form.plan) {
     alert('필수 항목(목표, 사업, 내용)을 모두 입력해주세요.');
+    return;
+  }
+
+  if (!props.wardId) {
+    alert('피보호자 정보가 아직 준비되지 않았습니다. 잠시 후 다시 시도해주세요.');
     return;
   }
 
   try {
     const payload = {
-      support_plan_goal: form.writer,
-      business_name: form.dropdownItem.name,
-      spend: parseInt(form.amount.replace(/,/g, '')) || 0,
-      plan: form.content,
-      file_no: form.selectedFiles.length ? form.selectedFiles.map((f) => f.name).join(',') : null,
-      support_plan_status: '승인대기', // 서버 ENUM에 맞춤
+      ward_no: Number(props.wardId), // 필수
+      support_plan_goal: form.writer, // 폼 입력
+      plan: form.plan, // 폼 입력
+      business_name: form.dropdownItem?.name || null, // 선택값
+      spend: parseInt(form.amount.replace(/,/g, '')) || 0, // 입력
+      file_no: '1',
+      support_plan_status: '승인대기', // 고정
+      staff_name: staffName.value,
     };
 
-    await axios.post('/api/staff/support-plan', payload);
-    alert(`폼 ${form.id} 승인요청 완료!`);
+    console.log('payload:', payload);
 
-    // 전송 후 폼 초기화
+    await axios.post('/api/staff/support-plan', payload);
+
+    alert(`폼 ${form.id} 승인요청 완료!`);
     forms.value = [createForm()];
   } catch (err) {
     console.error('승인요청 오류:', err.response?.data || err);
@@ -74,13 +92,14 @@ const requestApproval = async (form) => {
   }
 };
 
-// 버튼 동작
 const saveTemp = (form) => alert(`폼 ${form.id} 임시저장 완료!`);
+
 const deleteForm = (id) => {
   if (confirm('정말 삭제하시겠습니까?')) {
     forms.value = forms.value.filter((f) => f.id !== id);
   }
 };
+
 const addForm = () => forms.value.push(createForm());
 </script>
 
@@ -92,18 +111,8 @@ const addForm = () => forms.value.push(createForm());
     <Fluid>
       <div v-for="form in forms" :key="form.id" class="flex mt-8">
         <div class="card flex flex-col gap-4 w-full border p-4 rounded-md shadow-sm">
-          <!-- 작성자 / 담당자 -->
-          <div class="flex flex-col md:flex-row gap-2">
-            <!-- <div class="flex flex-wrap gap-2 w-full">
-              <label>우선순위</label>
-              <Select
-                v-model="form.priority"
-                :options="priority"
-                optionLabel="name"
-                placeholder="우선순위"
-                class="w-full"
-              />
-            </div> -->
+          <!-- 목표 -->
+          <div class="flex flex-col md:flex-row gap-2 mt-2">
             <div class="flex flex-wrap gap-2 w-full">
               <label>목표</label>
               <InputText v-model="form.writer" type="text" />
@@ -135,7 +144,7 @@ const addForm = () => forms.value.push(createForm());
           <!-- 내용 -->
           <div class="flex flex-wrap">
             <label>내용</label>
-            <Textarea v-model="form.content" rows="4" />
+            <Textarea v-model="form.plan" rows="4" />
           </div>
 
           <!-- PDF 업로드 -->
@@ -157,7 +166,7 @@ const addForm = () => forms.value.push(createForm());
             </form>
           </div>
 
-          <!-- 하단 버튼 -->
+          <!-- 버튼 -->
           <div class="flex justify-end gap-3 mt-6 border-t pt-4">
             <Button
               label="임시저장"
@@ -181,7 +190,6 @@ const addForm = () => forms.value.push(createForm());
         </div>
       </div>
 
-      <!-- 추가 버튼 -->
       <div class="flex justify-end mt-4">
         <Button label="추가" icon="pi pi-plus" severity="info" @click="addForm" />
       </div>

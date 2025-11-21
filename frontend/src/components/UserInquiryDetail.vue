@@ -10,7 +10,9 @@ import RadioButton from 'primevue/radiobutton';
 import Textarea from 'primevue/textarea';
 import Button from 'primevue/button';
 import ProgressSpinner from 'primevue/progressspinner';
+import { useAuthStore } from '@/stores/authStore';
 
+const authStore = useAuthStore();
 const route = useRoute();
 const router = useRouter();
 const inquiryId = route.params.id;
@@ -25,6 +27,9 @@ const modificationReason = ref(''); // 수정 사유
 const surveyPurpose = ref(''); // 서베이 목적
 const surveyContent = ref(''); // 서베이 내용
 
+const selectedWardNo = ref(null);
+const wards = ref([]);
+
 // 컴포넌트가 마운트될 때 실행
 onMounted(async () => {
   if (!inquiryId) {
@@ -37,7 +42,7 @@ onMounted(async () => {
     // 1. 백엔드에서 조사지 상세 정보 가져오기
     const response = await axios.get(`/api/user/user-inquiries/${inquiryId}`);
     inquiryDetail.value = response.data.result;
-    inquiryDetail.value.inquiry_writer = 'test';
+    inquiryDetail.value.inquiry_writer = authStore.user.id;
     console.log('조회 해 온 조사지 상세정보:', inquiryDetail.value);
 
     // 2. 백엔드에서 질문 목록 가져오기
@@ -46,24 +51,32 @@ onMounted(async () => {
 
     // 3. 기존에 작성한 survey가 있는지 확인
     const surveyCheckResponse = await axios.post('/api/user/survey-by-inquiry-content', {
-      inquiryName: inquiryDetail.value.inquiry_name,
+      inquiryNo: inquiryId,
     });
+
+    // 4. 작성될 survey로 지원받을 피보호자 목록 조회
+    wards.value = (
+      await axios.get('/api/user/wardlist', {
+        params: { guardianId: authStore.user.id },
+      })
+    ).data.result;
 
     let savedAnswersMap = new Map();
 
-      if (surveyCheckResponse.data.result) {
-        // 3-1. 기존 survey가 있으면 수정 모드로 설정
-        editMode.value = true;
-        existingSurvey.value = surveyCheckResponse.data.result;
-        modificationReason.value = existingSurvey.value.modify_reason || ''; // 기존 수정 사유 로드
-        surveyPurpose.value = existingSurvey.value.purpose || ''; // 기존 목적 로드
-        surveyContent.value = existingSurvey.value.content || ''; // 기존 내용 로드
-        console.log('기존에 작성한 내용이 있습니다 (수정모드):', existingSurvey.value);
-
+    if (surveyCheckResponse.data.result) {
+      // 3-1. 기존 survey가 있으면 수정 모드로 설정
+      editMode.value = true;
+      existingSurvey.value = surveyCheckResponse.data.result;
+      modificationReason.value = existingSurvey.value.modify_reason || ''; // 기존 수정 사유 로드
+      surveyPurpose.value = existingSurvey.value.purpose || ''; // 기존 목적 로드
+      surveyContent.value = existingSurvey.value.content || ''; // 기존 내용 로드
+      console.log('기존에 작성한 내용이 있습니다 (수정모드):', existingSurvey.value);
 
       // 3-2. 기존 답변들을 가져옴
-      const savedAnswersResponse = await axios.get(`/api/user/survey-results/${existingSurvey.value.survey_no}`);
-      savedAnswersResponse.data.result.forEach(answer => {
+      const savedAnswersResponse = await axios.get(
+        `/api/user/survey-results/${existingSurvey.value.survey_no}`
+      );
+      savedAnswersResponse.data.result.forEach((answer) => {
         savedAnswersMap.set(answer.business_no, answer.survey_answer);
       });
       console.log('기존 답변 정보:', savedAnswersMap);
@@ -78,7 +91,6 @@ onMounted(async () => {
       is_required: q.is_required,
       priority: q.priority,
     }));
-
   } catch (err) {
     console.error('데이터를 불러오는 데 실패했습니다:', err);
     error.value = '데이터를 불러오는 중 오류가 발생했습니다.';
@@ -90,13 +102,15 @@ onMounted(async () => {
 // 저장 버튼 활성화 여부를 결정하는 계산된 속성
 const isSaveDisabled = computed(() => {
   // 필수 질문에 답변이 비어있는지 확인
-  const hasUnansweredRequiredQuestions = questions.value.some(q => q.is_required === 1 && (q.answer === null || q.answer.toString().trim() === ''));
-  
+  const hasUnansweredRequiredQuestions = questions.value.some(
+    (q) => q.is_required === 1 && (q.answer === null || q.answer.toString().trim() === '')
+  );
+
   // 수정 모드일 경우, 수정 사유도 비어있는지 확인
   if (editMode.value) {
     return hasUnansweredRequiredQuestions || modificationReason.value.trim() === '';
   }
-  
+
   return hasUnansweredRequiredQuestions;
 });
 
@@ -110,8 +124,8 @@ const saveInquiry = async () => {
 
     // Populate default/hardcoded values before sending
     const detailToSend = { ...inquiryDetail.value };
-    detailToSend.writer = 'test';
-    detailToSend.ward_no = 1;
+    detailToSend.writer = authStore.user.id;
+    detailToSend.ward_no = selectedWardNo.value;
     detailToSend.purpose = surveyPurpose.value; // Add purpose from input
     detailToSend.content = surveyContent.value; // Add content from input
     detailToSend.status = '접수';
@@ -222,6 +236,19 @@ const goBackToList = () => {
             <div class="flex flex-col gap-3">
               <label>목적</label>
               <InputText v-model="surveyPurpose" placeholder="조사 목적을 입력하세요..." />
+            </div>
+            <div class="flex flex-col gap-3">
+              <label>대상</label>
+              <div class="card flex justify-center">
+                <Dropdown
+                  v-model="selectedWardNo"
+                  :options="wards"
+                  optionLabel="name"
+                  optionValue="ward_no"
+                  placeholder="대상 선택"
+                  class="w-full md:w-56"
+                />
+              </div>
             </div>
             <div class="flex flex-col gap-3">
               <label>내용</label>

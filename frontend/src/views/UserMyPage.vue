@@ -1,6 +1,7 @@
 <script setup>
 import { onMounted, ref, watch, computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
+import axios from 'axios';
 
 // 헤더 컴포넌트
 import Breadcrumb from 'primevue/breadcrumb';
@@ -17,18 +18,32 @@ import UserWardInfoUpdate from '@/components/UserWardInfoUpdate.vue'; // 피보�
 import Button from 'primevue/button';
 import TabView from 'primevue/tabview';
 import TabPanel from 'primevue/tabpanel';
+import { useAuthStore } from '@/stores/authStore';
 
 const route = useRoute();
 const router = useRouter();
+const authStore = useAuthStore();
 
 // --- 상태 관리 ---
 const viewMode = ref('list');
 const selectedProject = ref(null);
-const activeTab = ref(0); // 기본값을 0으로 설정
-const loggedInUserId = 'test'; // As per instructions
+const activeTab = ref(0);
+// const loggedInUserId = !loggedInUserId ? authStore.user.id : 'test555';// 'test555'; // 하드코딩된 사용자 ID
+const loggedInUserId = authStore.user.id; // 'test555'; // 하드코딩된 사용자 ID
+const userInfo = ref(null); // 사용자 정보를 담을 ref
 
 const tabTitles = ['신청 사업 목록', '상담내역', '내 정보 관리', '피보호자 관리'];
 const currentTabTitle = computed(() => tabTitles[activeTab.value] || '마이페이지');
+
+// --- 데이터 로딩 ---
+const loadUserInfo = async () => {
+  try {
+    const res = await axios.get('/api/user/me', { params: { userId: loggedInUserId } });
+    userInfo.value = res.data.result;
+  } catch (error) {
+    console.error('사용자 정보를 불러오는 데 실패했습니다:', error);
+  }
+};
 
 // 1. URL 쿼리 변경 감지 -> activeTab 업데이트
 watch(
@@ -51,6 +66,7 @@ watch(activeTab, (newIndex) => {
 });
 
 onMounted(() => {
+  loadUserInfo(); // 컴포넌트 마운트 시 사용자 정보 로드
   // 초기 로드 시 URL에 탭 정보가 없으면 첫 번째 탭으로 설정하고 URL 업데이트
   if (route.query.tab === undefined) {
     activeTab.value = 0;
@@ -120,7 +136,7 @@ const goBackToList = () => {
         <p class="placeholder-text">상담내역 컨텐츠가 준비중입니다.</p>
       </TabPanel>
       <TabPanel header="내 정보 관리">
-        <UserMyInfoUpdate />
+        <UserMyInfoUpdate v-if="userInfo && userInfo.user_id" :user-info="userInfo" />
       </TabPanel>
       <TabPanel header="피보호자 관리">
         <UserWardInfoUpdate :userId="loggedInUserId" />

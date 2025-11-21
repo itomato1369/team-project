@@ -2,8 +2,9 @@
 // 1. ApplicationPlanForm 컴포넌트를 import 합니다.
 import ApplicationPlanForm from './ApplicationPlanForm.vue';
 import ActivityReport from './ActivityReport.vue';
-import { ref } from 'vue';
+import { ref, defineProps } from 'vue';
 
+const props = defineProps(['ward-id']);
 const activeTab = ref('0');
 
 const handleTabChange = (tabValue) => {
@@ -22,7 +23,7 @@ const handleTabChange = (tabValue) => {
         </TabList>
       </Tabs>
       <div v-if="activeTab === '0'">
-        <ApplicationPlanForm />
+        <ApplicationPlanForm :ward-id="wardId" />
       </div>
       <div v-if="activeTab === '1'">
         <ActivityReport />

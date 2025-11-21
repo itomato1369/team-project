@@ -1,5 +1,33 @@
 const db = require("../database/mappers/mapper");
 
+exports.getStaffPlanItems = async (req, res) => {
+  const ward_no = req.query.ward_no;
+
+  if (!ward_no) {
+    return res
+      .status(400)
+      .send({ message: "피보호자 번호(ward_no)가 필요합니다." });
+  }
+
+  try {
+    // Staffplanitem 쿼리 사용
+    const result = await db.query("Staffplanitem", [ward_no]);
+
+    if (!result || result.length === 0) {
+      return res
+        .status(404)
+        .send({ message: "해당 보호자의 승인 내역이 없습니다." });
+    }
+
+    res.status(200).json(result);
+  } catch (error) {
+    console.error("getStaffPlanItems DB 쿼리 오류:", error);
+    res
+      .status(500)
+      .send({ message: "담당자 승인 조회 중 오류가 발생했습니다." });
+  }
+};
+
 exports.surveySelect = async (req, res) => {
   console.log("Survey List 조회");
   try {
@@ -87,13 +115,20 @@ exports.wardsearch = async (req, res) => {
 
 exports.createSupportPlan = async (req, res) => {
   console.log("승인요청 POST 데이터:", req.body); // Vue 컴포넌트에는 없는 필수 필드에 대한 임시 또는 기본값 설정
-
-  const staff_name = req.body.manager || "담당자_미지정"; // DB에 전송하지 않음
   const priority_no = 1; // 🚨 임시값 1로 고정합니다. (실제 폼에서 입력받는 기능이 없으므로)
 
-  const { support_plan_goal, business_name, spend, plan, file_no } = req.body;
+  const {
+    ward_no,
+    support_plan_goal,
+    plan,
+    business_name,
+    spend,
+    file_no,
+    support_plan_status,
+    staff_name,
+    writer_date,
+  } = req.body;
 
-  const support_plan_status = "승인대기"; // 고정값
   const safe_spend = parseInt(spend.toString().replace(/,/g, "")) || 0;
   const safe_file_no = file_no || null;
 
@@ -105,14 +140,16 @@ exports.createSupportPlan = async (req, res) => {
 
   try {
     // 🔑 쿼리가 요구하는 7개의 파라미터만 정확히 전달
-    await db.query("spportinsert", [
+    await db.query("supportinsert", [
+      ward_no,
       support_plan_goal,
-      business_name,
-      safe_spend,
       plan,
-      safe_file_no,
-      priority_no, // ✅ 추가: priority_no
-      support_plan_status, // writer_date는 쿼리 내에서 NOW()로 처리
+      business_name,
+      spend,
+      file_no,
+      support_plan_status,
+      staff_name,
+      writer_date,
     ]);
 
     console.log("지원 계획 INSERT 성공 (파라미터 7개 사용)");

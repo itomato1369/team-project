@@ -95,9 +95,7 @@ watch(
 </script>
 
 <template>
-  <div
-    class="card p-3 shadow-xl rounded-xl bg-white border border-gray-100 transition duration-300 hover:shadow-2xl"
-  >
+  <div class="card p-3 rounded-xl bg-white border border-gray-100 transition duration-300">
     <div class="text-lg mb-3 text-indigo-700 border-b pb-2">지원자 상세 정보</div>
 
     <div v-if="isLoading" class="text-center p-6 text-indigo-500">

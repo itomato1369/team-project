@@ -189,12 +189,12 @@ router.get("/survey-results/:surveyNo", async (req, res) => {
 
 // Called by: src/components/UserInquiryDetail.vue, src/components/SurveyDetail.vue
 router.post("/survey-by-inquiry-content", async (req, res) => {
-  const { inquiryName } = req.body;
-  if (!inquiryName) {
-    return res.status(400).send({ err: "inquiryName is required." });
+  const { inquiryNo } = req.body;
+  if (!inquiryNo) {
+    return res.status(400).send({ err: "inquiryNo is required." });
   }
   try {
-    const survey = await userService.getSurveyByInquiryContent(inquiryName);
+    const survey = await userService.getSurveyByInquiryContent(inquiryNo);
     res.status(200).send({ result: survey });
   } catch (err) {
     return res
@@ -225,6 +225,23 @@ router.get("/wards", verifyAccessToken, async (req, res) => {
   try {
     const userId = req.user.id; // Get user ID from authenticated token
     const wards = await userService.getWardsByGuardianId(userId);
+    res.status(200).send({ result: wards });
+  } catch (err) {
+    res.status(500).send({ err: "Failed to get wards: " + err.message });
+  }
+});
+
+router.get("/wardlist", async (req, res) => {
+  try {
+    const { guardianId } = req.query; // Get guardianId from query parameters
+
+    if (!guardianId) {
+      return res
+        .status(400)
+        .send({ err: "guardianId query parameter is required." });
+    }
+
+    const wards = await userService.getWardsByGuardianId(guardianId);
     res.status(200).send({ result: wards });
   } catch (err) {
     res.status(500).send({ err: "Failed to get wards: " + err.message });

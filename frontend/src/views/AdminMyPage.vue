@@ -10,20 +10,24 @@ import Button from 'primevue/button';
 // 컴포넌트
 import UserMyInfoUpdate from '@/components/UserMyInfoUpdate.vue';
 import InstitutionState from '@/components/InstitutionState.vue';
+import { useAuthStore } from '@/stores/authStore';
 
 // --- 상태 관리 ---
-const activeTab = ref(1); // '기관상태' 탭을 기본으로 활성화
-const adminInfo = ref(null);
-const logInUserId = 'admin'; // 하드코딩된 관리자 ID
+const authStore = useAuthStore();
+const activeTab = ref(2); // '기관상태' 탭을 기본으로 활성화
+const adminInfo = ref(null); // 초기는 null로 유지하여 로딩 상태 구분
+// const logInUserId = !logInUserId ? authStore.user.user_id : 'test456';// 'test456'; // 하드코딩된 관리자 ID
+const logInUserId = authStore.user.id; // 'test456'; // 하드코딩된 관리자 ID
 
 // --- 데이터 로딩 ---
 const loadAdminInfo = async () => {
   try {
-    // 새로 만든 백엔드 API 엔드포인트를 사용
     const response = await axios.get(`/api/user/institution-info/${logInUserId}`);
-    adminInfo.value = response.data.result;
+    // 데이터가 성공적으로 로드되면 객체를 할당
+    adminInfo.value = response.data.result || {}; // API 결과가 null/undefined일 경우 빈 객체로 초기화
   } catch (error) {
     console.error('관리자 정보를 불러오는 데 실패했습니다:', error);
+    adminInfo.value = {}; // 실패 시에도 빈 객체를 할당하여 화면 렌더링 보장
   }
 };
 
@@ -33,35 +37,39 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="card" v-if="adminInfo">
-    <!-- 1. 상단 영역 -->
-    <div class="header-container">
+  <div class="card">
+    <!-- 1. 상단 영역 (데이터 로딩 완료 후 표시) -->
+    <div v-if="adminInfo" class="header-container">
       <div class="header-left">
         <h1 class="page-title">마이페이지</h1>
-        <p class="user-info">
-          {{ adminInfo.user_name }}님({{ adminInfo.institution_name }} 관리자)
+        <p v-if="adminInfo.user_name" class="user-info">
+          {{ adminInfo.user_name }}님
+          <span v-if="adminInfo.institution_name">({{ adminInfo.institution_name }} 관리자)</span>
+          <span v-else>(소속 기관 없음)</span>
         </p>
+        <p v-else>관리자 정보를 불러오는 중입니다...</p>
       </div>
       <div class="header-right">
         <Button label="메인 페이지로" icon="pi pi-arrow-left" />
       </div>
     </div>
 
-    <!-- 2. 탭 메뉴 영역 -->
+    <!-- 2. 탭 메뉴 영역 (항상 표시) -->
     <TabView v-model:activeIndex="activeTab">
-      <TabPanel header="일반 이용자 목록">
+      <TabPanel header="일반 이용자 목록" :disabled="!adminInfo || !adminInfo.institution_no">
         <p>일반 이용자 목록 컨텐츠가 준비중입니다.</p>
       </TabPanel>
-      <TabPanel header="기관상태">
-        <InstitutionState />
+      <TabPanel header="기관상태" :disabled="!adminInfo || !adminInfo.institution_no">
+        <InstitutionState v-if="adminInfo && adminInfo.institution_no" />
+        <p v-else>
+          소속된 기관이 없어 상태를 표시할 수 없습니다. '내 정보 관리' 탭에서 기관을 신청하세요.
+        </p>
       </TabPanel>
       <TabPanel header="내 정보 관리">
-        <UserMyInfoUpdate />
+        <UserMyInfoUpdate v-if="adminInfo && adminInfo.user_id" :user-info="adminInfo" />
+        <p v-else>사용자 정보를 불러오는 중...</p>
       </TabPanel>
     </TabView>
-  </div>
-  <div v-else>
-    <p>관리자 정보를 불러오는 중입니다...</p>
   </div>
 </template>
 

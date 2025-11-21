@@ -186,7 +186,7 @@ onMounted(() => {
               v-model="rejectReason"
               rows="5"
               cols="20"
-              class="p-inputttext p-component"
+              class="p-inputtext p-component"
               placeholder="상세 반려 사유 입력"
             ></textarea>
           </div>
@@ -211,49 +211,48 @@ onMounted(() => {
 /* 0. 기본 컨테이너 및 제목 스타일 (통일) */
 /* ======================================= */
 .approval-page {
-  /* SystemSupportplan.vue와 동일하게 적용 */
   padding: 30px 20px;
-  background-color: #f7f9fc; /* 부드러운 배경 (SystemSupportplan.vue 스타일) */
+  background-color: #f7f9fc;
   min-height: 100vh;
 }
 
 .page-subtitle {
-  /* SystemSupportplan.vue와 동일하게 적용 */
   font-size: 1.8rem;
   font-weight: 700;
   color: #2c3e50;
   margin-bottom: 25px;
   padding-bottom: 10px;
-  border-bottom: 2px solid #e0e6ed; /* SystemSupportplan.vue 스타일 */
+  border-bottom: 2px solid #e0e6ed;
 }
 
 .table-container {
-  /* SystemSupportplan.vue의 테이블 컨테이너 스타일과 유사하게 적용 */
   margin-top: 1.5rem;
   background-color: #ffffff;
-  border-radius: 10px; /* 둥근 모서리 */
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08); /* 깊이감 있는 그림자 */
-  overflow: hidden; /* 테이블의 둥근 모서리를 위해 */
-  padding: 0; /* DataTable이 컨테이너의 크기를 채우도록 패딩 제거 */
+  border-radius: 10px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+  padding: 0;
 }
 
 /* ======================================= */
-/* 1. 데이터 테이블 스타일 개선 (SystemSupportplan.vue와 동일하게 통일) */
+/* 1. 데이터 테이블 스타일 개선 (::v-deep 문법 수정) */
 /* ======================================= */
 
 /* 테이블 헤더 */
-.p-datatable-gridlines :deep(.p-datatable-thead th) {
-  background-color: #4a6fa5; /* 헤더 배경색: 세련된 파란색 */
-  color: #ffffff; /* 헤더 텍스트: 흰색 */
+/* ⚠️ 수정됨: :deep()을 클래스 앞에 붙여서 적용 범위 해제 */
+:deep(.p-datatable-gridlines .p-datatable-thead th) {
+  background-color: #4a6fa5;
+  color: #ffffff;
   font-weight: 600;
   text-align: center;
-  border-color: #3f6093; /* 헤더 경계선 색상 조정 */
+  border-color: #3f6093;
   padding: 12px 10px;
   font-size: 14px;
 }
 
 /* 테이블 바디 셀 */
-.p-datatable-gridlines :deep(.p-datatable-tbody td) {
+/* ⚠️ 수정됨 */
+:deep(.p-datatable-gridlines .p-datatable-tbody td) {
   font-size: 14px;
   color: #495057;
   vertical-align: middle;
@@ -262,28 +261,32 @@ onMounted(() => {
 }
 
 /* 테이블 행 호버 효과 */
-.p-datatable-gridlines :deep(.p-datatable-tbody tr:not(.p-highlight):hover) {
-  background-color: #f0f7ff; /* 마우스 오버 시 연한 하늘색 배경 */
+/* ⚠️ 수정됨 */
+:deep(.p-datatable-gridlines .p-datatable-tbody tr:not(.p-highlight):hover) {
+  background-color: #f0f7ff;
   transition: background-color 0.2s ease;
   cursor: pointer;
 }
 
-/* 테이블 내 버튼 스타일: size="small"에 맞게 최적화 */
-.p-datatable-gridlines :deep(.p-button) {
+/* 테이블 내 버튼 스타일 */
+/* ⚠️ 수정됨 */
+:deep(.p-datatable-gridlines .p-button) {
   font-size: 12px;
   padding: 5px 10px;
-  border-radius: 4px; /* SystemSupportplan.vue의 버튼 스타일과 통일 */
+  border-radius: 4px;
   transition: all 0.2s;
   font-weight: 500;
 }
 
 /* 승인 버튼 호버 */
-.p-datatable-gridlines :deep(.p-button.p-button-success:hover) {
-  background-color: #1e7e34 !important; /* 더 진한 초록색 */
+/* ⚠️ 수정됨 */
+:deep(.p-datatable-gridlines .p-button.p-button-success:hover) {
+  background-color: #1e7e34 !important;
 }
 /* 반려 버튼 호버 */
-.p-datatable-gridlines :deep(.p-button.p-button-danger:hover) {
-  background-color: #bd2130 !important; /* 더 진한 빨간색 */
+/* ⚠️ 수정됨 */
+:deep(.p-datatable-gridlines .p-button.p-button-danger:hover) {
+  background-color: #bd2130 !important;
 }
 
 /* ======================================= */
@@ -308,11 +311,12 @@ onMounted(() => {
 }
 
 /* ======================================= */
-/* 3. 반려 모달 (Dialog) 내부 스타일 (유지 및 정리) */
+/* 3. 반려 모달 (Dialog) 내부 스타일 (오타 및 문법 수정) */
 /* ======================================= */
 
 /* PrimeVue의 p-dialog-content 안에 있는 필드 스타일 */
-:deep(.p-dialog-content) .p-fluid .field label {
+:deep(.p-dialog-content .p-fluid .field label) {
+  /* ⚠️ 수정됨: :deep() 문법 조정 */
   display: block;
   margin-bottom: 8px;
   font-weight: 600;
@@ -321,25 +325,35 @@ onMounted(() => {
 }
 
 /* 텍스트 영역 (Textarea) 스타일 */
-:deep(.p-dialog-content) .p-fluid .field textarea.p-inputttext {
+/* ⚠️ 오타 수정됨: p-inputttext -> p-inputtext */
+:deep(.p-dialog-content .p-fluid .field textarea.p-inputtext) {
+  /* ⚠️ 수정됨: :deep() 문법 조정 및 오타 수정 */
   width: 100%;
   min-height: 120px;
   padding: 12px;
   font-size: 15px;
   line-height: 1.5;
   border: 1px solid #ced4da;
-  border-radius: 8px; /* 더 둥근 모서리 */
+  border-radius: 8px;
   transition: all 0.3s;
   resize: vertical;
 }
 
-:deep(.p-dialog-content) .p-fluid .field textarea.p-inputttext:focus {
-  border-color: #4a6fa5; /* 포커스 시 테이블 헤더 색상으로 통일 */
+/* 텍스트 영역 포커스 스타일 */
+/* ⚠️ 오타 수정됨: p-inputttext -> p-inputtext */
+:deep(.p-dialog-content .p-fluid .field textarea.p-inputtext:focus) {
+  /* ⚠️ 수정됨: :deep() 문법 조정 및 오타 수정 */
+  border-color: #4a6fa5;
   box-shadow: 0 0 0 0.2rem rgba(74, 111, 165, 0.2);
   outline: none;
 }
 
-/* 모바일 반응형 디자인: 작은 화면에서 모달 너비 조정 */
+/* 모바일 반응형 디자인 */
+:deep(.p-dialog) {
+  /* ⚠️ 수정됨: :deep() 문법 조정 */
+  /* 원래는 이 스타일이 global하게 적용되므로, 이 스타일만 남겨둠 */
+}
+
 @media (max-width: 768px) {
   /* 템플릿에서 width: '50vw'를 사용하고 있으므로, 작은 화면에서만 오버라이드 */
   :deep(.p-dialog) {

@@ -69,6 +69,8 @@ router.get(
   staffService.getSupportResultDetail
 );
 
+router.get("/staff-plan-items", staffService.getStaffPlanItems);
+
 // 설문 조회
 router.get("/survey-select", staffService.surveySelect);
 

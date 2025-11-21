@@ -49,12 +49,18 @@ onMounted(async () => {
       자식 컴포넌트들에게 v-bind (줄임말 ':')를 사용하여 props를 전달합니다.
       이제 wardId.value가 변경되면 자식들의 'ward-id' prop도 함께 변경됩니다.
     -->
-    <div class="w-full md:w-1/2 flex flex-col gap-4">
+    <div
+      class="w-full md:w-1/2 flex flex-col gap-4"
+      style="max-height: calc(100vh - 2rem); overflow-y: auto"
+    >
       <ApplicantInfo :ward-id="wardId" />
       <SelectCategory :ward-id="wardId" />
     </div>
 
-    <div class="w-full md:w-1/2 flex">
+    <div
+      class="w-full md:w-1/2 flex flex-col"
+      style="max-height: calc(100vh - 2rem); overflow-y: auto"
+    >
       <AppReportRegistration :ward-id="wardId" class="flex-1" />
     </div>
   </div>

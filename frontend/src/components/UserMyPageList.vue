@@ -5,8 +5,10 @@ import axios from 'axios';
 import BaseDataTable from '@/components/BaseDataTable.vue';
 import Button from 'primevue/button';
 import Tag from 'primevue/tag';
+import { useAuthStore } from '@/stores/authStore';
 
 const router = useRouter();
+const authStore = useAuthStore();
 
 // Data and state refs
 const myPageSurveys = ref([]);
@@ -30,8 +32,9 @@ const fetchMyPageSurveys = async () => {
   error.value = null;
   try {
     const response = await axios.get('/api/user/my-page-surveys', {
-      params: { writer: 'test' },
+      params: { writer: authStore.user.id },
     });
+    console.log('======================== \n My Page Surveys Response:', response);
     myPageSurveys.value = response.data.result;
   } catch (err) {
     console.error('Failed to fetch my page surveys:', err);

@@ -1,6 +1,7 @@
 <script setup>
 import { ref, onBeforeMount } from 'vue';
 import { useRouter } from 'vue-router';
+import { useAuthStore } from '@/stores/authStore';
 import axios from 'axios'; // axios 임포트
 
 // PrimeVue 컴포넌트 임포트
@@ -11,6 +12,7 @@ import Tag from 'primevue/tag';
 import BaseDataTable from '@/components/BaseDataTable.vue';
 
 const router = useRouter();
+const authStore = useAuthStore();
 
 // 데이터 및 상태 ref
 const userSurveys = ref([]);
@@ -32,7 +34,7 @@ const fetchUserSurveys = async () => {
   error.value = null;
   try {
     const response = await axios.get('/api/user/user-surveys', {
-      params: { writer: 'test' }
+      params: { writer: authStore.user.id },
     });
     userSurveys.value = response.data.result;
   } catch (err) {

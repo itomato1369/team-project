@@ -1,16 +1,3 @@
-<template>
-  <div class="detail-header">
-    <div class="title-area">
-      <h1>{{ title }}</h1>
-      <div class="user-info">
-        <span>{{ userName }} ({{ userType }})</span>
-        <span class="status" :class="statusClass">{{ statusText }}</span>
-      </div>
-    </div>
-    <Button label="메인 페이지로" icon="pi pi-arrow-right" icon-pos="right" @click="goToMain" />
-  </div>
-</template>
-
 <script setup>
 import { computed } from 'vue';
 import { useRouter } from 'vue-router';
@@ -49,7 +36,18 @@ const goToMain = () => {
   router.push('/');
 };
 </script>
-
+<template>
+  <div class="detail-header">
+    <div class="title-area">
+      <h1>{{ title }}</h1>
+      <div class="user-info">
+        <span>{{ userName }} ({{ userType }})</span>
+        <span class="status" :class="statusClass">{{ statusText }}</span>
+      </div>
+    </div>
+    <Button label="메인 페이지로" icon="pi pi-arrow-right" icon-pos="right" @click="goToMain" />
+  </div>
+</template>
 <style scoped>
 .detail-header {
   display: flex;
