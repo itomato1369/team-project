@@ -46,6 +46,7 @@ const handleFinalSubmit = () => {
             v-model="basicInfo.institution_name"
             :options="institutionList"
             optionLabel="name"
+            optionValue="code"
             placeholder="미선택"
             class="w-full"
           ></Select>

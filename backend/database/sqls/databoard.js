@@ -11,10 +11,13 @@ board_no
 , updated_at
 from board`;
 
+const callInstitution = `SELECT institution_name FROM board`;
+
 const boardInsert = `
   INSERT INTO board (institution_name, writer, title, file_no, created_at)
   VALUES (?, ?, ?, ?, now())
 `;
+
 // const createFileNo = `SELECT CONCAT_WS(
 // ''
 // , 'FILE'
@@ -56,4 +59,5 @@ module.exports = {
   fileInsert,
   fileSelect,
   fileSelectMulti,
+  callInstitution,
 };

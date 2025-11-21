@@ -182,7 +182,7 @@ function formatDate(value) {
         <template #body="{ data }">
           {{ data.name }}
         </template>
-        <template #filter="{ filterModel }">
+        <template>
           <InputText v-model="filterModel.value" type="text" placeholder="Search by name" />
         </template>
       </Column>
@@ -192,7 +192,7 @@ function formatDate(value) {
             <span>{{ data.country.name }}</span>
           </div>
         </template>
-        <template #filter="{ filterModel }">
+        <template>
           <InputText v-model="filterModel.value" type="text" placeholder="Search by country" />
         </template>
         <template #filterclear="{ filterCallback }">
@@ -224,7 +224,7 @@ function formatDate(value) {
             <span>{{ data.representative.name }}</span>
           </div>
         </template>
-        <template #filter="{ filterModel }">
+        <template>
           <MultiSelect
             v-model="filterModel.value"
             :options="representatives"
@@ -243,7 +243,7 @@ function formatDate(value) {
         <template #body="{ data }">
           {{ formatDate(data.date) }}
         </template>
-        <template #filter="{ filterModel }">
+        <template>
           <DatePicker v-model="filterModel.value" dateFormat="mm/dd/yy" placeholder="mm/dd/yyyy" />
         </template>
       </Column>

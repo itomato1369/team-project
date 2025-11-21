@@ -10,16 +10,25 @@ export function RegistFileForm1() {
   const toast = useToast(); // 👈 3. [추가]
 
   // --- 옵션 목록 (기존과 동일) ---
-  const institutionList = ref([
-    { name: '기관 1', code: 'institution 1' },
-    { name: '기관 2', code: 'institution 2' },
-    { name: '기관 3', code: 'institution 3' },
-    { name: '기관 4', code: 'institution 4' },
-    { name: '기관 5', code: 'institution 5' },
-    { name: '기관 6', code: 'institution 6' },
-    { name: '기관 7', code: 'institution 7' },
-    { name: '기관 8', code: 'institution 8' },
-  ]);
+  // ⭐️ 1. [추가] 기관 목록을 담을 반응형 변수 선언
+  const institutionList = ref([]); // ⭐️ 2. [추가] 컴포넌트 마운트 시 데이터 로드
+
+  onMounted(async () => {
+    try {
+      // 백엔드 API 호출: /api/data-board/institutions
+      const response = await axios.get('/api/data-board/institutions');
+      institutionList.value = response.data;
+      console.log('기관 목록 로드 성공:', institutionList.value);
+    } catch (err) {
+      console.error('기관 목록 로드 실패:', err);
+      toast.add({
+        severity: 'error',
+        summary: '데이터 오류',
+        detail: '작성기관 목록을 불러오지 못했습니다.',
+        life: 5000,
+      });
+    }
+  });
 
   const basicInfo = ref({
     writer: null,
@@ -54,9 +63,8 @@ export function RegistFileForm1() {
 
     // ⭐ 파일 데이터 추가 (백엔드에서 'uploadFile' 키로 받습니다)
     formData.append('uploadFile', fileObject);
-
     // ⭐ 메타데이터 추가
-    formData.append('institution_name', basicInfo.value.institution_name.name); // 예시: Select 옵션의 name 필드를 보낸다고 가정
+    formData.append('institution_name', basicInfo.value.institution_name); // 예시: Select 옵션의 name 필드를 보낸다고 가정
     formData.append('writer', basicInfo.value.writer);
     formData.append('title', basicInfo.value.title);
 
@@ -83,7 +91,7 @@ export function RegistFileForm1() {
         life: 3000,
       });
 
-      router.push('/system/data-board'); // 목록 페이지로 이동
+      router.push('/data-board'); // 목록 페이지로 이동
     } catch (err) {
       // 6. 등록 실패
       console.error('등록 실패:', err);
@@ -97,8 +105,8 @@ export function RegistFileForm1() {
   };
 
   return {
-    institutionList,
     basicInfo,
+    institutionList,
     requestApproval, // 이 함수를 Vue 컴포넌트에서 사용합니다.
   };
 }

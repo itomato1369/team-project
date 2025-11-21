@@ -2,36 +2,40 @@ const express = require("express");
 const router = express.Router();
 const multer = require("multer");
 const path = require("path");
+// ⭐️ [수정] 쿼리 파일은 그대로 유지
 const queries = require(path.join(__dirname, "../database/sqlList"));
+// ⭐️ [수정] fs/promises와 fs(동기) 모듈을 분리하여 임포트
 const fsPromises = require("fs/promises");
 const fs = require("fs");
 const { query, connectionPool } = require("../database/mappers/mapper.js");
 const archiver = require("archiver");
 const { fileSelectMulti } = require("../database/sqlList.js");
 
-// ⭐ 공통 업로드 경로 설정
-const uploadBase = path.join(__dirname, "..", "uploads", "board_files");
+console.log("queries.fileSelect:", queries.fileSelect);
 
 // ----------------------------------------------------
 // Multer 설정
-// ----------------------------------------------------
+// --------------------------------------------------
+// --
+
 const storage = multer.diskStorage({
   destination: async (req, file, cb) => {
+    const uploadPath = path.join(__dirname, "..", "uploads", "board_files");
     try {
-      await fsPromises.mkdir(uploadBase, { recursive: true });
-      console.log("Multer 최종 저장 경로:", uploadBase);
-      cb(null, uploadBase);
+      // ⭐️ [수정] fsPromises를 사용하여 비동기로 폴더 생성
+      await fsPromises.mkdir(uploadPath, { recursive: true });
+      console.log("Multer 최종 저장 경로:", uploadPath);
     } catch (error) {
       console.error("폴더 생성 중 오류 발생:", error);
-      cb(error, null);
+      return cb(error, null);
     }
+    cb(null, uploadPath);
   },
-
   filename: (req, file, cb) => {
     const originalname = Buffer.from(file.originalname, "latin1").toString(
       "utf8"
     );
-    const ext = path.extname(originalname);
+    const ext = path.extname(file.originalname);
     const serverFileName = `${Date.now()}_${path.basename(
       originalname,
       ext
@@ -40,13 +44,17 @@ const storage = multer.diskStorage({
   },
 });
 
+// upload 변수 정의
 const upload = multer({ storage: storage });
+// ----------------------------------------------------
 
-// ----------------------------------------------------
-// [GET] 자료 게시판 목록 조회
-// ----------------------------------------------------
+/**
+ * [GET /api/dataBoard]
+ * 자료 게시판 '목록'을 DB에서 조회합니다.
+ */
 router.get("/", async (req, res) => {
   try {
+    // 'dataBoard'라는 쿼리가 sqlList.js에 정의되어 있다고 가정합니다.
     const rows = await query("dataBoard");
     res.json(rows);
   } catch (err) {
@@ -55,67 +63,70 @@ router.get("/", async (req, res) => {
   }
 });
 
-// ----------------------------------------------------
-// [POST] 자료 게시판 + 파일 업로드
-// ----------------------------------------------------
+/**
+ * [POST /api/dataBoard]
+ * 게시글 및 파일 정보를 트랜잭션으로 처리합니다.
+ */
 router.post("/", upload.single("uploadFile"), async (req, res) => {
   console.log("[dataBoardRouter] POST / 요청 받음");
 
   const uploadedFile = req.file;
 
-  const { institution_name, writer, title, parent_id, parent_tablename } =
-    req.body;
+  const {
+    institution_name,
+    writer,
+    title,
+    parent_id, // files 테이블용
+    parent_tablename, // files 테이블용
+  } = req.body;
 
   if (!uploadedFile) {
-    return res.status(400).json({
-      success: false,
-      message: "파일 데이터가 누락되었습니다.",
-    });
+    return res
+      .status(400)
+      .json({ success: false, message: "파일 데이터가 누락되었습니다." });
   }
-
-  // DB 저장용 상대 경로
-  const relativePath = `/uploads/board_files/${uploadedFile.filename}`;
 
   let conn;
   let newFileNo = null;
 
   try {
     conn = await connectionPool.getConnection();
-    await conn.beginTransaction();
+    await conn.beginTransaction(); // 1. files 테이블을 위한 file_no 자동 생성 // queries.createFileNo가 정의되어 있고, 'FOR UPDATE'가 포함된 트랜잭션 안전 쿼리라고 가정합니다.
 
-    // ---------- 1. 파일 번호 생성 ----------
     const fileNoRows = await conn.query(queries.createFileNo);
 
     if (fileNoRows && fileNoRows.length > 0 && fileNoRows[0].new_file_no) {
       newFileNo = fileNoRows[0].new_file_no;
     } else {
+      console.warn(
+        "file_no 생성 쿼리가 빈 결과를 반환했습니다. 첫 번째 파일 번호를 수동 생성합니다."
+      );
       const yearMonth = new Date().toISOString().slice(0, 7).replace("-", "");
       newFileNo = `FILE${yearMonth}001`;
     }
 
-    // ---------- 2. files INSERT ----------
+    if (!newFileNo) {
+      throw new Error("파일 번호 생성에 최종적으로 실패했습니다.");
+    } // 2. files 테이블에 파일 정보 INSERT (queries.fileInsert가 정의되어 있다고 가정)
     const originalname = Buffer.from(
       uploadedFile.originalname,
       "latin1"
     ).toString("utf8");
-
     const fileParams = [
       newFileNo,
       writer,
       originalname,
-      uploadedFile.filename, // server_file_name
-      relativePath, // ⭐ 여기 수정됨 — DB에는 상대경로만 저장
+      uploadedFile.filename, // Multer destination은 절대 경로이므로 그대로 사용합니다.
+      uploadedFile.destination,
       uploadedFile.size,
       path.extname(uploadedFile.originalname),
       parent_id,
       parent_tablename,
     ];
+    await conn.query(queries.fileInsert, fileParams); // 3. board 테이블에 게시글 정보 INSERT (queries.boardInsert가 정의되어 있다고 가정)
 
-    await conn.query(queries.fileInsert, fileParams);
-
-    // ---------- 3. board INSERT ----------
     const boardParams = [institution_name, writer, title, newFileNo];
-    await conn.query(queries.boardInsert, boardParams);
+    await conn.query(queries.boardInsert, boardParams); // 4. [커밋]
 
     await conn.commit();
 
@@ -126,160 +137,83 @@ router.post("/", upload.single("uploadFile"), async (req, res) => {
       fileNo: newFileNo,
     });
   } catch (err) {
-    if (conn) await conn.rollback();
+    // 5. [롤백]
+    if (conn) await conn.rollback(); // 🚨 트랜잭션 실패 시 파일 시스템에 저장된 파일도 삭제하는 로직을 추가할 수 있습니다.
 
-    // 파일 삭제
     try {
       if (uploadedFile && fs.existsSync(uploadedFile.path)) {
         await fsPromises.unlink(uploadedFile.path);
-        console.log("트랜잭션 롤백 → 서버 파일 삭제:", uploadedFile.path);
+        console.log(
+          "트랜잭션 롤백으로 인해 서버 파일 삭제 완료:",
+          uploadedFile.path
+        );
       }
     } catch (unlinkErr) {
       console.error("서버 파일 삭제 실패:", unlinkErr);
     }
 
     console.error("DB 등록 트랜잭션 실패:", err);
+
     res
       .status(500)
       .json({ success: false, message: "서버 오류", error: err.message });
   } finally {
+    // 6. [반환]
     if (conn) conn.release();
   }
 });
+router.get("/institutions", async (req, res) => {
+  try {
+    // 쿼리 실행 시 selectInstitutionList를 사용합니다.
+    const rows = await query("callInstitution"); // 'selectInstitutionList'는 쿼리 별칭이라고 가정
+    // DB 결과를 프론트엔드에서 사용하기 쉽게 { name: '이름', code: '이름' } 형태로 변환
+    const institutionList = rows.map((row) => ({
+      name: row.institution_name,
+      code: row.institution_name,
+    }));
 
-// ----------------------------------------------------
-// [GET] 단일 파일 다운로드
-// ----------------------------------------------------
-// router.get("/download/:file_no", async (req, res) => {
-//   try {
-//     const fileNo = req.params.file_no;
-
-//     const rows = await query("fileSelect", [fileNo]);
-//     if (!rows || rows.length === 0)
-//       return res.status(404).send("File not found");
-
-//     const file = rows[0];
-
-//     // 서버 실제 파일 위치
-//     const filePath = path.join(uploadBase, file.server_file_name);
-
-//     if (!fs.existsSync(filePath))
-//       return res.status(404).send("File not found on server");
-
-//     res.download(filePath, file.user_file_name);
-//   } catch (err) {
-//     console.error("파일 다운로드 실패:", err);
-//     res.status(500).send("Server Error");
-//   }
-// });
-// ===== 디버그용 단일 다운로드 라우터 =====
+    res.json(institutionList);
+  } catch (err) {
+    console.error("기관 목록 DB 조회 실패:", err);
+    res.status(500).json({ message: "서버 오류" });
+  }
+});
 router.get("/download/:file_no", async (req, res) => {
   try {
-    const fileNo = req.params.file_no;
-    console.log("[DEBUG] download requested file_no:", fileNo);
+    const fileNo = req.params.file_no; // ⭐️ [수정] queries.fileSelect가 undefined일 경우를 대비하여 SQL 쿼리를 직접 정의합니다.
+
+    const fileSelectQuery = queries.fileSelect;
 
     const rows = await query("fileSelect", [fileNo]);
-    console.log("[DEBUG] DB rows:", JSON.stringify(rows, null, 2));
+    console.log(fileNo);
 
-    if (!rows || rows.length === 0) {
-      console.warn("[DEBUG] No DB record for file_no:", fileNo);
-      return res.status(404).send(`File not found in DB: ${fileNo}`);
-    }
+    if (!rows || rows.length === 0)
+      return res.status(404).send("File not found");
 
     const file = rows[0];
-
-    // 가능한 컬럼명들 체크 (DB 컬럼명이 다를 경우 대비)
-    const serverFileName =
-      file.server_file_name ||
-      file.server_filename ||
-      file.filename ||
-      file.serverFileName ||
-      file.file_name;
-    const userFileName =
-      file.user_file_name ||
-      file.user_filename ||
-      file.originalname ||
-      file.userFileName ||
-      file.user_file ||
-      file.original_name;
-    const dbFilePath = file.file_path || file.path || file.filepath;
-
-    console.log(
-      "[DEBUG] derived names => serverFileName:",
-      serverFileName,
-      "userFileName:",
-      userFileName,
-      "dbFilePath:",
-      dbFilePath
-    );
-
-    // 1) 서버 기준 업로드 폴더(코드 상수와 동일하게)
-    const uploadBase = path.join(__dirname, "..", "uploads", "board_files");
-
-    // 2) 우선: serverFileName이 존재하면 uploadBase 기준으로 찾기
-    let filePath;
-    if (serverFileName) {
-      filePath = path.join(uploadBase, serverFileName);
-      console.log("[DEBUG] trying uploadBase path:", filePath);
-      if (!fs.existsSync(filePath)) {
-        console.warn("[DEBUG] not found at uploadBase:", filePath);
-        filePath = null;
-      }
-    }
-
-    // 3) fallback: DB에 저장된 상대경로(/uploads/...)이 있으면 절대경로로 변환해서 시도
-    if (!filePath && dbFilePath) {
-      // dbFilePath이 '/uploads/board_files/xxx' 형태라면 서버 기준으로 변환
-      const maybeName = path.basename(dbFilePath);
-      const maybePath = path.join(uploadBase, maybeName);
-      console.log("[DEBUG] trying dbFilePath ->", maybePath);
-      if (fs.existsSync(maybePath)) {
-        filePath = maybePath;
-      } else {
-        console.warn("[DEBUG] not found at dbFilePath converted:", maybePath);
-      }
-    }
-
-    // 4) 마지막 fallback: DB에 (잘못) 절대 경로가 들어가 있으면 그대로 시도 (로그 찍음)
-    if (!filePath && dbFilePath && path.isAbsolute(dbFilePath)) {
-      console.log("[DEBUG] trying absolute path from DB:", dbFilePath);
-      if (fs.existsSync(dbFilePath)) filePath = dbFilePath;
-      else console.warn("[DEBUG] absolute DB path does not exist:", dbFilePath);
-    }
-
-    if (!filePath) {
-      console.error(
-        "[DEBUG] final: file not found on server for file_no:",
-        fileNo
-      );
+    const filePath = path.join(file.file_path, file.server_file_name); // ⭐️ [수정] fs.existsSync는 동기 fs 모듈에서 사용합니다.
+    console.log(filePath);
+    if (!fs.existsSync(filePath))
       return res.status(404).send("File not found on server");
-    }
 
-    // 파일 존재하면 전송
-    console.log(
-      "[DEBUG] sending file:",
-      filePath,
-      "as",
-      userFileName || path.basename(filePath)
-    );
-    return res.download(filePath, userFileName || path.basename(filePath));
+    res.download(filePath, file.user_file_name);
   } catch (err) {
-    console.error("파일 다운로드 실패 (debug):", err);
+    console.error("파일 다운로드 실패:", err);
     res.status(500).send("Server Error");
   }
 });
 
-// ----------------------------------------------------
-// [POST] ZIP 다중 파일 다운로드
-// ----------------------------------------------------
+// 멀티 파일 다운로드 (ZIP)
 router.post("/download-multi/", async (req, res) => {
   try {
-    const { fileNos } = req.body;
+    const { fileNos } = req.body; // ["FILE202511001", "FILE202511002", ...]
 
     if (!fileNos || !fileNos.length)
       return res.status(400).send("No files selected");
 
+    // 다중 파일용 쿼리
     const rows = await query(fileSelectMulti(fileNos.length), fileNos);
+
     if (!rows || !rows.length) return res.status(404).send("Files not found");
 
     res.setHeader("Content-Disposition", `attachment; filename=files.zip`);
@@ -289,8 +223,7 @@ router.post("/download-multi/", async (req, res) => {
     archive.pipe(res);
 
     rows.forEach((file) => {
-      const filePath = path.join(uploadBase, file.server_file_name);
-
+      const filePath = path.join(file.file_path, file.server_file_name);
       if (fs.existsSync(filePath)) {
         archive.file(filePath, { name: file.user_file_name });
       } else {

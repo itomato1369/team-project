@@ -24,7 +24,14 @@ const createSocialUser = `
 INSERT INTO member (user_id, user_name, email, role, status, provider, social_id, created_at)
 VALUES (?, ?, ?, 'USER', 'READY', 'google', ?, NOW())
 `;
-
+const selectInstitutionNameByNo = `
+SELECT 
+    institution_name
+FROM 
+    institution
+WHERE 
+    institution_no = ?
+`;
 const updateSocialUser = `
 UPDATE member
 SET
@@ -320,7 +327,7 @@ module.exports = {
   updateSocialUser,
   findExpiringNotices,
   findSurveyToUserWard,
-
+  selectInstitutionNameByNo,
   findBoardList,
   findBoardListByData,
   findBoardListByHashtag,

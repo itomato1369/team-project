@@ -7,16 +7,16 @@ import IconField from 'primevue/iconfield';
 import InputIcon from 'primevue/inputicon';
 import MultiSelect from 'primevue/multiselect';
 import DatePicker from 'primevue/datepicker';
-
+import { useAuthStore } from '@/stores/authStore';
 import { FilterMatchMode, FilterOperator } from '@primevue/core/api';
 import { onMounted, reactive, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import axios from 'axios'; // 👈 2. [추가] axios import
 
+const authStore = useAuthStore();
 const router = useRouter();
 const datas = ref([]);
 const selectedFiles = ref([]);
-
 const filters1 = ref({
   global: { value: null, matchMode: FilterMatchMode.CONTAINS },
   name: {
@@ -238,7 +238,9 @@ const downloadZip = async function downloadZip(file) {
     >
       <template #header>
         <div class="flex justify-between">
+          <!-- 🔥 role이 a1일 때는 버튼 숨김 -->
           <Button
+            v-if="authStore.userRole !== '1a'"
             type="button"
             icon="pi pi-fw pi-pencil"
             label="파일 등록"
