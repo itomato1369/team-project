@@ -51,9 +51,10 @@ onMounted(async () => {
 
     // 3. 기존에 작성한 survey가 있는지 확인
     const surveyCheckResponse = await axios.post('/api/user/survey-by-inquiry-content', {
-      inquiryName: inquiryDetail.value.inquiry_name,
+      inquiryNo: inquiryId,
     });
 
+    // 4. 작성될 survey로 지원받을 피보호자 목록 조회
     wards.value = (
       await axios.get('/api/user/wardlist', {
         params: { guardianId: authStore.user.id },
@@ -123,8 +124,8 @@ const saveInquiry = async () => {
 
     // Populate default/hardcoded values before sending
     const detailToSend = { ...inquiryDetail.value };
-    detailToSend.writer = 'test';
-    detailToSend.ward_no = 1;
+    detailToSend.writer = authStore.user.id;
+    detailToSend.ward_no = selectedWardNo.value;
     detailToSend.purpose = surveyPurpose.value; // Add purpose from input
     detailToSend.content = surveyContent.value; // Add content from input
     detailToSend.status = '접수';

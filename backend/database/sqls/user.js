@@ -148,7 +148,12 @@ ORDER BY s.created_at DESC
 `,
 
   findSurveyByInquiryContent: `
-SELECT * FROM survey WHERE content = ?
+select 
+  s.*
+from survey s
+join 
+  inquiry i on s.content = i.inquiry_name
+where i.inquiry_no = ?
 `,
 
   updateSurvey: `

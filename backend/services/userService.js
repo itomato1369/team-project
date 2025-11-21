@@ -179,8 +179,8 @@ const saveInquiryAnswers = async (saveData) => {
 };
 
 // 프론트엔드 호출처: 확인 필요
-const getSurveyByInquiryContent = async (inquiryName) => {
-  const survey = await mapper.query("findSurveyByInquiryContent", inquiryName);
+const getSurveyByInquiryContent = async (inquiryNo) => {
+  const survey = await mapper.query("findSurveyByInquiryContent", inquiryNo);
   return survey[0];
 };
 
