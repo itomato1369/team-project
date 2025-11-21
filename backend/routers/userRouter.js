@@ -372,6 +372,24 @@ router.post("/apply-institution", async (req, res) => {
   }
 });
 
+// Called by: src/views/UserInquiryDetail.vue (for creating survey for wards)
+router.get("/surveys/create", async (req, res) => {
+  try {
+    const { guardianId } = req.query; // Get guardianId from query parameters
+
+    if (!guardianId) {
+      return res
+        .status(400)
+        .send({ err: "guardianId query parameter is required." });
+    }
+
+    const wards = await userService.getWardsByGuardianId(guardianId);
+    res.status(200).send({ result: wards });
+  } catch (err) {
+    res.status(500).send({ err: "Failed to get wards: " + err.message });
+  }
+});
+
 // Called by: src/views/UserSupportPlanDetail.vue
 router.get("/support-plan", async (req, res) => {
   // const { inquiry_no, ward_no } = req.params;

@@ -366,6 +366,10 @@ const updateInstitutionStatus = async (institutionNo, data) => {
   ]);
   return result;
 };
+//
+const getAvailableWardsForInquiry = async (guardianId) => {
+  return await mapper.query("findAvailableWardsForInquiry", guardianId);
+};
 
 module.exports = {
   getExpiringNotices,

@@ -56,7 +56,7 @@ onMounted(async () => {
 
     // 4. 작성될 survey로 지원받을 피보호자 목록 조회
     wards.value = (
-      await axios.get('/api/user/wardlist', {
+      await axios.get('/api/user/surveys/create', {
         params: { guardianId: authStore.user.id },
       })
     ).data.result;
