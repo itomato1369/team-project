@@ -7,8 +7,18 @@ import PrimeVue from 'primevue/config';
 import ToastService from 'primevue/toastservice';
 import { useToast } from 'primevue/usetoast';
 
-const toast = useToast(); // <-- toast 변수 정의
+// PrimeVue Component Imports for <template>
+import Toast from 'primevue/toast';
+import Card from 'primevue/card';
+import Fieldset from 'primevue/fieldset';
+import Panel from 'primevue/panel';
+import Button from 'primevue/button';
+import ProgressSpinner from 'primevue/progressspinner'; // For loading state
+
+const toast = useToast(); // PrimeVue Toast Hook
 const app = createApp();
+// Note: Initializing PrimeVue within a component file is often unnecessary
+// if it's initialized globally, but kept for compatibility with the original script structure.
 app.use(PrimeVue);
 app.use(ToastService);
 const router = useRouter();
@@ -16,6 +26,7 @@ const route = useRoute();
 
 const question_id = route.params.question_no;
 const question = ref(null);
+const isLoading = ref(true);
 
 onMounted(async () => {
   try {
@@ -23,8 +34,15 @@ onMounted(async () => {
     question.value = response.data;
   } catch (error) {
     console.error('질문 상세 조회 실패:', error);
-    toast.add({ severity: 'error', summary: '알림', detail: '질문 상세 조회 실패' });
-    router.push('/qna'); // 실패 시 목록으로 이동
+    toast.add({
+      severity: 'error',
+      summary: '알림',
+      detail: '질문 상세 조회에 실패했습니다.',
+      life: 3000,
+    });
+    // router.push('/qna'); // 실패 시 목록으로 이동
+  } finally {
+    isLoading.value = false;
   }
 });
 
@@ -43,35 +61,131 @@ function formatDate(value) {
 
 <template>
   <Toast />
-  <div class="card p-6 flex flex-col gap-4">
-    <h2 class="text-2xl font-bold mb-4">질문 상세</h2>
+  <!-- Center the content on larger screens and add responsive padding -->
+  <div class="p-4 sm:p-6 lg:p-8 max-w-5xl mx-auto">
+    <Card class="rounded-xl shadow-2xl p-fluid">
+      <template #title>
+        <div class="flex items-center text-primary-600 dark:text-primary-400">
+          <i class="pi pi-question-circle text-2xl mr-3"></i>
+          <h2 class="text-2xl font-bold">질문 상세 정보</h2>
+        </div>
+      </template>
 
-    <div v-if="question">
-      <div class="flex flex-col gap-2">
-        <span><strong>제목:</strong> {{ question.title }}</span>
-        <span><strong>문의자:</strong> {{ question.writer }}</span>
-        <span><strong>질문일시:</strong> {{ formatDate(question.created_at) }}</span>
-        <span><strong>답변일시:</strong> {{ formatDate(question.answer_created_at) || '-' }}</span>
-        <span><strong>질문 내용:</strong></span>
-        <div class="p-2 border rounded bg-gray-50">{{ question.content }}</div>
-        <span><strong>답변 내용:</strong></span>
-        <div class="p-2 border rounded bg-gray-50">{{ question.answer_content || '-' }}</div>
-      </div>
+      <template #content>
+        <div v-if="isLoading" class="flex flex-col items-center justify-center h-64">
+          <ProgressSpinner />
+          <span class="mt-3 text-lg text-gray-600">데이터 로딩 중...</span>
+        </div>
 
-      <div class="mt-4">
-        <button
-          class="px-4 py-2 rounded bg-blue-500 text-white hover:bg-blue-600"
-          @click="router.push('/qna')"
-        >
-          목록으로
-        </button>
-      </div>
-    </div>
+        <div v-else-if="question" class="flex flex-col gap-6">
+          <!-- 1. Question Metadata (Fieldset) -->
+          <Fieldset legend="기본 정보" :toggleable="false">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <!-- Title -->
+              <div class="flex flex-col">
+                <label class="font-semibold text-surface-600 dark:text-surface-400 mb-1"
+                  >제목</label
+                >
+                <div
+                  class="p-3 border rounded-lg bg-surface-50 dark:bg-surface-800 border-surface-200 dark:border-surface-700 shadow-sm text-lg font-medium"
+                >
+                  {{ question.title }}
+                </div>
+              </div>
 
-    <div v-else>Loading...</div>
+              <!-- Writer -->
+              <div class="flex flex-col">
+                <label class="font-semibold text-surface-600 dark:text-surface-400 mb-1"
+                  >문의자</label
+                >
+                <div
+                  class="p-3 border rounded-lg bg-surface-50 dark:bg-surface-800 border-surface-200 dark:border-surface-700 shadow-sm"
+                >
+                  {{ question.writer }}
+                </div>
+              </div>
+
+              <!-- Question Date -->
+              <div class="flex flex-col">
+                <label class="font-semibold text-surface-600 dark:text-surface-400 mb-1"
+                  >질문일시</label
+                >
+                <div
+                  class="p-3 border rounded-lg bg-surface-50 dark:bg-surface-800 border-surface-200 dark:border-surface-700 shadow-sm"
+                >
+                  {{ formatDate(question.created_at) }}
+                </div>
+              </div>
+
+              <!-- Answer Date -->
+              <div class="flex flex-col">
+                <label class="font-semibold text-surface-600 dark:text-surface-400 mb-1"
+                  >답변일시</label
+                >
+                <div
+                  class="p-3 border rounded-lg shadow-sm"
+                  :class="
+                    question.answer_created_at
+                      ? 'bg-green-100 text-green-800 border-green-300 dark:bg-green-900 dark:text-green-200 dark:border-green-700'
+                      : 'bg-orange-100 text-orange-800 border-orange-300 dark:bg-orange-900 dark:text-orange-200 dark:border-orange-700'
+                  "
+                >
+                  {{ formatDate(question.answer_created_at) || '미답변' }}
+                </div>
+              </div>
+            </div>
+          </Fieldset>
+
+          <!-- 2. Question Content (Panel) -->
+          <Panel header="질문 내용" class="mt-4 shadow-md">
+            <div
+              class="whitespace-pre-wrap text-base p-4 bg-surface-50 dark:bg-surface-800 border border-surface-200 dark:border-surface-700 rounded-lg min-h-[100px]"
+            >
+              {{ question.content }}
+            </div>
+          </Panel>
+
+          <!-- 3. Answer Content (Panel) -->
+          <Panel
+            header="답변 내용"
+            class="mt-4 shadow-md"
+            :class="question.answer_content ? 'border-primary-500' : 'border-surface-300'"
+          >
+            <div
+              v-if="question.answer_content"
+              class="whitespace-pre-wrap text-base p-4 bg-blue-50 dark:bg-blue-900 border border-blue-200 dark:border-blue-700 rounded-lg min-h-[100px]"
+            >
+              {{ question.answer_content }}
+            </div>
+            <div
+              v-else
+              class="text-gray-500 italic p-4 bg-surface-50 dark:bg-surface-800 border border-surface-200 dark:border-surface-700 rounded-lg min-h-[100px] flex items-center justify-center"
+            >
+              <i class="pi pi-info-circle mr-2"></i>
+              아직 답변이 등록되지 않았습니다. 관리자의 답변을 기다려 주세요.
+            </div>
+          </Panel>
+
+          <!-- 4. Back Button -->
+          <div class="flex justify-end pt-4">
+            <Button
+              label="목록으로 돌아가기"
+              icon="pi pi-arrow-left"
+              severity="secondary"
+              class="p-button-sm p-button-outlined rounded-full"
+              @click="router.push('/qna')"
+            />
+          </div>
+        </div>
+      </template>
+    </Card>
   </div>
 </template>
 
 <style scoped>
-/* 필요 시 스타일 커스터마이징 가능 */
+/*
+  PrimeVue uses Tailwind CSS utility classes heavily, 
+  making custom CSS mostly unnecessary unless complex overrides are needed.
+  The p-fluid class on the Card ensures forms/elements inside take full width.
+*/
 </style>
