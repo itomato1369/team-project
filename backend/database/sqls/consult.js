@@ -298,6 +298,15 @@ SET
 WHERE consult_no = ?
 `;
 
+/**
+ * [신규] 조사지 상태 변경
+ */
+const updateSurveyStatus = `
+UPDATE survey
+SET status = '심사중'
+WHERE survey_no = ?
+`;
+
 module.exports = {
   getAvailableSchedules,
   getUpcomingReservations,
@@ -321,4 +330,5 @@ module.exports = {
   getConsultByDate,
   getConsultLogDetail,
   updateConsult,
+  updateSurveyStatus,
 };

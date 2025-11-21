@@ -1,85 +1,113 @@
 <script setup>
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 import { useAuthStore } from '@/stores/authStore';
-
 import AppMenuItem from './AppMenuItem.vue';
 
 const authStore = useAuthStore();
 
+// 메뉴 데이터 + 권한 정보 추가
 const model = ref([
   {
     label: 'Home',
     items: [
-      { label: 'Dashboard', icon: 'pi pi-fw pi-home', to: '/' },
-      { label: '로그인', icon: 'pi pi-fw pi-sign-in', to: '/login' },
-      { label: '로그아웃', icon: 'pi pi-fw pi-sign-out', command: () => authStore.logout() },
+      { label: 'Dashboard', icon: 'pi pi-fw pi-home', to: '/', roles: ['1a', '2a', '3a'] },
+      { label: '로그인', icon: 'pi pi-fw pi-sign-in', to: '/login', roles: ['guest'] }, // guest: 비로그인
+      {
+        label: '로그아웃',
+        icon: 'pi pi-fw pi-sign-out',
+        command: () => authStore.logout(),
+        roles: ['1a', '2a', '3a'],
+      }, // 로그인
     ],
   },
   {
     label: '이용자',
     items: [
-      { label: '이용자 상담신청', icon: 'pi pi-fw pi-home', to: { name: 'counseling-apply' } },
-      { label: '이용자 상담내역', icon: 'pi pi-fw pi-home', to: { name: 'counseling-history' } },
       {
-        label: '마이 페이지',
+        label: '이용자 상담신청',
         icon: 'pi pi-fw pi-home',
-        to: '/umy',
+        to: { name: 'counseling-apply' },
+        roles: ['1a'],
       },
+      {
+        label: '이용자 상담내역',
+        icon: 'pi pi-fw pi-home',
+        to: { name: 'counseling-history' },
+        roles: ['1a'],
+      },
+      { label: '마이 페이지', icon: 'pi pi-fw pi-home', to: '/umy', roles: ['1a'] },
     ],
   },
   {
     label: '담당자',
-    icon: 'pi pi-fw pi-prime',
     items: [
-      { label: '담당자 대시보드', icon: 'pi pi-fw pi-home', to: { name: 'staffhome' } },
+      {
+        label: '담당자 대시보드',
+        icon: 'pi pi-fw pi-home',
+        to: { name: 'staffhome' },
+        roles: ['2a'],
+      },
       {
         label: '담당자 상담스케줄설정',
         icon: 'pi pi-fw pi-home',
         to: { name: 'staffschedule-settings' },
+        roles: ['2a'],
       },
       {
         label: '담당자 상담예약관리',
         icon: 'pi pi-fw pi-home',
         to: { name: 'reservations' },
+        roles: ['2a'],
       },
       {
         label: '담당자 상담기록관리',
         icon: 'pi pi-fw pi-home',
         to: { name: 'counselinglist' },
+        roles: ['2a'],
       },
-      { label: '담당자신청서조회', icon: 'pi pi-fw pi-home', to: '/activityreport' },
-      { label: '지원계획조회', icon: 'pi pi-fw pi-home', to: '/applicationlist' },
-      { label: '지원결과조회', icon: 'pi pi-fw pi-home', to: '/supportresultlist' },
+      { label: '담당자신청서조회', icon: 'pi pi-fw pi-home', to: '/activityreport', roles: ['2a'] },
+      { label: '지원계획조회', icon: 'pi pi-fw pi-home', to: '/applicationlist', roles: ['2a'] },
+      { label: '지원결과조회', icon: 'pi pi-fw pi-home', to: '/supportresultlist', roles: ['2a'] },
     ],
   },
   {
     label: '관리자',
-    icon: 'pi pi-fw pi-briefcase',
-    to: '/pages',
     items: [
-      { label: '이용자승인대기목록', icon: 'pi pi-fw pi-home', to: '/applicationform' },
       {
-        label: 'Landing',
-        icon: 'pi pi-fw pi-globe',
-        to: '/landing',
+        label: '이용자승인대기목록',
+        icon: 'pi pi-fw pi-home',
+        to: '/applicationform',
+        roles: ['3a'],
       },
-      {
-        label: 'Crud',
-        icon: 'pi pi-fw pi-pencil',
-        to: '/pages/crud',
-      },
+      { label: 'Landing', icon: 'pi pi-fw pi-globe', to: '/landing', roles: ['3a'] },
+      { label: 'Crud', icon: 'pi pi-fw pi-pencil', to: '/pages/crud', roles: ['3a'] },
     ],
   },
 ]);
+
+// 권한 기반 메뉴 필터링
+const filteredMenu = computed(() => {
+  const role = authStore.isLoggedIn ? authStore.userRole : 'guest'; // 로그인 여부에 따라 role 결정
+
+  return model.value
+    .map((menu) => {
+      if (!menu.items) return null;
+      const filteredItems = menu.items.filter((item) => item.roles.includes(role));
+      if (filteredItems.length === 0) return null;
+      return { ...menu, items: filteredItems };
+    })
+    .filter(Boolean);
+});
 </script>
 
 <template>
   <ul class="layout-menu">
-    <template v-for="(item, i) in model" :key="item">
-      <app-menu-item v-if="!item.separator" :item="item" :index="i"></app-menu-item>
-      <li v-if="item.separator" class="menu-separator"></li>
+    <template v-for="(item, i) in filteredMenu" :key="i">
+      <app-menu-item :item="item" :index="i"></app-menu-item>
     </template>
   </ul>
 </template>
 
-<style lang="scss" scoped></style>
+<style scoped lang="scss">
+/* 필요 시 스타일 추가 */
+</style>
