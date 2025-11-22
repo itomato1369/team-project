@@ -133,22 +133,35 @@ ORDER BY
 
 const userInquirySqls = {
   findSurveysForMyPage: `
-SELECT
-    s.content,
-    n.institution_name,
-    s.business_name,
-    s.created_at,
-    s.status,
-    i.inquiry_no,
-    s.ward_no
-FROM survey s
-LEFT JOIN notice n ON s.business_name = n.business_name
-LEFT JOIN inquiry i ON s.content = i.inquiry_name
-WHERE s.writer = ?
-ORDER BY s.created_at DESC
-`,
-
-  findSurveyByInquiryContent: `
+  SELECT 
+  s.writer, -- 작성자 user_id(ex: test555)
+  w.ward_no,
+  w.name,
+  i.institution_name ,
+  s.survey_no,
+  s.business_name,
+  s.created_at ,
+  p.priority_no, -- survey를 통해 support_plan이 작성되었다면 그값을 찾기 위해선 우선순위PK값이 필요함
+  sp.support_plan_no,
+  sp.support_plan_status AS plan_status,
+  sr.support_result_no
+  FROM 
+  member m
+  INNER JOIN ward w ON w.guardian_id = m.user_id  -- 사용자 ward 필터링
+  INNER JOIN survey s ON s.ward_no = w.ward_no  -- survey 필수 (없으면 행 제외)
+  LEFT JOIN priority p ON p.survey_no = s.survey_no AND p.ward_no = w.ward_no  -- survey → priority (없을 수 있음)
+  LEFT JOIN support_plan sp ON sp.priority_no = p.priority_no AND sp.ward_no = w.ward_no  -- priority → support_plan (없을 수 있음)
+  LEFT JOIN support_result sr ON sr.support_plan_no = sp.support_plan_no  -- support_plan → support_result (없을 수 있음)
+  JOIN institution i ON i.institution_no = m.institution_no
+  WHERE 
+  m.user_id = ?
+  ORDER BY 
+  w.ward_no,  -- ward별 그룹핑처럼 정렬
+  s.survey_no, 
+  sp.support_plan_no, 
+  sr.support_result_no
+  `,
+    findSurveyByInquiryContent: `
 select 
   s.*
 from survey s
@@ -216,7 +229,7 @@ INSERT INTO survey_result (business_no, survey_answer, survey_no)
 VALUES ?
 `,
 
-  findSupportPlanDetailByInquiryNo: `
+  findSupportPlanDetailBySupportPlanNo: `
 SELECT
     sp.business_name,
     sp.support_plan_goal,
@@ -225,11 +238,49 @@ SELECT
 FROM
     support_plan sp
 WHERE
-    sp.notice_no = (SELECT notice_no FROM inquiry WHERE inquiry_no = ?)
-    AND sp.ward_name = (SELECT name FROM ward WHERE ward_no = ?)
-ORDER BY
-    sp.created_at DESC
-LIMIT 1
+    sp.support_plan_no = ?
+    AND sp.ward_no = ?
+`,
+
+  findSurveyDataBySurveyNo: `
+SELECT
+    s.survey_no,
+    s.business_name,
+    s.purpose,
+    s.content,
+    s.writer,
+    s.created_at,
+    s.modify_reason,
+    s.status,
+    w.name AS ward_name,
+    (SELECT i.inquiry_name
+     FROM inquiry i
+     JOIN inquiry_list il ON i.inquiry_no = il.inquiry_no
+     JOIN survey_result sr ON il.business_no = sr.business_no
+     WHERE sr.survey_no = s.survey_no
+     LIMIT 1) AS inquiry_name,
+    (SELECT sp.support_plan_status
+     FROM support_plan sp
+     JOIN priority p ON sp.priority_no = p.priority_no
+     WHERE p.survey_no = s.survey_no
+     LIMIT 1) AS plan_status
+FROM survey s
+JOIN ward w ON s.ward_no = w.ward_no
+WHERE s.survey_no = ?
+`,
+
+  findQuestionsAndAnswersBySurveyNo: `
+SELECT
+    il.business_no,
+    il.answer_list AS question_content,
+    il.answer AS response_type,
+    il.must AS is_required,
+    il.priority,
+    sr.survey_answer
+FROM survey_result sr
+JOIN inquiry_list il ON sr.business_no = il.business_no
+WHERE sr.survey_no = ?
+ORDER BY il.priority, il.business_no
 `,
 };
 

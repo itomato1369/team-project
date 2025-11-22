@@ -58,7 +58,7 @@ export default [
     props: true,
   },
   {
-    path: '/user/support-plan/:inquiry_no/:ward_no',
+    path: '/user/support-plan/:support_plan_no',
     name: 'user-support-plan-detail',
     component: () => import('@/views/UserSupportPlanDetail.vue'),
     props: true,
@@ -79,5 +79,11 @@ export default [
     path: '/qna/question-detail/:question_no',
     name: 'questionDetail',
     component: () => import('@/views/pages/user/QnaServiceDetail.vue'),
+  },
+  {
+    path: '/user/survey-detail/:survey_no',
+    name: 'user-survey-detail',
+    component: () => import('@/components/UserSurveyDetail.vue'),
+    props: true,
   },
 ];

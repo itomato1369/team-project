@@ -340,9 +340,9 @@ const changePassword = async (userId, passwordData) => {
 
 // 프론트엔드 호출처: frontend/src/views/UserSupportPlanDetail.vue
 const getSupportPlanDetail = async (reqData) => {
-  const { inquiry_no, ward_no } = reqData;
-  const result = await mapper.query("findSupportPlanDetailByInquiryNo", [
-    inquiry_no,
+  const { support_plan_no, ward_no } = reqData;
+  const result = await mapper.query("findSupportPlanDetailBySupportPlanNo", [
+    support_plan_no,
     ward_no,
   ]);
   if (!Array.isArray(result) || result.length === 0) {
@@ -371,6 +371,25 @@ const getAvailableWardsForInquiry = async (guardianId, inquiryNo) => {
   return await mapper.query("findAvailableWardsForInquiry", [guardianId, inquiryNo]);
 };
 
+const getSurveyDetail = async (surveyNo) => {
+  // 1. Get main survey data
+  const surveyDataResult = await mapper.query("findSurveyDataBySurveyNo", [surveyNo]);
+  if (!surveyDataResult || surveyDataResult.length === 0) {
+    return null; // Survey not found
+  }
+  const surveyData = surveyDataResult[0];
+  surveyData.created_at = formatDate(surveyData.created_at);
+
+  // 2. Get questions and answers
+  const questionsData = await mapper.query("findQuestionsAndAnswersBySurveyNo", [surveyNo]);
+
+  // 3. Combine and return
+  return {
+    surveyData,
+    questionsData,
+  };
+};
+
 module.exports = {
   getExpiringNotices,
   getSurveyToUserWard,
@@ -394,6 +413,7 @@ module.exports = {
   updateUserInfo,
   changePassword,
   getSupportPlanDetail,
+  getSurveyDetail,
   getInstitutionInfo,
   updateInstitutionStatus,
   getAvailableWardsForInquiry
