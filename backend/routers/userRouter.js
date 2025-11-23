@@ -249,7 +249,7 @@ router.get("/wardlist", async (req, res) => {
   }
 });
 
-// D:\Dev\git\team-project\frontend\src\views  UserMyPage.vue -> UserWardInfoInsert.vue
+// frontend\src\views  UserMyPage.vue -> UserWardInfoInsert.vue
 router.post("/wards", async (req, res) => {
   try {
     const result = await userService.addWard(req.body);
