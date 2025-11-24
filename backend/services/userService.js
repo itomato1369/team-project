@@ -1,6 +1,28 @@
 const bcrypt = require("bcrypt");
 const mapper = require("../database/mappers/mapper");
 const sql = require("../database/sqlList");
+const crypto = require('crypto');
+
+// AES암호화 제대로쓰려면 user || ward 별로 iv키를 할당 해 줘야하는데 급해서 생략
+function encrypt(text) {
+  const key = Buffer.from(process.env.AES_KEY, 'hex');
+  const iv = Buffer.from(process.env.AES_IV, 'hex');  // 고정 IV
+  const cipher = crypto.createCipheriv('aes-256-cbc', key, iv);
+  let encrypted = cipher.update(text, 'utf8', 'hex');
+  encrypted += cipher.final('hex');
+  return Buffer.from(encrypted, 'hex').toString('base64');  // Base64만 반환 (iv 저장 X)
+}
+
+// 복호화 예시 (필요 시 사용)
+function decrypt(encryptedBase64) {
+  const key = Buffer.from(process.env.AES_KEY, 'hex');
+  const iv = Buffer.from(process.env.AES_IV, 'hex');
+  const encryptedHex = Buffer.from(encryptedBase64, 'base64').toString('hex');
+  const decipher = crypto.createDecipheriv('aes-256-cbc', key, iv);
+  let decrypted = decipher.update(encryptedHex, 'hex', 'utf8');
+  decrypted += decipher.final('utf8');
+  return decrypted;
+}
 
 const formatDate = (date) => {
   // date 값이 null이거나 유효하지 않은 경우, 에러를 발생시키는 대신 null을 반환
@@ -254,7 +276,25 @@ const getUsersByInstitution = async (institutionNo) => {
 
 // 프론트엔드 호출처: 확인 필요 (UserWardInfoInsert.vue, UserWardInfoUpdate.vue 에서 사용될 수 있음)
 const getWardsByGuardianId = async (guardianId) => {
-  return await mapper.query("findWardsByGuardianId", guardianId);
+  const wards = await mapper.query("findWardsByGuardianId", guardianId);
+  
+  if (!Array.isArray(wards) || wards.length === 0) {
+    return []; // Return an empty array if no wards are found or if result is not an array
+  }
+
+  const decryptedWards = wards.map(w => {
+    // Ensure ward_rrn exists and is a string before decrypting
+    if (w.ward_rrn && typeof w.ward_rrn === 'string') {
+      return {
+        ...w,
+        // ward_rrn이 Base64 문자열 패턴과 일치하는 경우에만 복호화를 시도
+        ward_rrn: /^[A-Za-z0-9+/=]+$/.test(w.ward_rrn) ? decrypt(w.ward_rrn) : w.ward_rrn
+      };
+    }
+    return w; // Return ward as is if ward_rrn is missing or not a string
+  });
+
+  return decryptedWards;
 };
 
 // 프론트엔드 호출처: 확인 필요 (UserWardInfoInsert.vue 에서 사용될 수 있음)
@@ -270,11 +310,14 @@ const addWard = async (wardData) => {
     age,
   } = wardData;
 
-  // Hash the RRN before saving
-  const hashedRrn = await bcrypt.hash(ward_rrn, 10);
+  // AES 암호화
+  const encryptedRrn = encrypt(ward_rrn);
+  // Hash the RRN before saving: 단방향 방식이라 복호화가 불가능해서 주석처리
+  // const hashedRrn = await bcrypt.hash(ward_rrn, 10);
+  
 
   return await mapper.query("insertWard", [
-    hashedRrn,
+    encryptedRrn,
     name,
     sex,
     address,
@@ -339,11 +382,9 @@ const changePassword = async (userId, passwordData) => {
 };
 
 // 프론트엔드 호출처: frontend/src/views/UserSupportPlanDetail.vue
-const getSupportPlanDetail = async (reqData) => {
-  const { inquiry_no, ward_no } = reqData;
-  const result = await mapper.query("findSupportPlanDetailByInquiryNo", [
-    inquiry_no,
-    ward_no,
+const getSupportPlanDetail = async (support_plan_no) => {
+  const result = await mapper.query("findSupportPlanDetailBySupportPlanNo", [
+    support_plan_no,
   ]);
   if (!Array.isArray(result) || result.length === 0) {
     return null;
@@ -365,6 +406,37 @@ const updateInstitutionStatus = async (institutionNo, data) => {
     institutionNo,
   ]);
   return result;
+};
+//
+const getAvailableWardsForInquiry = async (guardianId, inquiryNo) => {
+  return await mapper.query("findAvailableWardsForInquiry", [guardianId, inquiryNo]);
+};
+
+const getSurveyDetail = async (surveyNo) => {
+  // 1. Get main survey data
+  const surveyDataResult = await mapper.query("findSurveyDataBySurveyNo", [surveyNo]);
+  if (!surveyDataResult || surveyDataResult.length === 0) {
+    return null; // Survey not found
+  }
+  const surveyData = surveyDataResult[0];
+  surveyData.created_at = formatDate(surveyData.created_at);
+
+  // 2. Get questions and answers
+  const questionsData = await mapper.query("findQuestionsAndAnswersBySurveyNo", [surveyNo]);
+
+  // 3. Combine and return
+  return {
+    surveyData,
+    questionsData,
+  };
+};
+
+const getSupportResultDetail = async (resultNo) => {
+  const result = await mapper.query("findSupportResultDetailByResultNo", [resultNo]);
+  if (!Array.isArray(result) || result.length === 0) {
+    return null;
+  }
+  return result[0];
 };
 
 module.exports = {
@@ -390,6 +462,9 @@ module.exports = {
   updateUserInfo,
   changePassword,
   getSupportPlanDetail,
+  getSurveyDetail,
   getInstitutionInfo,
   updateInstitutionStatus,
+  getSupportResultDetail,
+  getAvailableWardsForInquiry
 };

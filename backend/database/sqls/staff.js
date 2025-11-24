@@ -43,7 +43,7 @@ const supportPlan = `
   FROM support_plan
   ORDER BY created_at DESC;
 `;
-
+//피보호자정보조회
 const wardsearch = `
 SELECT
     w.name AS '이름',
@@ -57,9 +57,12 @@ SELECT
     w.disabled_level AS '장애유형',
     w.address AS '주소',
     w.ward_no AS '피보호자번호'
-FROM survey s
-INNER JOIN ward w ON s.ward_no = w.ward_no
-WHERE s.survey_no = 1;
+FROM
+    survey s
+INNER JOIN
+    ward w ON s.ward_no = w.ward_no
+WHERE
+    s.survey_no = ?;
 `;
 
 const wardno = `SELECT * FROM survey WHERE survey_no = ?`;

@@ -3,73 +3,67 @@ import { ref, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import axios from 'axios';
 import Button from 'primevue/button';
-// Removed InputText and Textarea as they are no longer directly used in the template for plan_content
 
 const route = useRoute();
 const router = useRouter();
 
-const supportPlan = ref(null);
+const supportResult = ref(null);
 const loading = ref(true);
 const error = ref(null);
 
-const fetchSupportPlanDetail = async () => {
+const fetchSupportResultDetail = async () => {
   loading.value = true;
   error.value = null;
   try {
-    const support_plan_no = route.params.support_plan_no;
-
-    const response = await axios.get(`/api/user/support-plan/${support_plan_no}`);
+    const support_result_no = route.params.support_result_no;
+    const response = await axios.get(`/api/user/support-result/${support_result_no}`);
     if (response.data.result) {
-      supportPlan.value = response.data.result;
+      supportResult.value = response.data.result;
     }
   } catch (err) {
-    console.error('Failed to fetch support plan detail:', err);
+    console.error('Failed to fetch support result detail:', err);
+    error.value = '결과 정보를 불러오는 데 실패했습니다.';
   } finally {
     loading.value = false;
   }
 };
 
 const goBack = () => {
-  router.go(-1); // Go back to the previous page
+  router.go(-1);
 };
 
 onMounted(() => {
-  fetchSupportPlanDetail();
+  fetchSupportResultDetail();
 });
 </script>
 
 <template>
   <div>
-    <div class="support-plan-container card">
-      <div class="plan-form">
-        <h4>지원 계획 상세</h4>
+    <div class="support-result-container card">
+      <div class="result-form">
+        <h4>지원 결과 상세</h4>
         <div v-if="loading" class="loading-message">로딩 중...</div>
         <div v-else-if="error" class="error-message">{{ error }}</div>
-        <div v-else-if="supportPlan">
-          <div v-if="supportPlan.support_plan_status === 'REJECTED'" class="rejected-message">
+        <div v-else-if="supportResult">
+          <div v-if="supportResult.support_reject_reason" class="rejected-message">
             <h1>반려되었습니다.</h1>
-            <p>관리자에 의해 지원 계획이 반려되었습니다.</p>
+            <p>{{ supportResult.support_reject_reason }}</p>
           </div>
           <div v-else class="p-fluid">
             <div class="p-field">
               <h3>
-                사업명: <strong>{{ supportPlan.business_name }}</strong>
+                제목: <strong>{{ supportResult.support_title }}</strong>
               </h3>
             </div>
             <div class="p-field">
-              <h3>
-                승인 목표: <strong>{{ supportPlan.support_plan_goal }}</strong>
-              </h3>
-            </div>
-            <div class="p-field">
-              <h3>승인된 내용:</h3>
-              <div class="plan-content-display p-3 border-round surface-100">
-                {{ supportPlan.plan }}
+              <h3>결과 내용:</h3>
+              <div class="content-display p-3 border-round surface-100">
+                {{ supportResult.support_content }}
               </div>
             </div>
           </div>
         </div>
-        <div v-else class="no-data-message">지원 계획을 찾을 수 없습니다.</div>
+        <div v-else class="no-data-message">지원 결과를 찾을 수 없습니다.</div>
       </div>
       <div class="actions">
         <Button label="목록으로 돌아가기" icon="pi pi-arrow-left" @click="goBack" />

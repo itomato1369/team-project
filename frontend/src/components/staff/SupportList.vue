@@ -2,7 +2,7 @@
 import { ref, onBeforeMount, computed } from 'vue';
 import axios from 'axios';
 import InputText from 'primevue/inputtext';
-import SupportPlanItem2 from '@/components/staff/SupportPlanItem2.vue';
+import SupportPlanItem2 from '@/components/staff/SupportPlanItem.vue';
 
 const ALLOW_MULTIPLE_ACCORDIONS = ref(false);
 const surveys = ref([]);
@@ -51,7 +51,7 @@ onBeforeMount(async () => {
       plan: item.plan || '',
       file_names: item.file_names || '',
       support_plan_status: item.support_plan_status || item.status || '', // ✅ 상태 포함
-      ward_no: ward_no,
+      //ward_no: ward_no,
     }));
   } catch (err) {
     console.error('Support Plan 조회 오류:', err);

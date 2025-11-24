@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted, ref, watch, computed } from 'vue';
+import { onMounted, ref, watch, computed, onBeforeMount } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import axios from 'axios';
 
@@ -65,6 +65,9 @@ watch(activeTab, (newIndex) => {
   }
 });
 
+onBeforeMount(() => {
+  if (route.query.tab === undefined) { activeTab.value = -1; }
+})
 onMounted(() => {
   loadUserInfo(); // 컴포넌트 마운트 시 사용자 정보 로드
   // 초기 로드 시 URL에 탭 정보가 없으면 첫 번째 탭으로 설정하고 URL 업데이트

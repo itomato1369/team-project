@@ -21,7 +21,7 @@ const inquiryColumns = ref([
   { field: 'inquiry_name', header: '조사지명', style: 'min-width: 20rem' },
   { field: 'business_name', header: '사업명', style: 'min-width: 20rem' },
   { field: 'created_at', header: '작성일', style: 'min-width: 10rem' },
-  { field: 'management', header: '관리', style: 'min-width: 10rem' },
+  { field: 'management', header: '신청', style: 'min-width: 10rem' },
 ]);
 
 // API를 통해 사용자 문의 목록을 가져오는 함수
@@ -54,17 +54,17 @@ const goToInquiryDetail = (inquiry) => {
   <div class="card">
     <div class="flex items-center mb-5">
       <i class="pi pi-file-text" style="font-size: 2.5rem; color: var(--primary-color)"></i>
-      <h2 class="text-3xl font-bold ml-4">조사지 관리</h2>
+      <h2 class="text-3xl font-bold ml-4">📝사업 신청</h2>
     </div>
 
     <div class="inquiry-list-box">
-      <h3 class="text-xl font-semibold mb-4">조사지 목록</h3>
+      <h3 class="text-xl font-semibold mb-4">신청 가능한 사업 목록</h3>
 
       <!-- 공통 테이블 컴포넌트 사용 -->
       <BaseDataTable :data="userInquiries" :columns="inquiryColumns" :loading="loading" :rows="5">
         <!-- 'management' 컬럼의 body를 커스터마이징 -->
         <template #body-management="{ data }">
-          <Button label="상세보기" outlined @click="goToInquiryDetail(data)" />
+          <Button label="신청하기" outlined @click="goToInquiryDetail(data)" />
         </template>
       </BaseDataTable>
     </div>

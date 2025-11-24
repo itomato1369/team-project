@@ -55,12 +55,19 @@ onMounted(async () => {
     });
 
     // 4. 작성될 survey로 지원받을 피보호자 목록 조회
-    wards.value = (
-      await axios.get('/api/user/wardlist', {
-        params: { guardianId: authStore.user.id },
-      })
-    ).data.result;
+    const wardsResponse = await axios.get('/api/user/surveys/create', {
+      params: {
+        guardianId: authStore.user.id,
+        inquiryNo: inquiryId
+      }
+    });
+    const fetchedWards = wardsResponse.data.result;
 
+    if (fetchedWards && fetchedWards.length > 0) {
+      wards.value = fetchedWards;
+    } else {
+      wards.value = [{ name: '조회 대상이 없습니다.', ward_no: null }];
+    }
     let savedAnswersMap = new Map();
 
     if (surveyCheckResponse.data.result) {
@@ -106,14 +113,36 @@ const isSaveDisabled = computed(() => {
     (q) => q.is_required === 1 && (q.answer === null || q.answer.toString().trim() === '')
   );
 
+  // 대상이 선택되지 않은 경우
+  const isWardNotSelected = selectedWardNo.value === null;
+
   // 수정 모드일 경우, 수정 사유도 비어있는지 확인
   if (editMode.value) {
-    return hasUnansweredRequiredQuestions || modificationReason.value.trim() === '';
+    return hasUnansweredRequiredQuestions || modificationReason.value.trim() === '' || isWardNotSelected;
   }
 
-  return hasUnansweredRequiredQuestions;
+  return hasUnansweredRequiredQuestions || isWardNotSelected;
 });
 
+// priority를 기준으로 질문들을 그룹화하는 계산된 속성
+const groupedQuestions = computed(() => {
+  // questions 배열이 비어있으면 빈 객체 반환
+  if (!questions.value || questions.value.length === 0) {
+    return {};
+  }
+
+  // reduce 함수를 사용해 priority를 key로 하는 객체로 그룹화
+  return questions.value.reduce((groups, question) => {
+    const priority = question.priority || '기타'; // priority가 없는 경우 '기타'로 분류
+
+    if (!groups[priority]) {
+      groups[priority] = []; // 해당 priority 그룹이 없으면 새로 생성
+    }
+
+    groups[priority].push(question); // 현재 질문을 그룹에 추가
+    return groups;
+  }, {});
+});
 // 저장 버튼 클릭 시 함수
 const saveInquiry = async () => {
   try {
@@ -229,27 +258,26 @@ const goBackToList = () => {
       <!-- 목적 및 내용 입력 -->
       <Card>
         <template #title>
-          <div class="font-semibold text-xl">조사 목적 및 내용</div>
+          <div class="font-semibold text-xl " > 조사 목적 및 내용  </div>
         </template>
         <template #content>
           <div class="flex flex-col gap-6">
+            <div class="flex flex-col gap-3" >
+              <label>대상</label>
+              <Dropdown
+              v-model="selectedWardNo"
+              :options="wards"
+              optionLabel="name"
+              optionValue="ward_no"
+              placeholder="대상 선택"
+              class="w-full md:w-56"
+              />
+            </div>
             <div class="flex flex-col gap-3">
               <label>목적</label>
               <InputText v-model="surveyPurpose" placeholder="조사 목적을 입력하세요..." />
             </div>
-            <div class="flex flex-col gap-3">
-              <label>대상</label>
-              <div class="card flex justify-center">
-                <Dropdown
-                  v-model="selectedWardNo"
-                  :options="wards"
-                  optionLabel="name"
-                  optionValue="ward_no"
-                  placeholder="대상 선택"
-                  class="w-full md:w-56"
-                />
-              </div>
-            </div>
+            
             <div class="flex flex-col gap-3">
               <label>내용</label>
               <Textarea v-model="surveyContent" rows="3" placeholder="조사 내용을 입력하세요..." />
@@ -264,54 +292,62 @@ const goBackToList = () => {
           <div class="font-semibold text-xl">질문 및 답변</div>
         </template>
         <template #content>
-          <div class="flex flex-col gap-6">
+          <!-- v-for를 이중으로 사용하여 그룹별로 렌더링 -->
+          <div
+            v-for="(questionGroup, priority) in groupedQuestions"
+            :key="priority"
+            class="flex flex-col gap-6 mb-8"
+          >
+            <!-- 그룹 제목 (예: 긴급, 중점) -->
+            <h3 class="text-lg font-bold text-gray-700 border-b pb-2">{{ priority }} 항목</h3>
+
             <div
-              v-for="(question, index) in questions"
+              v-for="(question, index) in questionGroup"
               :key="question.id"
               class="flex flex-col gap-3"
             >
-              <label :for="'question-' + index" class="font-medium">
-                질문 {{ index + 1 }}. {{ question.text }}
+              <label :for="'question-' + question.id" class="font-medium flex items-center">
                 <span
                   v-if="question.priority"
                   :class="{
                     'priority-urgent': question.priority === '긴급',
                     'priority-important': question.priority === '중점',
-                    'priority-plan': question.priority === '계획',
+                    'priority-plan': question.priority === '계획'
                   }"
-                  class="ml-2 px-2 py-1 rounded-md text-xs font-semibold"
+                  class="priority-tag"
                 >
                   {{ question.priority }}
                 </span>
+                <span>질문 {{ index + 1 }}. {{ question.text }}</span>
               </label>
-              <!-- 서술형 질문 (response_type: 1) -->
+              <!-- 서술형 질문 -->
               <Textarea
                 v-if="question.response_type === 1"
-                :id="'question-' + index"
+                :id="'question-' + question.id"
                 v-model="question.answer"
                 rows="4"
                 placeholder="답변을 입력하세요..."
               />
 
-              <!-- O/X 질문 (response_type: 2) -->
+              <!-- O/X 질문 -->
               <div v-else-if="question.response_type === 2" class="flex items-center gap-6">
                 <div class="flex items-center">
                   <RadioButton
-                    :inputId="'question-o-' + index"
-                    :name="'question-' + index"
+                    :inputId="'question-o-' + question.id"
+                    :name="'question-' + question.id"
                     value="O"
                     v-model="question.answer"
                   />
-                  <label :for="'question-o-' + index" class="ml-2">O</label>
+                  <label :for="'question-o-' + question.id" class="ml-2">O</label>
                 </div>
                 <div class="flex items-center">
                   <RadioButton
-                    :inputId="'question-x-' + index"
-                    :name="'question-' + index"
+                    :inputId="'question-x-' + question.id"
+                    :name="'question-' + question.id"
                     value="X"
                     v-model="question.answer"
                   />
-                  <label :for="'question-x-' + index" class="ml-2">X</label>
+                  <label :for="'question-x-' + question.id" class="ml-2">X</label>
                 </div>
               </div>
             </div>
@@ -347,6 +383,15 @@ const goBackToList = () => {
 </template>
 
 <style scoped>
+.priority-tag {
+  margin-left: -0.75rem; /* 왼쪽으로 돌출 효과 */
+  margin-right: 0.5rem; /* mr-2 */
+  padding: 0.2rem 0.6rem; /* 폰트 크기에 맞춰 패딩 조정 */
+  border-radius: 0.375rem; /* rounded-md */
+  font-size: 0.95rem; /* 기존보다 약 1.2배 크게 */
+  font-weight: 600; /* font-semibold */
+  flex-shrink: 0; /* 태그 크기가 줄어들지 않도록 설정 */
+}
 .priority-urgent {
   background-color: #ef4444; /* red-500 */
   color: white;
