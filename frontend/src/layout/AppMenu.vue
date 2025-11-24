@@ -10,13 +10,13 @@ const model = ref([
   {
     label: 'Home',
     items: [
-      { label: 'Dashboard', icon: 'pi pi-fw pi-home', to: '/', roles: ['1a', '2a', '3a'] },
+      { label: 'Dashboard', icon: 'pi pi-fw pi-home', to: '/', roles: ['1a', '2a', '3a', 'SYS'] },
       { label: '로그인', icon: 'pi pi-fw pi-sign-in', to: '/login', roles: ['guest'] }, // guest: 비로그인
       {
         label: '로그아웃',
         icon: 'pi pi-fw pi-sign-out',
         command: () => authStore.logout(),
-        roles: ['1a', '2a', '3a'],
+        roles: ['1a', '2a', '3a', 'SYS'],
       }, // 로그인
     ],
   },
@@ -83,12 +83,47 @@ const model = ref([
       { label: 'Crud', icon: 'pi pi-fw pi-pencil', to: '/pages/crud', roles: ['3a'] },
     ],
   },
+  {
+    label: '시스템',
+    items: [
+      { label: '시스템 관리자 대쉬보드', icon: 'pi pi-fw pi-home', to: '/system', roles: ['SYS'] },
+      {
+        label: '신규기관 등록',
+        icon: 'pi pi-fw pi-check-square',
+        to: '/system/institutions/register',
+        roles: ['SYS'],
+      },
+      {
+        label: '등록기관 목록',
+        icon: 'pi pi-fw pi-list',
+        to: '/system/institutions',
+        class: 'rotated-icon',
+        roles: ['SYS'],
+      },
+      {
+        label: '공고 등록',
+        icon: 'pi pi-fw pi-check-square',
+        to: '/system/notices/register',
+        roles: ['SYS'],
+      },
+      { label: '공고 목록', icon: 'pi pi-fw pi-list', to: '/system/notices', roles: ['SYS'] },
+      { label: '조사지 관리', icon: 'pi pi-fw pi-book', to: '/system/survey', roles: ['SYS'] },
+      { label: '자료실', icon: 'pi pi-fw pi-file', to: '/system/data-board', roles: ['SYS'] },
+      {
+        label: '권한승인 대기 목록',
+        icon: 'pi pi-fw pi-id-card',
+        to: '/system/approval',
+        roles: ['SYS'],
+      },
+    ],
+  },
 ]);
 
 // 권한 기반 메뉴 필터링
 const filteredMenu = computed(() => {
   const role = authStore.isLoggedIn ? authStore.userRole : 'guest'; // 로그인 여부에 따라 role 결정
-
+  console.log('===============================\nrole is ', role);
+  console.log('===============================\n menu is ', model.value);
   return model.value
     .map((menu) => {
       if (!menu.items) return null;
