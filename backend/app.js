@@ -10,6 +10,14 @@ const port = 3000;
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
+let apiPath = "";
+if (process.argv.indexOf("prod") > -1) {
+  apiPath = "/api";
+}
+app.get(`${apiPath}/board`, function (req, res) {
+  res.send({ title: "노드 API 서버 업데이트" });
+});
+
 // [추가] 모든 요청을 로깅하는 최상위 미들웨어
 app.use((req, res, next) => {
   console.log(`[GLOBAL] Incoming Request: ${req.method} ${req.originalUrl}`);
@@ -54,7 +62,7 @@ const qnaRouter = require("./routers/qnaRouter.js");
 app.use(`${apiPath}/qna`, qnaRouter);
 // 아이디 비밀번호 찾기 모듈
 const findAccountRouter = require("./routers/accountRouter.js");
-app.use("/findaccount", findAccountRouter);
+app.use(`${apiPath}/findaccount`, findAccountRouter);
 
 // [수정] 가장 일반적인 라우터를 마지막에 등록
 const boardRouter = require("./routers/router.js");
@@ -67,13 +75,6 @@ app.listen(port, () => {
 });
 
 // vue.js build 이후
-let apiPath = "";
-if (process.argv.indexOf("prod") > -1) {
-  apiPath = "/api";
-}
-app.get(`${apiPath}/board`, function (req, res) {
-  res.send({ title: "노드 API 서버 업데이트" });
-});
 
 const path = require("path");
 const publicPath = path.join(__dirname, "public");
