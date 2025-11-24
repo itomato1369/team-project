@@ -45,6 +45,21 @@ export default [
     component: () => import('@/components/UserInquiryDetail.vue'),
   },
   {
+    path: 'ud/data-board', // (실제 경로는 다를 수 있습니다)
+    name: 'user-databoard', // 👈 이 'name'을 사용할 것입니다.
+    component: () => import('@/views/pages/user/UserDataBoard.vue'),
+  },
+  {
+    path: 'ud/notices', // 등록된 공고 목록
+    name: 'userNotice',
+    component: () => import('@/views/pages/user/UserNotice.vue'),
+  },
+  {
+    path: 'ud/notices/:id', // 공고 상세정보
+    name: 'userNoticeDetails',
+    component: () => import('@/views/pages/user/UserNoticeDetail.vue'),
+  },
+  {
     // 피보호자 추가
     path: '/user/ward/insert',
     name: 'user-ward-insert',

@@ -12,12 +12,12 @@ const authStore = useAuthStore();
 
 const quickMenus = ref([
   // ... (기존 quickMenus 데이터)
-  { icon: '📄', label: '사업 공고', path: 'umy' },
+  { icon: '📄', label: '사업 공고', path: 'ud/notices' },
   { icon: '📝', label: '사업 신청', path: 'ui' },
-  { icon: '🧑‍🤝‍🧑', label: '피보호자 등록', path: 'umy' },
-  { icon: '📞', label: '상담 예약', path: 'umy' },
+  { icon: '🧑‍🤝‍🧑', label: '피보호자 등록', path: '/umy?tab=2' },
+  { icon: '📞', label: '상담 예약', path: 'counseling-apply' },
   { icon: '❓', label: 'Q&A', path: 'qna' },
-  { icon: '📚', label: '자료실', path: 'umy' },
+  { icon: '📚', label: '자료실', path: 'ud/data-board' },
 ]);
 
 const expiringNotices = ref([]);
@@ -59,6 +59,35 @@ const toggleAccordion = (surveyNo) => {
   } else {
     // 다른 항목을 클릭하면 해당 항목의 surveyNo를 저장하여 엽니다.
     selectedSurveyNo.value = surveyNo;
+  }
+};
+
+// --- ADDED ---
+// '내 지원 현황'의 상세보기 버튼 클릭 시 실행될 함수
+const goToInquiryDetail = async (item) => {
+  // item 객체에서 survey_no를 가져옵니다.
+  const surveyNo = item.survey_no;
+  if (!surveyNo) {
+    console.error('조사지 번호(survey_no)가 없습니다.');
+    return;
+  }
+
+  try {
+    // 1. (예제) 백엔드 API를 호출하여 상세 데이터를 가져옵니다.
+    //    실제 API 엔드포인트로 수정해야 합니다.
+    console.log(`서버에 ${surveyNo}번 조사지의 상세 정보를 요청합니다.`);
+    const response = await axios.get(`/api/user/user-inquiry-by-surveyno`, {
+      params: { surveyNo: surveyNo },
+    });
+    console.log('======================= 서버로부터 받은 상세 정보:', response.data);
+
+    // 2. 'userInquiryDetail' 라우트로 survey_no를 파라미터로 전달하며 이동합니다.
+    router.push({
+      name: 'user-inquiry-detail',
+      params: { id: response.data.result[0].inquiry_no },
+    });
+  } catch (error) {
+    console.error(`${surveyNo}번 조사지 상세 정보 조회 또는 페이지 이동 실패:`, error);
   }
 };
 
@@ -139,12 +168,13 @@ const performSearch = (query) => {
 
             <transition name="accordion-slide">
               <div v-if="selectedSurveyNo === item.survey_no" class="accordion-panel">
-                <p><strong>상세 정보</strong></p>
-                <p>
-                  이곳에 {{ item.business_name }} (설문번호: {{ item.survey_no }})에 대한 상세
-                  내용을 표시합니다.
-                </p>
-                <p>(예: item.content 또는 item.details 필드)</p>
+                <!-- --- MODIFIED --- -->
+                <Button
+                  label="상세보기"
+                  icon="pi pi-search"
+                  class="p-button-sm p-button-secondary"
+                  @click="goToInquiryDetail(item)"
+                />
               </div>
             </transition>
           </div>
@@ -220,6 +250,8 @@ const performSearch = (query) => {
   border: 1px solid #000;
   border-radius: 10px;
   padding: 0.75rem;
+  max-height: 250px; /* 최대 높이 설정 */
+  overflow-y: auto; /* 내용이 넘치면 스크롤 */
 }
 /* .Menu_Group {
   flex-wrap: wrap;
@@ -308,6 +340,21 @@ const performSearch = (query) => {
   border-bottom: 1px solid #e6e6e6;
   cursor: pointer; /* 클릭 가능하도록 커서 변경 */
   transition: background-color 0.2s ease;
+}
+
+.support-status-item > span:first-of-type {
+  flex: 1; /* business_name이 남은 공간을 차지하도록 */
+  margin-right: 0.5rem; /* 아이콘과의 간격 */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.support-status-item > span.date {
+  flex-shrink: 0; /* 날짜는 고정 너비 유지 */
+  width: 100px; /* 날짜 너비 고정 */
+  text-align: right;
+  margin-right: 0.75rem; /* 아이콘과의 간격 */
 }
 
 /* (선택 사항) 호버 및 열린 상태 스타일 */
