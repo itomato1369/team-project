@@ -231,8 +231,54 @@ SELECT
     address AS '주소',
     ward_no AS '피보호자번호'
 FROM ward
-WHERE ward_no = ?;
+WHERE ward_no = ?
 `;
+const supportResultByWardNoSurveyNo = `
+SELECT
+  sr.support_result_no,
+  sr.support_title,
+  sr.support_spend,
+  sr.support_started_at,
+  sr.support_ended_at,
+  sr.support_content,
+  sp.staff_name,
+  sp.business_name
+FROM 
+  support_result sr
+JOIN 
+  support_plan sp ON sr.support_plan_no = sp.support_plan_no
+JOIN 
+  priority p ON sp.priority_no = p.priority_no
+WHERE 
+  sp.ward_no = ? AND p.survey_no = ?
+ORDER BY 
+  sr.support_started_at DESC
+`;
+
+const supportPlanByWardNoSurveyNo = `
+SELECT 
+  sp.support_plan_no,
+  sp.support_plan_goal,
+  sp.staff_name,
+  sp.created_at,
+  sp.writer_date,
+  sp.priority_no,
+  sp.plan,
+  sp.business_name,  
+  sp.spend,          
+  sp.support_plan_status
+FROM 
+  support_plan sp
+JOIN 
+  priority p ON sp.priority_no = p.priority_no
+WHERE 
+  p.ward_no = ? AND p.survey_no = ?
+ORDER BY 
+  sp.support_plan_no DESC`;
+
+
+
+
 
 module.exports = {
   surveySelect,
@@ -255,5 +301,7 @@ module.exports = {
   findWardNoBySurveyNo,
   findSurveysByWardNo,
   getWardDetail, // 새로 추가
+  supportPlanByWardNoSurveyNo,
+  supportResultByWardNoSurveyNo,  
 };
 

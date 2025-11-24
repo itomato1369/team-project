@@ -12,7 +12,10 @@ import Column from 'primevue/column';
 // import { useRouter } from 'vue-router';
 
 const props = defineProps({
-  surveyNo: { type: Number, required: true },
+  surveyNo: {
+    type: [Number, String], // 문자열과 숫자 타입 모두 허용
+    required: true,
+  },
 });
 
 console.log('Survey.vue가 받은 surveyNo:', props.surveyNo);
@@ -24,7 +27,8 @@ const wardId = ref(null); // ⭐ 초기값은 null
 const isModalVisible = ref(false);
 const surveyList = ref([]);
 const loadingModal = ref(true); // 모달 내 데이터 로딩 상태
-const selectedSurveyNoInModal = ref(null); // SelectCategory.vue에 표시할 조사지 번호
+// ⭐ 수정: selectedSurveyNoInModal의 초기값을 props.surveyNo로 설정
+const selectedSurveyNoInModal = ref(Number(props.surveyNo));
 
 // const router = useRouter(); // 라우팅이 필요 없으므로 주석 처리 또는 제거
 

@@ -69,10 +69,22 @@ router.post("/support-result", staffService.createSupportResult);
 // 지원 결과 목록 조회
 router.get("/support-result", staffService.supportResultSearch);
 
+// [신규] 필터링된 지원 결과서 조회
+router.get(
+  "/support-result/filtered",
+  staffService.supportResultByWardSurveyNo
+);
+
 // 지원 결과 상세 조회 ← 여기 추가
 router.get(
   "/support-result/:support_result_no",
   staffService.getSupportResultDetail
+);
+
+// [신규] 필터링된 지원 계획서 조회
+router.get(
+  "/support-plan/filtered",
+  staffService.supportPlanByWardSurveyNo
 );
 
 router.get("/staff-plan-items", staffService.getStaffPlanItems);

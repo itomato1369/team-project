@@ -44,10 +44,10 @@ console.log(props);
           </div>
         </TabPanel>
         <TabPanel value="1" class="p-4">
-          <SupportList :ward-id="wardId" />
+          <SupportList :ward-id="wardId" :selected-survey-no="selectedSurveyNo" />
         </TabPanel>
         <TabPanel value="2">
-          <StaffSupportResultList :ward-id="wardId" />
+          <StaffSupportResultList :ward-id="wardId" :selected-survey-no="selectedSurveyNo" />
         </TabPanel>
       </TabPanels>
     </Tabs>

@@ -611,3 +611,50 @@ exports.getWardInfo = async (req, res) => {
     res.status(500).send({ message: "피보호자 정보 조회 중 오류 발생" });
   }
 };
+
+// 기관 담당자 피보호자가 작성한 사업 조사지 별 지원 계획서 조회
+exports.supportPlanByWardSurveyNo = async (req, res) => {
+  const { ward_no, survey_no } = req.query; // 쿼리 파라미터에서 ward_no와 survey_no 추출
+
+  if (!ward_no || !survey_no) {
+    return res
+      .status(400)
+      .send({ message: "ward_no와 survey_no 파라미터가 필요합니다." });
+  }
+
+  try {
+    let result = await db.query("supportPlanByWardNoSurveyNo", [ward_no, survey_no]);
+    console.log("DB 조회 결과:", result); // 결과 확인용 로그 추가
+    console.log("지원 계획 목록 조회 성공");
+    res.send(result);
+  } catch (error) {
+    console.error("supportPlan DB 쿼리 실행 오류:", error);
+    res
+      .status(500)
+      .send({ message: "지원 계획 조회 중 데이터베이스 오류 발생" });
+  }
+};
+
+// 기관 담당자 피보호자가 작성한 사업 조사지 별 지원 결과서 조회
+exports.supportResultByWardSurveyNo = async (req, res) => {
+  const { ward_no, survey_no } = req.query;
+
+  if (!ward_no || !survey_no) {
+    return res
+      .status(400)
+      .json({ message: "ward_no와 survey_no 파라미터가 필요합니다." });
+  }
+
+  try {
+    let rows = await db.query("supportResultByWardNoSurveyNo", [ward_no, survey_no]);
+
+    if (!Array.isArray(rows)) {
+      rows = rows ? [rows] : [];
+    }
+
+    res.json(rows);
+  } catch (err) {
+    console.error("지원결과 조회 오류:", err);
+    res.status(500).json({ error: "지원결과 조회 실패" });
+  }
+};
