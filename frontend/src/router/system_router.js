@@ -82,6 +82,11 @@ const systemRouter = [
         name: 'DataBoard', // 👈 이 'name'을 사용할 것입니다.
         component: () => import('@/views/uikit/system_ui/SystemDataBoard.vue'),
       },
+      {
+        path: '/system/data-board/regist-file',
+        name: 'RegistFile',
+        component: () => import('@/views/uikit/system_ui/RegistFile.vue'),
+      },
     ],
   },
   {
