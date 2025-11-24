@@ -89,11 +89,7 @@ const formatAmount = (amount) => {
 
       <!-- 지원계획 & 예상지원금액 -->
       <div class="flex gap-4">
-        <div class="w-1/2">
-          <label class="font-semibold text-gray-700">지원계획</label>
-          <InputText v-model="localForm.business_name" readonly class="w-full bg-gray-100" />
-        </div>
-        <div class="w-1/2">
+        <div class="w-full">
           <label class="font-semibold text-gray-700">예상지원금액</label>
           <InputText
             :value="formatAmount(localForm.spend)"

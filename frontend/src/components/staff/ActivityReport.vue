@@ -151,7 +151,6 @@ const addForm = () => forms.value.push(createForm());
 
         <!-- 버튼 -->
         <div class="flex justify-end gap-3 mt-4 border-t pt-4">
-          <Button label="임시저장" severity="secondary" @click="() => saveTemp(form)" />
           <Button
             label="삭제"
             severity="danger"

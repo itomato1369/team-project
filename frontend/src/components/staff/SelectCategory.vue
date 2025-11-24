@@ -3,6 +3,7 @@ import { ref, onMounted, defineProps } from 'vue';
 import axios from 'axios';
 import SurveyDetail from '@/components/SurveyDetail.vue';
 import SupportList from '@/components/staff/SupportList.vue';
+import StaffSupportResultList from '@/components/staff/StaffSupportResultList.vue';
 import Button from 'primevue/button';
 import Dialog from 'primevue/dialog';
 import DataTable from 'primevue/datatable';
@@ -80,10 +81,7 @@ const onRowSelect = (event) => {
           <SupportList :ward-id="wardId" />
         </TabPanel>
         <TabPanel value="2">
-          <div class="p-4">
-            <h3 class="text-xl font-semibold">지원결과서</h3>
-            <p>지원결과서 내용이 여기에 표시됩니다.</p>
-          </div>
+          <StaffSupportResultList :ward-id="wardId" />
         </TabPanel>
       </TabPanels>
     </Tabs>

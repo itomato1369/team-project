@@ -1,6 +1,6 @@
 <script setup>
 import { computed } from 'vue';
-import SupportResultDetail from './SupportResultDetail.vue';
+import StaffSupportResultListInfo from './StaffSupportResultListInfo.vue';
 
 const props = defineProps({
   item: Object, // 서버에서 받아온 한 건의 서포트 플랜
@@ -47,7 +47,7 @@ const handleButtonClick = () => {
 
     <!-- 아코디언 상세 정보 -->
     <div v-if="isActive">
-      <SupportResultDetail :item="item" />
+      <StaffSupportResultListInfo :item="item" />
     </div>
   </div>
 </template>

@@ -2,7 +2,7 @@
 import { ref, onBeforeMount, computed } from 'vue';
 import axios from 'axios';
 import InputText from 'primevue/inputtext';
-import SupportResultItem from '@/components/staff/SupportResultItem.vue';
+import StaffSupportResultItem from '@/components/staff/StaffSupportResultItem.vue';
 
 const ALLOW_MULTIPLE_ACCORDIONS = ref(false);
 const surveys = ref([]);
@@ -86,7 +86,7 @@ const filteredSurveys = computed(() => {
 
     <!-- 결과 리스트 -->
     <div v-if="!loading" class="flex flex-col gap-4">
-      <SupportResultItem
+      <StaffSupportResultItem
         v-for="item in filteredSurveys"
         :key="item.support_plan_no"
         :item="item"

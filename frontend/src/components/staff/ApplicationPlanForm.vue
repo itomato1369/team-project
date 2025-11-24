@@ -147,33 +147,8 @@ const addForm = () => forms.value.push(createForm());
             <Textarea v-model="form.plan" rows="4" />
           </div>
 
-          <!-- PDF 업로드 -->
-          <div class="mt-6 border-t pt-4">
-            <h6>PDF 업로드</h6>
-            <form class="flex flex-col gap-2">
-              <input
-                :key="form.id"
-                type="file"
-                name="pdfFiles"
-                accept=".pdf"
-                multiple
-                class="border p-2 rounded"
-                @change="(e) => handleFiles(e, form)"
-              />
-              <ul v-if="form.selectedFiles.length" class="list-disc ml-5 text-sm text-gray-600">
-                <li v-for="(file, idx) in form.selectedFiles" :key="idx">{{ file.name }}</li>
-              </ul>
-            </form>
-          </div>
-
           <!-- 버튼 -->
           <div class="flex justify-end gap-3 mt-6 border-t pt-4">
-            <Button
-              label="임시저장"
-              icon="pi pi-save"
-              severity="secondary"
-              @click="() => saveTemp(form)"
-            />
             <Button
               label="삭제"
               icon="pi pi-trash"
