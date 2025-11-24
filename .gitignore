@@ -3,7 +3,6 @@
 *.pem
 package-lock.json
 dbConfig.env
-/backend/public
 
 # Logs
 logs
