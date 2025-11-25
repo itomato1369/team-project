@@ -28,16 +28,40 @@ exports.getStaffPlanItems = async (req, res) => {
   }
 };
 
-// 오늘의 상담 건수 조회
-exports.getTodayReservationCount = async () => {
-  const reservationCount = await db.query("reservationCount", [staff_id]);
-
-  let total_count = 0;
-  if (reservationCount && reservationCount.count.length > 0) {
-    total_count = reservationCount[0].total_count;
-    console.log(total_count);
+exports.getReservationCount = async (req, res) => {
+  try {
+    const staff_id = req.user.id;
+    const result = await db.query("reservationCount", [staff_id]);
+    const total_count = result.length > 0 ? result[0].total_count : 0;
+    res.status(200).json({ total_count });
+  } catch (error) {
+    console.error("오늘의 상담 건수 조회 오류:", error);
+    res.status(500).json({ message: "서버 오류" });
   }
-  return { total_count: total_count };
+};
+
+exports.getNewReservationCount = async (req, res) => {
+  try {
+    const staff_id = req.user.id;
+    const result = await db.query("newReservationCount", [staff_id]);
+    const total_count = result.length > 0 ? result[0].total_count : 0;
+    res.status(200).json({ total_count });
+  } catch (error) {
+    console.error("신규 예약 건수 조회 오류:", error);
+    res.status(500).json({ message: "서버 오류" });
+  }
+};
+
+exports.getPendingReportsCount = async (req, res) => {
+  try {
+    const staff_id = req.user.id;
+    const result = await db.query("notCompleteConsultCount", [staff_id]);
+    const total_count = result.length > 0 ? result[0].total_count : 0;
+    res.status(200).json({ total_count });
+  } catch (error) {
+    console.error("미작성 상담일지 건수 조회 오류:", error);
+    res.status(500).json({ message: "서버 오류" });
+  }
 };
 
 // 신규 예약 신청 개수
@@ -77,7 +101,7 @@ exports.surveySelect = async (req, res) => {
 // 2. getSurveyDetail: 단일 조사지 상세 정보 조회 (front-end의 Survey 컴포넌트가 호출)
 exports.getSurveyDetail = async (req, res) => {
   console.log(
-    "*****************************************\n나는 서베이디테일을 조회할것입니다"
+    "*****************************************나는 서베이디테일을 조회할것입니다"
   );
   const { surveyNo } = req.params; // URL 파라미터에서 survey_no를 추출
   console.log(`Survey Detail 조회: surveyNo=${surveyNo}`);
@@ -91,7 +115,8 @@ exports.getSurveyDetail = async (req, res) => {
     // 상세 조회용 쿼리 이름(예: surveySelectDetail)과 파라미터 전달
     let result = await db.query("wardsearch", surveyNo);
     console.log("DB조회결과************************************\n", result);
-    res.send({ result: result }); // if (result && result.length > 0) { //   console.log("Survey Detail 조회 성공:", result[0].survey_no); //   res.send(result[0]); // 단일 객체 반환 // } else { //   res.status(404).send({ message: "해당 조사지를 찾을 수 없습니다." }); // }
+    res.send({ result: result }); // if (result && result.length > 0) { //   console.log("Survey Detail 조회 성공:", result[0].survey_no);
+    //   res.send(result[0]); // 단일 객체 반환 // } else { //   res.status(404).send({ message: "해당 조사지를 찾을 수 없습니다." }); // }
   } catch (error) {
     console.error("getSurveyDetail DB 쿼리 오류:", error);
     res
@@ -297,14 +322,14 @@ exports.approveSupportPlan = async (req, res) => {
 // ⭐ 삭제: supportPlan 함수가 planitem을 사용하게 되었으므로 이 함수는 제거합니다.
 /*
 exports.planItemList = async (req, res) => {
-  console.log("지원 계획 항목 목록 조회");
-  try {
-    let result = await db.query("planitemtem", []); // 오타: planitemtem
-    res.send(result);
-  } catch (error) {
-    console.error("planItemList DB 쿼리 실행 오류:", error);
-    res.status(500).send({ message: "지원 계획 항목 조회 실패" });
-  }
+  console.log("지원 계획 항목 목록 조회");
+  try {
+    let result = await db.query("planitemtem", []); // 오타: planitemtem
+    res.send(result);
+  } catch (error) {
+    console.error("planItemList DB 쿼리 실행 오류:", error);
+    res.status(500).send({ message: "지원 계획 항목 조회 실패" });
+  }
 };
 */
 

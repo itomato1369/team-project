@@ -183,6 +183,18 @@ export const staffReservationApi = {
     return api.get('/api/staff/reservations', { params });
   },
 
+  getTodaysCount: () => {
+    return api.get('/api/staff/todays-count');
+  },
+
+  getNewReservationCount: () => {
+    return api.get('/api/staff/reservations/new-count');
+  },
+
+  getPendingReportsCount: () => {
+    return api.get('/api/staff/reservations/pending-count');
+  },
+
   /**
    * 담당자가 예약을 취소시킵니다. (available_time의 at_no 기준)
    * (POST /api/staff/reservations/cancel/:at_no)

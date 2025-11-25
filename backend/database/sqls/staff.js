@@ -214,7 +214,7 @@ const reservationCount = `SELECT COUNT(*) AS total_count FROM available_time WHE
 const newReservationCount = `SELECT COUNT(*) AS total_count FROM reservation WHERE staff_id = ? AND res_status = '예약확정'`;
 
 // 미작성 상담일지 개수
-const notCompleteConsultCount = `SELECT COUNT(*) AS total_count FROM consult WHERE staff_id = ? AND consult_status = '진행중'`;
+const notCompleteConsultCount = `SELECT COUNT(*) AS total_count FROM consult WHERE staff_id = ? AND consult_status = '진행중';`;
 
 const findWardNoBySurveyNo = `
 SELECT ward_no FROM survey WHERE survey_no = ?
@@ -295,4 +295,5 @@ module.exports = {
   getWardDetail, // 새로 추가
   supportPlanByWardNoSurveyNo,
   supportResultByWardNoSurveyNo,
+  notCompleteConsultCount,
 };
