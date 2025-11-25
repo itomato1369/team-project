@@ -27,35 +27,61 @@ exports.getStaffPlanItems = async (req, res) => {
       .send({ message: "담당자 승인 조회 중 오류가 발생했습니다." });
   }
 };
-// 오늘의 상담 건수 조회
-exports.getTodayConsultCount = async (req, res) => {
-  try {
-    // 로그인 된 staff_id
-    const staff_id = req.user.id;
 
-    if (!staff_id) {
-      return res.status(401).json({ message: "로그인 정보가 없습니다" });
-    }
-    let result = await db.query("consultCount", [staff_id]);
-    const count = result[0]?.consult_count || 0;
-    res.status(200).json({ consultCount: count });
+exports.getReservationCount = async (req, res) => {
+  try {
+    const staff_id = req.user.id;
+    const result = await db.query("reservationCount", [staff_id]);
+    const total_count = result.length > 0 ? result[0].total_count : 0;
+    res.status(200).json({ total_count });
   } catch (error) {
-    console.error("상담 건수 조회 오류", error);
-    res.status(500).json({ message: "상담 건수 조회 실패" });
+    console.error("오늘의 상담 건수 조회 오류:", error);
+    res.status(500).json({ message: "서버 오류" });
   }
 };
 
-// 오늘의 상담 건수 조회
-exports.getReservationCount = async () => {
-  const reservationCount = await db.query("reservationCount");
+exports.getNewReservationCount = async (req, res) => {
+  try {
+    const staff_id = req.user.id;
+    const result = await db.query("newReservationCount", [staff_id]);
+    const total_count = result.length > 0 ? result[0].total_count : 0;
+    res.status(200).json({ total_count });
+  } catch (error) {
+    console.error("신규 예약 건수 조회 오류:", error);
+    res.status(500).json({ message: "서버 오류" });
+  }
+};
+
+exports.getPendingReportsCount = async (req, res) => {
+  try {
+    const staff_id = req.user.id;
+    const result = await db.query("notCompleteConsultCount", [staff_id]);
+    const total_count = result.length > 0 ? result[0].total_count : 0;
+    res.status(200).json({ total_count });
+  } catch (error) {
+    console.error("미작성 상담일지 건수 조회 오류:", error);
+    res.status(500).json({ message: "서버 오류" });
+  }
+};
+
+// 신규 예약 신청 개수
+exports.getNewReservationCount = async () => {
+  const newReservation = await db.query("newReservationCount", [staff_id]);
 
   let total_count = 0;
-  if (reservationCount && reservationCount.count.length > 0) {
-    total_count = reservationCount[0].total_count;
+  if (newReservation && newReservation.count.length > 0) {
+    total_count = newReservation[0].total_count;
   }
   return { total_count: total_count };
-  console.log(total_count);
 };
+
+// 미작성 상담일지 개수
+// exports.getNotCompleteConsultCount = async () => {
+//   const notCompleteConsult = await db.query("notCompleteConsultCount", [staff_id]);
+
+//   let total_count = 0;
+//   if ()
+// }
 
 exports.surveySelect = async (req, res) => {
   console.log("Survey List 조회");
@@ -75,7 +101,7 @@ exports.surveySelect = async (req, res) => {
 // 2. getSurveyDetail: 단일 조사지 상세 정보 조회 (front-end의 Survey 컴포넌트가 호출)
 exports.getSurveyDetail = async (req, res) => {
   console.log(
-    "*****************************************\n나는 서베이디테일을 조회할것입니다"
+    "*****************************************나는 서베이디테일을 조회할것입니다"
   );
   const { surveyNo } = req.params; // URL 파라미터에서 survey_no를 추출
   console.log(`Survey Detail 조회: surveyNo=${surveyNo}`);
@@ -89,7 +115,8 @@ exports.getSurveyDetail = async (req, res) => {
     // 상세 조회용 쿼리 이름(예: surveySelectDetail)과 파라미터 전달
     let result = await db.query("wardsearch", surveyNo);
     console.log("DB조회결과************************************\n", result);
-    res.send({ result: result }); // if (result && result.length > 0) { //   console.log("Survey Detail 조회 성공:", result[0].survey_no); //   res.send(result[0]); // 단일 객체 반환 // } else { //   res.status(404).send({ message: "해당 조사지를 찾을 수 없습니다." }); // }
+    res.send({ result: result }); // if (result && result.length > 0) { //   console.log("Survey Detail 조회 성공:", result[0].survey_no);
+    //   res.send(result[0]); // 단일 객체 반환 // } else { //   res.status(404).send({ message: "해당 조사지를 찾을 수 없습니다." }); // }
   } catch (error) {
     console.error("getSurveyDetail DB 쿼리 오류:", error);
     res
@@ -192,6 +219,7 @@ exports.createSupportPlan = async (req, res) => {
 exports.createSupportResult = async (req, res) => {
   try {
     const {
+      ward_no,
       support_title,
       support_content,
       support_spend,
@@ -199,19 +227,14 @@ exports.createSupportResult = async (req, res) => {
       support_ended_at,
     } = req.body;
 
-    console.log("프론트에서 전달한 지원결과서 요청값: ", req.body);
-    // 필수 값 체크
     if (!support_title) {
-      console.log("이게뭔데: ", !support_title);
-      console.log("이건누군데", support_title);
       return res.status(400).json({ message: "지원 제목은 필수입니다." });
     }
 
-    // 안전한 날짜 변환 함수
     const formatDate = (date) => {
       if (!date) return null;
       const d = new Date(date);
-      if (isNaN(d)) return null; // Invalid Date 방지
+      if (isNaN(d)) return null;
       const yyyy = d.getFullYear();
       const mm = String(d.getMonth() + 1).padStart(2, "0");
       const dd = String(d.getDate()).padStart(2, "0");
@@ -219,6 +242,7 @@ exports.createSupportResult = async (req, res) => {
     };
 
     const params = [
+      Number(ward_no), // 🟢 필수 추가
       support_title,
       support_content || null,
       Number(String(support_spend || 0).replace(/[^0-9]/g, "")),
@@ -226,8 +250,7 @@ exports.createSupportResult = async (req, res) => {
       formatDate(support_ended_at),
     ];
 
-    // SQL 쿼리 실행 (support_plan_no 제거)
-    let result = await db.query("insertsupportresultquery", params);
+    const result = await db.query("insertsupportresultquery", params);
 
     res.json({ message: "등록 성공", resultId: result.insertId });
   } catch (error) {
@@ -299,14 +322,14 @@ exports.approveSupportPlan = async (req, res) => {
 // ⭐ 삭제: supportPlan 함수가 planitem을 사용하게 되었으므로 이 함수는 제거합니다.
 /*
 exports.planItemList = async (req, res) => {
-  console.log("지원 계획 항목 목록 조회");
-  try {
-    let result = await db.query("planitemtem", []); // 오타: planitemtem
-    res.send(result);
-  } catch (error) {
-    console.error("planItemList DB 쿼리 실행 오류:", error);
-    res.status(500).send({ message: "지원 계획 항목 조회 실패" });
-  }
+  console.log("지원 계획 항목 목록 조회");
+  try {
+    let result = await db.query("planitemtem", []); // 오타: planitemtem
+    res.send(result);
+  } catch (error) {
+    console.error("planItemList DB 쿼리 실행 오류:", error);
+    res.status(500).send({ message: "지원 계획 항목 조회 실패" });
+  }
 };
 */
 
@@ -635,7 +658,10 @@ exports.supportPlanByWardSurveyNo = async (req, res) => {
   }
 
   try {
-    let result = await db.query("supportPlanByWardNoSurveyNo", [ward_no, survey_no]);
+    let result = await db.query("supportPlanByWardNoSurveyNo", [
+      ward_no,
+      survey_no,
+    ]);
     console.log("DB 조회 결과:", result); // 결과 확인용 로그 추가
     console.log("지원 계획 목록 조회 성공");
     res.send(result);
@@ -658,7 +684,10 @@ exports.supportResultByWardSurveyNo = async (req, res) => {
   }
 
   try {
-    let rows = await db.query("supportResultByWardNoSurveyNo", [ward_no, survey_no]);
+    let rows = await db.query("supportResultByWardNoSurveyNo", [
+      ward_no,
+      survey_no,
+    ]);
 
     if (!Array.isArray(rows)) {
       rows = rows ? [rows] : [];

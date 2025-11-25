@@ -255,7 +255,7 @@ const closePostcode = () => {
         <!-- 6. 전화번호 -->
         <div class="form-group">
           <label for="phone">전화번호</label>
-          <input id="phone" type="tel" v-model="phone" placeholder="010-1234-5678" required />
+          <input id="phone" type="tel" v-model="phone" placeholder="010 1234 5678" required />
         </div>
 
         <!-- 7. 주소 필드 (추가) -->

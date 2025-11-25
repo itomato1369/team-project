@@ -92,7 +92,8 @@ module.exports.createReservation = async (req, res) => {
 
     if (!at_no || !start_time_stamp || !ward_no) {
       return res.status(400).send({
-        message: "필수 정보(at_no, start_time_stamp, ward_no)가 누락되었습니다.",
+        message:
+          "필수 정보(at_no, start_time_stamp, ward_no)가 누락되었습니다.",
       });
     }
     // 1. staff_id 조회
@@ -170,7 +171,7 @@ module.exports.createReservation = async (req, res) => {
 module.exports.getMyReservations = async (req, res) => {
   console.log("--- getMyReservations Service ---");
   try {
-    const user_id = "test"; // (임시)
+    const user_id = req.user.id;
 
     const reservations = await db.query("getMyReservations", [user_id]);
     console.log("DB Result (getMyReservations):", reservations);
@@ -188,7 +189,7 @@ module.exports.cancelMyReservation = async (req, res) => {
   console.log("--- cancelMyReservation Service ---");
   try {
     const { res_no } = req.params;
-    const user_id = "test"; // (임시)
+    const user_id = req.user.id;
 
     const result = await db.query("cancelReservationById", [res_no, user_id]);
 

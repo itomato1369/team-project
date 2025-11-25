@@ -6,6 +6,11 @@ import Textarea from 'primevue/textarea';
 import Calendar from 'primevue/calendar';
 import Button from 'primevue/button';
 
+// 부모 컴포넌트로부터 wardId 받기
+const props = defineProps({
+  wardId: { type: [String, Number], required: true },
+});
+
 // 전역 고유 id 카운터
 let formId = 0;
 
@@ -38,48 +43,24 @@ const formatDateToSQL = (date) => {
   return `${yyyy}-${mm}-${dd} 00:00:00`;
 };
 
-// 백엔드에게 전달할 payload 생성
+// 백엔드로 보낼 payload 생성 (ward_no 포함, null 안전 처리)
 const makePayload = (form) => ({
-  support_title: form.supportTitle,
+  ward_no: Number(props.wardId),
+  support_title: form.supportTitle || null,
   support_content: form.supportContent || null,
   support_spend: Number(form.supportSpend.replace(/[^0-9]/g, '')) || 0,
-  support_started_at: formatDateToSQL(form.startedAt),
-  support_ended_at: formatDateToSQL(form.endedAt),
+  support_started_at: formatDateToSQL(form.startedAt) || null,
+  support_ended_at: formatDateToSQL(form.endedAt) || null,
 });
 
-// SQL 테스트 출력
-const generateSQL = (form) => {
-  const spend = Number(form.supportSpend.replace(/[^0-9]/g, '')) || 0;
-  const started = formatDateToSQL(form.startedAt);
-  const ended = formatDateToSQL(form.endedAt);
-
-  return `
-INSERT INTO support_result (
-  support_title,
-  support_content,
-  support_spend,
-  support_started_at,
-  support_ended_at
-) VALUES (
-  '${form.supportTitle}',
-  ${form.supportContent ? `'${form.supportContent}'` : 'NULL'},
-  ${spend},
-  '${started}',
-  '${ended}'
-);`;
-};
-
-// 임시저장(콘솔만)
+// 임시저장 (콘솔 출력)
 const saveTemp = (form) => {
-  console.log('==== 임시저장 SQL ====');
-  console.log(generateSQL(form));
+  console.log('==== 임시저장 Payload ====');
+  console.log(makePayload(form));
 };
 
-// 승인요청(DB 저장)
+// 승인요청 (DB 저장)
 const requestApproval = async (form) => {
-  console.log('==== 승인요청 SQL ====');
-  console.log(generateSQL(form));
-
   if (!form.supportTitle) {
     alert('지원 제목은 필수입니다.');
     return;
@@ -87,10 +68,12 @@ const requestApproval = async (form) => {
 
   try {
     const payload = makePayload(form);
+    // POST 요청: /api/staff/support-result
     await axios.post('/api/staff/support-result', payload);
     alert('지원 결과가 저장되었습니다!');
+    forms.value = [createForm()]; // 저장 후 초기화
   } catch (err) {
-    console.error(err);
+    console.error('지원 결과 저장 실패:', err);
     alert('저장 실패! 콘솔을 확인하세요.');
   }
 };
@@ -109,6 +92,7 @@ const addForm = () => forms.value.push(createForm());
     <h1 class="text-3xl font-extrabold mb-8 text-gray-800 border-b-4 border-indigo-300 pb-2">
       📝 지원 결과 작성
     </h1>
+
     <div class="space-y-8">
       <div
         v-for="form in forms"

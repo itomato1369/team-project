@@ -8,24 +8,45 @@ import Tag from 'primevue/tag';
 import { staffReservationApi } from '@/api/api.js';
 import { useToast } from 'primevue/usetoast';
 import { useAuthStore } from '@/stores/authStore'; // authStore 임포트
-import axios from 'axios';
 
 const router = useRouter();
 const toast = useToast();
 const authStore = useAuthStore(); // authStore 인스턴스 생성
 
 // --- 상태 변수 ---
-const reservations = ref();
+const reservations = ref([]);
 const isLoading = ref(true);
+const todayConsultCount = ref(0);
+const newReservationsCount = ref(0);
+const pendingReportsCount = ref(0);
 
 // 오늘의 상담일정 개수
-const getTodayConsult = async () => {
+const fetchTodayConsultCount = async () => {
   try {
-    const response = await axios.get('/api/staff/todays-count');
-    const data = await response.data;
-    reservations.value = data.total_count;
+    const response = await staffReservationApi.getTodaysCount();
+    todayConsultCount.value = response.data.total_count;
   } catch (error) {
     console.error('오늘 상담 개수 오류', error);
+  }
+};
+
+// 신규 예약 건수
+const fetchNewReservationCount = async () => {
+  try {
+    const response = await staffReservationApi.getNewReservationCount();
+    newReservationsCount.value = response.data.total_count;
+  } catch (error) {
+    console.error('신규 예약 건수 조회 오류', error);
+  }
+};
+
+// 미작성 상담일지 건수
+const fetchPendingReportsCount = async () => {
+  try {
+    const response = await staffReservationApi.getPendingReportsCount();
+    pendingReportsCount.value = response.data.total_count;
+  } catch (error) {
+    console.error('미작성 상담일지 건수 조회 오류', error);
   }
 };
 
@@ -35,14 +56,15 @@ const staffName = computed(() => authStore.user?.name || '담당자');
 // --- API 호출 ---
 onMounted(() => {
   fetchDashboardData();
-  stats;
-  getTodayConsult();
+  fetchTodayConsultCount();
+  fetchNewReservationCount();
+  fetchPendingReportsCount();
 });
 
-function fetchDashboardData() {
+async function fetchDashboardData() {
   isLoading.value = true;
   try {
-    const response = staffReservationApi.getReservations();
+    const response = await staffReservationApi.getReservations();
     reservations.value = response.data;
     console.log('Fetched Reservations Data:', JSON.stringify(reservations.value, null, 2));
   } catch (error) {
@@ -58,43 +80,11 @@ function fetchDashboardData() {
   }
 }
 
-// --- 계산된 속성 (Computed Properties) for Stat Cards ---
-// [수정] trim()을 추가하여 문자열의 양 끝 공백을 제거하고 비교
-const stats = computed(() => {
-  if (!reservations.value || reservations.value.length === 0) {
-    return { today: 0, new: 0, pending: 0 };
-  }
-
-  const now = new Date();
-  const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  const todayEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
-
-  const todayScheduleCount = reservations.value.filter((r) => {
-    if (!r.start_time || !r.status) return false;
-    const resDate = new Date(r.start_time);
-    return r.status.trim() === '예약확정' && resDate >= todayStart && resDate < todayEnd;
-  }).length;
-
-  const newReservationsCount = reservations.value.filter(
-    (r) => r.status && r.status.trim() === '예약확정'
-  ).length;
-
-  const pendingReportsCount = reservations.value.filter(
-    (r) => r.status && r.status.trim() === '상담완료'
-  ).length;
-
-  return {
-    today: todayScheduleCount,
-    new: newReservationsCount,
-    pending: pendingReportsCount,
-  };
-});
-
 const summaryMessage = computed(() => {
   if (isLoading.value) {
     return '데이터를 불러오는 중입니다...';
   }
-  const count = stats.value.today;
+  const count = todayConsultCount.value;
   return count > 0
     ? `오늘 처리해야 할 ${count}건의 상담 일정이 있습니다.`
     : '오늘 예정된 상담 일정이 없습니다.';
@@ -149,7 +139,7 @@ const navigateTo = (routeName) => {
           <template #title>오늘의 상담 일정</template>
           <template #content>
             <div class="stat-value">
-              <span class="count-blue">{{ getTodayConsult }}</span
+              <span class="count-blue">{{ todayConsultCount }}</span
               >건
             </div>
           </template>
@@ -159,7 +149,7 @@ const navigateTo = (routeName) => {
           <template #title>신규 예약 신청</template>
           <template #content>
             <div class="stat-value">
-              <span class="count-green">{{ stats.new }}</span
+              <span class="count-green">{{ newReservationsCount }}</span
               >건
             </div>
           </template>
@@ -169,7 +159,7 @@ const navigateTo = (routeName) => {
           <template #title>미작성 상담일지</template>
           <template #content>
             <div class="stat-value">
-              <span class="count-red">{{ stats.pending }}</span
+              <span class="count-red">{{ pendingReportsCount }}</span
               >건
             </div>
           </template>

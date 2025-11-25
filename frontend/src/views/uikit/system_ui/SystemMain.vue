@@ -80,7 +80,7 @@ onMounted(() => {
       <h1 class="page-title">시스템 관리자 메인페이지</h1>
       <p class="welcome-message">시스템 관리자님, 환영합니다.</p>
       <p class="summary-message">
-        <strong>⚡️시스템의 주요 지표와 처리할 작업을 확인하십시오.⚡️</strong>
+        <strong>시스템의 주요 지표와 처리할 작업을 확인하십시오.</strong>
       </p>
 
       <div class="stat-cards-container">

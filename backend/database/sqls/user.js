@@ -382,7 +382,11 @@ const myInfoSqls = {
     UPDATE member SET institution_no = ?, status = 'READY' WHERE user_id = ?
   `,
   findAllInstitutions: `
-    SELECT institution_no, institution_name FROM institution
+    SELECT 
+      institution_no
+      , institution_name 
+    FROM institution
+    WHERE status != '3s'
   `,
   findAvailableWardsForInquiry: `
     SELECT w.name
