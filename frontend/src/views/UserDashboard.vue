@@ -12,7 +12,7 @@ const authStore = useAuthStore();
 
 const quickMenus = ref([
   // ... (기존 quickMenus 데이터)
-  { icon: '📄', label: '사업 공고', path: 'ud/notices' },
+  { icon: '📄', label: '공고 목록', path: 'ud/notices' },
   { icon: '📝', label: '사업 신청', path: 'ui' },
   { icon: '🧑‍🤝‍🧑', label: '피보호자 등록', path: '/umy?tab=2' },
   { icon: '📞', label: '상담 예약', path: 'counseling-apply' },

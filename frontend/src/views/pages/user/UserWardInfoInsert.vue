@@ -2,6 +2,7 @@
 import axios from 'axios';
 import { ref, onMounted, computed } from 'vue';
 import { useRouter } from 'vue-router';
+import Dropdown from 'primevue/dropdown';
 import { useAuthStore } from '@/stores/authStore';
 const props = defineProps({
   ward_no: {
@@ -24,12 +25,14 @@ const ward = ref({
   address: '',
   guardian_id: authStore.user.id,
   guardian_relation: '',
-  disabled_level: '',
+  disabled_level: '경증',
 });
 
 const rrn1 = ref(''); // For the first 6 digits of RRN
 const rrn2 = ref(''); // For the last 7 digits of RRN
 const rrn2Input = ref(null); // Reference to the second RRN input field
+
+const disabledLevelOptions = ref(['경증', '중증']);
 
 // Address fields for Daum Postcode
 const postcode = ref('');
@@ -70,7 +73,7 @@ const fetchWardData = async () => {
 
 const handleRrnInput = (event, field) => {
   let value = event.target.value.replace(/[^0-9]/g, ''); // 숫자만 남김
-  
+
   if (field === 'rrn1') {
     rrn1.value = value.slice(0, 6);
     if (rrn1.value.length === 6 && rrn2Input.value) {
@@ -106,7 +109,7 @@ const openPostcodeSearch = () => {
       }
       // 건물명이 있고, 공동주택일 경우 추가
       if (data.buildingName !== '' && data.apartment === 'Y') {
-        extraRoadAddr += (extraRoadAddr !== '' ? ', ' + data.buildingName : data.buildingName);
+        extraRoadAddr += extraRoadAddr !== '' ? ', ' + data.buildingName : data.buildingName;
       }
       // 참고항목 조합
       if (extraRoadAddr !== '') {
@@ -117,7 +120,7 @@ const openPostcodeSearch = () => {
       fullAddress.value = roadAddr;
       // Combine road address with extra info if any
       if (extraRoadAddr !== '') {
-          fullAddress.value += extraRoadAddr;
+        fullAddress.value += extraRoadAddr;
       }
       detailAddress.value = ''; // Clear detailed address for new input
     },
@@ -179,7 +182,7 @@ onMounted(() => {
           v-model="ward.name"
           :disabled="isEditMode"
           class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-          :class="{'bg-gray-100': isEditMode, 'bg-white': !isEditMode}"
+          :class="{ 'bg-gray-100': isEditMode, 'bg-white': !isEditMode }"
         />
       </div>
       <div>
@@ -193,7 +196,7 @@ onMounted(() => {
             :disabled="isEditMode"
             maxlength="6"
             class="block w-32 px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm text-center"
-            :class="{'bg-gray-100': isEditMode, 'bg-white': !isEditMode}"
+            :class="{ 'bg-gray-100': isEditMode, 'bg-white': !isEditMode }"
           />
           <span>-</span>
           <input
@@ -206,7 +209,7 @@ onMounted(() => {
             :disabled="isEditMode"
             maxlength="7"
             class="block w-40 px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm text-center"
-            :class="{'bg-gray-100': isEditMode, 'bg-white': !isEditMode}"
+            :class="{ 'bg-gray-100': isEditMode, 'bg-white': !isEditMode }"
           />
         </div>
       </div>
@@ -243,7 +246,7 @@ onMounted(() => {
           v-model="ward.age"
           :disabled="isEditMode"
           class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-          :class="{'bg-gray-100': isEditMode, 'bg-white': !isEditMode}"
+          :class="{ 'bg-gray-100': isEditMode, 'bg-white': !isEditMode }"
         />
       </div>
       <div>
@@ -268,7 +271,7 @@ onMounted(() => {
           v-model="ward.guardian_relation"
           :disabled="isEditMode"
           class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-          :class="{'bg-gray-100': isEditMode, 'bg-white': !isEditMode}"
+          :class="{ 'bg-gray-100': isEditMode, 'bg-white': !isEditMode }"
         />
       </div>
 
@@ -313,11 +316,12 @@ onMounted(() => {
         <label for="disabled_level" class="block text-sm font-medium text-gray-700"
           >장애 수준</label
         >
-        <input
-          type="text"
+        <Dropdown
           id="disabled_level"
           v-model="ward.disabled_level"
-          class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+          :options="disabledLevelOptions"
+          placeholder="장애 수준을 선택하세요"
+          class="w-full mt-1"
         />
       </div>
       <div class="flex justify-end space-x-2">
