@@ -136,6 +136,7 @@ router.post("/user-inquiries/answer", async (req, res) => {
   }
 });
 
+// Called by: frontend\src\components\ UserMyPageList.vue
 router.get("/my-page-surveys", async (req, res) => {
   const { writer } = req.query;
   if (!writer) {
@@ -248,7 +249,7 @@ router.get("/wardlist", async (req, res) => {
   }
 });
 
-// D:\Dev\git\team-project\frontend\src\views  UserMyPage.vue -> UserWardInfoInsert.vue
+// frontend\src\views  UserMyPage.vue -> UserWardInfoInsert.vue
 router.post("/wards", async (req, res) => {
   try {
     const result = await userService.addWard(req.body);
@@ -372,11 +373,46 @@ router.post("/apply-institution", async (req, res) => {
   }
 });
 
-// Called by: src/views/UserSupportPlanDetail.vue
-router.get("/support-plan", async (req, res) => {
-  // const { inquiry_no, ward_no } = req.params;
+// Called by: src/views/UserInquiryDetail.vue (for creating survey for wards)
+router.get("/surveys/create", async (req, res) => {
   try {
-    const supportPlan = await userService.getSupportPlanDetail(req.query);
+    const { guardianId, inquiryNo } = req.query; // Get guardianId from query parameters
+
+    if (!guardianId) {
+      return res
+        .status(400)
+        .send({ err: "guardianId query parameter is required." });
+    }
+
+    const wards = await userService.getAvailableWardsForInquiry(guardianId, inquiryNo);
+    console.log('surveys/create: ', wards);
+    res.status(200).send({ result: wards });
+  } catch (err) {
+    res.status(500).send({ err: "Failed to get wards: " + err.message });
+  }
+});
+
+// Called by: frontend/src/components/UserSurveyDetail.vue
+router.get("/survey-detail/:survey_no", async (req, res) => {
+  try {
+    const { survey_no } = req.params;
+    const surveyDetailData = await userService.getSurveyDetail(survey_no);
+    if (!surveyDetailData) {
+      return res.status(404).send({ message: "Survey detail not found." });
+    }
+    res.status(200).send({ result: surveyDetailData });
+  } catch (err) {
+    return res
+      .status(500)
+      .send({ err: "Failed to get survey detail: " + err.message });
+  }
+});
+
+// Called by: src/views/UserSupportPlanDetail.vue
+router.get("/support-plan/:support_plan_no", async (req, res) => {
+  try {
+    const { support_plan_no } = req.params;
+    const supportPlan = await userService.getSupportPlanDetail(support_plan_no);
     if (!supportPlan) {
       return res.status(404).send({ message: "Support plan not found." });
     }
@@ -385,6 +421,21 @@ router.get("/support-plan", async (req, res) => {
     return res
       .status(500)
       .send({ err: "Failed to get support plan detail: " + err.message });
+  }
+});
+
+router.get("/support-result/:support_result_no", async (req, res) => {
+  try {
+    const { support_result_no } = req.params;
+    const resultDetail = await userService.getSupportResultDetail(support_result_no);
+    if (!resultDetail) {
+      return res.status(404).send({ message: "Support result not found." });
+    }
+    res.status(200).send({ result: resultDetail });
+  } catch (err) {
+    return res
+      .status(500)
+      .send({ err: "Failed to get support result detail: " + err.message });
   }
 });
 

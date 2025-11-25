@@ -16,12 +16,9 @@ const fetchSupportPlanDetail = async () => {
   loading.value = true;
   error.value = null;
   try {
-    const inquiry_no = route.params.inquiry_no;
-    const ward_no = route.params.ward_no;
+    const support_plan_no = route.params.support_plan_no;
 
-    const response = await axios.get(`/api/user/support-plan`, {
-      params: { inquiry_no: inquiry_no, ward_no: ward_no },
-    });
+    const response = await axios.get(`/api/user/support-plan/${support_plan_no}`);
     if (response.data.result) {
       supportPlan.value = response.data.result;
     }

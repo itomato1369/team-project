@@ -208,8 +208,10 @@ WHERE support_plan_no = ?
 const reservationCount = `SELECT COUNT(*) AS total_count FROM available_time WHERE staff_id = ? AND status = '예약'`;
 
 // 신규 예약 신청 개수
+const newReservationCount = `SELECT COUNT(*) AS total_count FROM reservation WHERE staff_id = ? AND res_status = '예약확정'`;
 
 // 미작성 상담일지 개수
+const notCompleteConsultCount = ``;
 
 module.exports = {
   surveySelect,
@@ -229,4 +231,5 @@ module.exports = {
   updateplanstatus,
   Staffplanitem,
   reservationCount,
+  newReservationCount,
 };

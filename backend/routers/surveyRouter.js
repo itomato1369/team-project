@@ -60,6 +60,7 @@ router.post("/", async (req, res) => {
       status.code,
       null, // notice_no (null로 가정)
     ]);
+    file;
 
     // 5. 방금 생성된 'inquiry_no' (PK) 가져오기
     const newInquiryNo = inquiryResult.insertId;

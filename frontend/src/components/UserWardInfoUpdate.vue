@@ -76,7 +76,11 @@ const getPriorityClass = (status) => {
       <Column field="name" header="이름"></Column>
       <Column field="sex" header="성별"></Column>
       <Column field="age" header="나이"></Column>
-      <Column field="address" header="주소"></Column>
+      <Column header="주소">
+        <template #body="slotProps">
+          {{ slotProps.data.address ? slotProps.data.address.split('!').join(', ') : '' }}
+        </template>
+      </Column>
       <Column field="guardian_relation" header="관계"></Column>
       <Column field="disabled_level" header="장애 수준"></Column>
       <Column header="서비스 우선순위">

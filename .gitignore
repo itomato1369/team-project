@@ -4,7 +4,6 @@
 package-lock.json
 dbConfig.env
 
-
 # Logs
 logs
 *.log
