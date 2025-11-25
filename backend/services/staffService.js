@@ -192,6 +192,7 @@ exports.createSupportPlan = async (req, res) => {
 exports.createSupportResult = async (req, res) => {
   try {
     const {
+      ward_no,
       support_title,
       support_content,
       support_spend,
@@ -199,19 +200,14 @@ exports.createSupportResult = async (req, res) => {
       support_ended_at,
     } = req.body;
 
-    console.log("프론트에서 전달한 지원결과서 요청값: ", req.body);
-    // 필수 값 체크
     if (!support_title) {
-      console.log("이게뭔데: ", !support_title);
-      console.log("이건누군데", support_title);
       return res.status(400).json({ message: "지원 제목은 필수입니다." });
     }
 
-    // 안전한 날짜 변환 함수
     const formatDate = (date) => {
       if (!date) return null;
       const d = new Date(date);
-      if (isNaN(d)) return null; // Invalid Date 방지
+      if (isNaN(d)) return null;
       const yyyy = d.getFullYear();
       const mm = String(d.getMonth() + 1).padStart(2, "0");
       const dd = String(d.getDate()).padStart(2, "0");
@@ -219,6 +215,7 @@ exports.createSupportResult = async (req, res) => {
     };
 
     const params = [
+      Number(ward_no), // 🟢 필수 추가
       support_title,
       support_content || null,
       Number(String(support_spend || 0).replace(/[^0-9]/g, "")),
@@ -226,8 +223,7 @@ exports.createSupportResult = async (req, res) => {
       formatDate(support_ended_at),
     ];
 
-    // SQL 쿼리 실행 (support_plan_no 제거)
-    let result = await db.query("insertsupportresultquery", params);
+    const result = await db.query("insertsupportresultquery", params);
 
     res.json({ message: "등록 성공", resultId: result.insertId });
   } catch (error) {
@@ -635,7 +631,10 @@ exports.supportPlanByWardSurveyNo = async (req, res) => {
   }
 
   try {
-    let result = await db.query("supportPlanByWardNoSurveyNo", [ward_no, survey_no]);
+    let result = await db.query("supportPlanByWardNoSurveyNo", [
+      ward_no,
+      survey_no,
+    ]);
     console.log("DB 조회 결과:", result); // 결과 확인용 로그 추가
     console.log("지원 계획 목록 조회 성공");
     res.send(result);
@@ -658,7 +657,10 @@ exports.supportResultByWardSurveyNo = async (req, res) => {
   }
 
   try {
-    let rows = await db.query("supportResultByWardNoSurveyNo", [ward_no, survey_no]);
+    let rows = await db.query("supportResultByWardNoSurveyNo", [
+      ward_no,
+      survey_no,
+    ]);
 
     if (!Array.isArray(rows)) {
       rows = rows ? [rows] : [];

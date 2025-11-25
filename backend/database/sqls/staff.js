@@ -74,8 +74,9 @@ INSERT INTO support_plan (
   file_no,
   support_plan_status,
   staff_name,
-  writer_date
-) VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW())
+  writer_date,
+  priority_no
+) VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW(), ?)
 `;
 
 /**
@@ -133,12 +134,13 @@ WHERE at_no = ? AND staff_id = ? AND status = '상담가능'`;
 //지원결과보고서 작성
 const insertsupportresultquery = `
 INSERT INTO support_result (
+    ward_no,
     support_title,
     support_content,
     support_spend,
     support_started_at,
     support_ended_at
-) VALUES (?, ?, ?, ?, ?)
+) VALUES (?, ?, ?, ?, ?, ?)
 `;
 
 //지원결과보고서 조회
@@ -240,46 +242,33 @@ WHERE ward_no = ?
 `;
 const supportResultByWardNoSurveyNo = `
 SELECT
-  sr.support_result_no,
-  sr.support_title,
-  sr.support_spend,
-  sr.support_started_at,
-  sr.support_ended_at,
-  sr.support_content,
-  sp.staff_name,
-  sp.business_name
-FROM 
-  support_result sr
-JOIN 
-  support_plan sp ON sr.support_plan_no = sp.support_plan_no
-JOIN 
-  priority p ON sp.priority_no = p.priority_no
-WHERE 
-  sp.ward_no = ? AND p.survey_no = ?
-ORDER BY 
-  sr.support_started_at DESC
+  support_result_no,
+  support_title,
+  support_spend,
+  support_started_at,
+  support_ended_at,
+  support_content
+FROM support_result
+WHERE ward_no = ?
+ORDER BY support_started_at DESC
 `;
 
 const supportPlanByWardNoSurveyNo = `
 SELECT 
-  sp.support_plan_no,
-  sp.support_plan_goal,
-  sp.staff_name,
-  sp.created_at,
-  sp.writer_date,
-  sp.priority_no,
-  sp.plan,
-  sp.business_name,  
-  sp.spend,          
-  sp.support_plan_status
-FROM 
-  support_plan sp
-JOIN 
-  priority p ON sp.priority_no = p.priority_no
-WHERE 
-  p.ward_no = ? AND p.survey_no = ?
-ORDER BY 
-  sp.support_plan_no DESC`;
+  support_plan_no,
+  support_plan_goal,
+  staff_name,
+  created_at,
+  writer_date,
+  priority_no,
+  plan,
+  business_name,  
+  spend,          
+  support_plan_status,
+  ward_no
+FROM support_plan
+WHERE ward_no = ?
+ORDER BY support_plan_no DESC`;
 
 module.exports = {
   surveySelect,

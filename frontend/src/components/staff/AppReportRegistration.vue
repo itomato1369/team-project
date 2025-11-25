@@ -26,7 +26,7 @@ const handleTabChange = (tabValue) => {
         <ApplicationPlanForm :ward-id="wardId" />
       </div>
       <div v-if="activeTab === '1'">
-        <ActivityReport />
+        <ActivityReport :ward-id="wardId" />
       </div>
     </div>
   </div>
