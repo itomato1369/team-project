@@ -6,7 +6,8 @@ const nodemailer = require("nodemailer");
 
 // 등록된 이메일로 아이디를 전송
 const sendUserIdEmail = async ({ name, email, phone }) => {
-  let rows;
+  console.log(`입력 파라미터 : ${name},${email},${phone}`);
+  let rows = [];
 
   if (email) {
     rows = await db.query("findAccountByEmail", [name, email]);
@@ -14,9 +15,12 @@ const sendUserIdEmail = async ({ name, email, phone }) => {
     rows = await db.query("findAccountByPhone", [name, email]);
   }
 
-  if (!rows || rows.length === 0) return false;
-
+  if (!rows || rows.length === 0) {
+    console.log("계정 정보가 없음");
+    return false;
+  }
   const userId = rows[0].user_id;
+  console.log(`사용자 아이디 확인${userId}`);
 
   // 이메일 발송
   const transporter = nodemailer.createTransport({
@@ -33,7 +37,7 @@ const sendUserIdEmail = async ({ name, email, phone }) => {
     from: process.env.DAUM_EMAIL,
     to: email,
     subject: "회원 아이디 안내",
-    text: `회원님의 아이디는 ${user_id} 입니다`,
+    text: `회원님의 아이디는 ${userId} 입니다`,
   };
   try {
     const info = await transporter.sendMail(mailOptions);

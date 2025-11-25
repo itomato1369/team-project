@@ -27,35 +27,37 @@ exports.getStaffPlanItems = async (req, res) => {
       .send({ message: "담당자 승인 조회 중 오류가 발생했습니다." });
   }
 };
-// 오늘의 상담 건수 조회
-exports.getTodayConsultCount = async (req, res) => {
-  try {
-    // 로그인 된 staff_id
-    const staff_id = req.user.id;
-
-    if (!staff_id) {
-      return res.status(401).json({ message: "로그인 정보가 없습니다" });
-    }
-    let result = await db.query("consultCount", [staff_id]);
-    const count = result[0]?.consult_count || 0;
-    res.status(200).json({ consultCount: count });
-  } catch (error) {
-    console.error("상담 건수 조회 오류", error);
-    res.status(500).json({ message: "상담 건수 조회 실패" });
-  }
-};
 
 // 오늘의 상담 건수 조회
-exports.getReservationCount = async () => {
-  const reservationCount = await db.query("reservationCount");
+exports.getTodayReservationCount = async () => {
+  const reservationCount = await db.query("reservationCount", [staff_id]);
 
   let total_count = 0;
   if (reservationCount && reservationCount.count.length > 0) {
     total_count = reservationCount[0].total_count;
+    console.log(total_count);
   }
   return { total_count: total_count };
-  console.log(total_count);
 };
+
+// 신규 예약 신청 개수
+exports.getNewReservationCount = async () => {
+  const newReservation = await db.query("newReservationCount", [staff_id]);
+
+  let total_count = 0;
+  if (newReservation && newReservation.count.length > 0) {
+    total_count = newReservation[0].total_count;
+  }
+  return { total_count: total_count };
+};
+
+// 미작성 상담일지 개수
+// exports.getNotCompleteConsultCount = async () => {
+//   const notCompleteConsult = await db.query("notCompleteConsultCount", [staff_id]);
+
+//   let total_count = 0;
+//   if ()
+// }
 
 exports.surveySelect = async (req, res) => {
   console.log("Survey List 조회");
@@ -635,7 +637,10 @@ exports.supportPlanByWardSurveyNo = async (req, res) => {
   }
 
   try {
-    let result = await db.query("supportPlanByWardNoSurveyNo", [ward_no, survey_no]);
+    let result = await db.query("supportPlanByWardNoSurveyNo", [
+      ward_no,
+      survey_no,
+    ]);
     console.log("DB 조회 결과:", result); // 결과 확인용 로그 추가
     console.log("지원 계획 목록 조회 성공");
     res.send(result);
@@ -658,7 +663,10 @@ exports.supportResultByWardSurveyNo = async (req, res) => {
   }
 
   try {
-    let rows = await db.query("supportResultByWardNoSurveyNo", [ward_no, survey_no]);
+    let rows = await db.query("supportResultByWardNoSurveyNo", [
+      ward_no,
+      survey_no,
+    ]);
 
     if (!Array.isArray(rows)) {
       rows = rows ? [rows] : [];

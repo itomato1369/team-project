@@ -52,7 +52,12 @@ router.post(
 // => 다른 파일에서 require()을 통해 가져옴
 
 // 오늘의 상담 일정 개수
-router.get("/todays-count", staffService.getReservationCount);
+router.get("/todays-count", staffService.getTodayReservationCount);
+// // 신규 예약 신청 개수
+router.get("/reservation-count", staffService.getNewReservationCount);
+
+// // 미작성 상담일지 개수
+// router.get("/consult-count");
 
 //지원계획신청 데이터불러오기
 router.get("/support-plan", staffService.supportPlan);
@@ -79,10 +84,7 @@ router.get(
 );
 
 // [신규] 필터링된 지원 계획서 조회
-router.get(
-  "/support-plan/filtered",
-  staffService.supportPlanByWardSurveyNo
-);
+router.get("/support-plan/filtered", staffService.supportPlanByWardSurveyNo);
 
 router.get("/staff-plan-items", staffService.getStaffPlanItems);
 

@@ -15,7 +15,7 @@ const toast = useToast();
 const authStore = useAuthStore(); // authStore 인스턴스 생성
 
 // --- 상태 변수 ---
-const reservations = ref();
+const reservations = ref([]);
 const isLoading = ref(true);
 
 // 오늘의 상담일정 개수
@@ -29,6 +29,9 @@ const getTodayConsult = async () => {
   }
 };
 
+// 신규 예약 신청 개수
+// 미작성 상담일지 개수
+
 // [수정] staffName을 authStore에서 가져오는 computed 속성으로 변경
 const staffName = computed(() => authStore.user?.name || '담당자');
 
@@ -36,7 +39,6 @@ const staffName = computed(() => authStore.user?.name || '담당자');
 onMounted(() => {
   fetchDashboardData();
   stats;
-  getTodayConsult();
 });
 
 function fetchDashboardData() {
