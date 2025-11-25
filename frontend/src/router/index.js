@@ -102,7 +102,7 @@ const routes = [
   {
     path: '/login-success',
     name: 'login-success',
-    component: () => import('@/views/pages/auth/LoginSuccess.vue')
+    component: () => import('@/views/pages/auth/LoginSuccess.vue'),
   },
 
   // 2. Spread 연산자(...)를 사용해 두 배열을 하나의 'routes' 배열로 합칩니다.
