@@ -18,6 +18,18 @@ const model = ref([
         command: () => authStore.logout(),
         roles: ['1a', '2a', '3a', 'SYS'],
       }, // 로그인
+      {
+        label: 'Q&A',
+        icon: 'pi pi-fw pi-search',
+        to: '/qna',
+        roles: ['1a', '2a', '3a', 'SYS'],
+        //         {
+        //   path: '/qna',
+        //   name: 'user-qna',
+        //   component: () => import('@/views/pages/user/UserQna.vue'),
+        //   props: true,
+        // },
+      },
     ],
   },
   {
