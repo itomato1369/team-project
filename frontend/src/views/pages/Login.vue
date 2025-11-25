@@ -6,44 +6,40 @@ import { useAuthStore } from '@/stores/authStore';
 
 // 1. 상태 변수
 const selectedRole = ref('USER'); // '일반 이용자', 'STAFF', 'ADMIN'
-const userId = ref(''); // 'email' 대신 'userId' 사용
+const userId = ref('');
 const password = ref('');
-const rememberId = ref(false); // 'checked' 대신 'rememberId' 사용
+const rememberId = ref(false);
 const router = useRouter();
 
 // 2. authStore 인스턴스
 const authStore = useAuthStore();
 
-// 3. 로딩 및 에러 상태 변수 추가
+// 3. 로딩 및 에러 상태 변수
 const isLoading = ref(false);
-const loginError = ref(null); // (예: '아이디 또는 비밀번호가 틀렸습니다.')
+const loginError = ref(null);
 
-// 4. 로그인 처리 함수 (authStore 호출하도록 수정)
+// 4. 로그인 처리 함수
 const handleLogin = async () => {
-  console.log('[Login.vue] 1. handleLogin function called.'); // 로그
+  console.log('[Login.vue] 1. handleLogin function called.');
   isLoading.value = true;
-  loginError.value = null;
+  loginError.value = null; // 이전 에러 초기화
 
   try {
-    // 5. authStore의 login 액션 호출
-    // authStore.login이 api.post를 호출합니다.
     await authStore.login({
       userId: userId.value,
       password: password.value,
       role: selectedRole.value,
     });
 
-    // 6. 성공: authStore가 router.push('/')를 실행
     console.log('Login successful');
-    // 성공 시 authStore.js의 router.push('/')가 실행됩니다.
+    // authStore 내부 로직에 따라 라우팅 처리 (일반적으로 router.push('/'))
   } catch (error) {
-    // 7. 실패: authStore에서 throw한 에러를 catch
     console.error('Login component error:', error);
-    // (선택) 백엔드 응답에서 에러 메시지 추출
+    // 백엔드 응답 구조에 따라 에러 메시지 추출
     if (error.response && error.response.data && error.response.data.message) {
       loginError.value = error.response.data.message;
     } else {
-      loginError.value = '로그인에 실패했습니다. 네트워크를 확인해주세요.';
+      loginError.value = '아이디 또는 비밀번호가 올바르지 않습니다.';
     }
   } finally {
     isLoading.value = false;
@@ -64,30 +60,36 @@ const goToGoogleLogin = () => {
 
 <template>
   <FloatingConfigurator />
+
+  <!-- 전체 배경 및 중앙 정렬 컨테이너 -->
   <div
-    class="bg-surface-50 dark:bg-surface-950 flex items-center justify-center min-h-screen min-w-[100vw] overflow-hidden"
+    class="bg-surface-50 dark:bg-surface-950 flex items-center justify-center min-h-screen w-full overflow-hidden px-4 py-8 sm:px-0"
   >
-    <div class="flex flex-col items-center justify-center">
+    <div
+      class="flex flex-col items-center justify-center w-full max-w-[90%] sm:max-w-xl md:max-w-2xl lg:max-w-3xl"
+    >
+      <!-- 그라디언트 테두리 컨테이너: 모바일에서는 둥글기(radius)를 줄임 -->
       <div
+        class="w-full"
         style="
-          border-radius: 56px;
           padding: 0.3rem;
           background: linear-gradient(180deg, var(--primary-color) 10%, rgba(33, 150, 243, 0) 30%);
         "
+        :style="{ borderRadius: 'var(--border-radius-xl, 30px)' }"
       >
+        <!-- 실제 로그인 카드 -->
         <div
-          class="w-full bg-surface-0 dark:bg-surface-900 py-12 px-8 sm:px-16"
-          style="border-radius: 53px"
+          class="w-full bg-surface-0 dark:bg-surface-900 py-8 px-6 sm:py-12 sm:px-12 md:px-16"
+          :style="{ borderRadius: 'var(--border-radius-xl, 28px)' }"
         >
-          <!-- 1. 로고 (첫 번째 코드 템플릿 유지) -->
-          <div class="text-center mb-6">
+          <!-- 1. 로고 및 헤더 -->
+          <div class="text-center mb-6 sm:mb-8">
             <svg
               viewBox="0 0 54 40"
               fill="none"
               xmlns="http://www.w3.org/2000/svg"
-              class="mb-4 w-12 shrink-0 mx-auto"
+              class="mb-4 w-10 sm:w-12 shrink-0 mx-auto"
             >
-              <!-- 이 부분이 로고 이미지 -->
               <path
                 fill-rule="evenodd"
                 clip-rule="evenodd"
@@ -101,12 +103,20 @@ const goToGoogleLogin = () => {
                 />
               </g>
             </svg>
-            <div class="text-surface-900 dark:text-surface-0 text-3xl font-medium mb-4">로그인</div>
-            <span class="text-muted-color font-medium">로그인을 진행해 주세요.</span>
+            <div
+              class="text-surface-900 dark:text-surface-0 text-2xl sm:text-3xl font-medium mb-2 sm:mb-4"
+            >
+              로그인
+            </div>
+            <span class="text-muted-color font-medium text-sm sm:text-base"
+              >로그인을 진행해 주세요.</span
+            >
           </div>
 
-          <!-- 2. 역할 탭 (두 번째 코드에서 가져와 Prime/Tailwind 스타일 적용) -->
-          <div class="flex mb-6 border border-surface-200 dark:border-surface-700 rounded-md p-1">
+          <!-- 2. 역할 탭: flex-wrap을 사용하여 화면이 좁아지면 줄바꿈 가능성 고려 -->
+          <div
+            class="flex mb-6 border border-surface-200 dark:border-surface-700 rounded-md p-1 text-sm sm:text-base"
+          >
             <button
               @click="selectedRole = 'USER'"
               :class="['tab-button', { active: selectedRole === 'USER' }]"
@@ -127,28 +137,34 @@ const goToGoogleLogin = () => {
             </button>
           </div>
 
-          <!-- 3. 로그인 폼 (두 코드 병합) -->
-          <form @submit.prevent="handleLogin" class="flex flex-col gap-6">
+          <!-- 3. 로그인 폼 -->
+          <form @submit.prevent="handleLogin" class="flex flex-col gap-4 sm:gap-6">
+            <!-- [추가됨] 에러 메시지 표시 영역 -->
+            <Message v-if="loginError" severity="error" :closable="false" class="w-full mb-2">
+              {{ loginError }}
+            </Message>
+
             <div>
               <label
                 for="user-id"
-                class="block text-surface-900 dark:text-surface-0 text-xl font-medium mb-2"
+                class="block text-surface-900 dark:text-surface-0 text-lg sm:text-xl font-medium mb-2"
                 >아이디</label
               >
               <InputText
                 id="user-id"
                 type="text"
                 placeholder="아이디 입력"
-                class="w-full md:w-[30rem]"
+                class="w-full"
                 v-model="userId"
                 required
+                :invalid="!!loginError"
               />
             </div>
 
             <div>
               <label
                 for="password"
-                class="block text-surface-900 dark:text-surface-0 font-medium text-xl mb-2"
+                class="block text-surface-900 dark:text-surface-0 font-medium text-lg sm:text-xl mb-2"
                 >비밀번호</label
               >
               <Password
@@ -160,32 +176,31 @@ const goToGoogleLogin = () => {
                 fluid
                 :feedback="false"
                 required
+                :invalid="!!loginError"
               ></Password>
             </div>
 
-            <!-- 4. 로그인 옵션 (두 코드 병합) -->
-            <div class="flex items-center justify-between gap-4">
+            <!-- 4. 로그인 옵션 -->
+            <div
+              class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4 text-sm sm:text-base"
+            >
               <div class="flex items-center">
                 <Checkbox v-model="rememberId" id="remember-id" binary class="mr-2"></Checkbox>
                 <label for="remember-id" class="text-muted-color">아이디 정보 기억하기</label>
               </div>
-              <div class="flex flex-col sm:flex-row gap-2 sm:gap-4 text-right">
+              <div class="flex flex-row gap-3 sm:gap-4">
                 <a
                   href="/find-id"
                   class="font-medium no-underline cursor-pointer text-primary hover:underline"
-                  >아이디/비밀번호 찾기</a
+                  >아이디/PW 찾기</a
                 >
-                <a
-                  href="/reset-password"
-                  class="font-medium no-underline cursor-pointer text-primary hover:underline"
-                  >비밀번호 재설정</a
-                >
+                <!-- 공간 부족 시 분리 가능하지만 현재는 유지 -->
               </div>
             </div>
 
-            <!-- 5. 액션 버튼 (두 번째 코드 기준) -->
-            <div class="flex flex-col gap-4">
-              <Button label="로그인" class="w-full" type="submit"></Button>
+            <!-- 5. 액션 버튼 -->
+            <div class="flex flex-col gap-3 sm:gap-4 mt-2">
+              <Button label="로그인" class="w-full" type="submit" :loading="isLoading"></Button>
               <Button
                 label="회원가입"
                 class="w-full"
@@ -196,14 +211,16 @@ const goToGoogleLogin = () => {
             </div>
           </form>
 
-          <!-- 6. 소셜 로그인 (두 번째 코드 기준, Prime/Tailwind 스타일 적용) -->
-          <div v-if="selectedRole === 'USER'" class="mt-8">
-            <div class="flex items-center my-6">
+          <!-- 6. 소셜 로그인 -->
+          <div v-if="selectedRole === 'USER'" class="mt-6 sm:mt-8">
+            <div class="flex items-center my-4 sm:my-6">
               <div class="flex-1 border-t border-surface-200 dark:border-surface-700"></div>
-              <span class="mx-4 text-muted-color">혹은</span>
+              <span class="mx-4 text-muted-color text-sm sm:text-base">혹은</span>
               <div class="flex-1 border-t border-surface-200 dark:border-surface-700"></div>
             </div>
-            <p class="text-center text-muted-color mb-4">소셜 계정으로 로그인</p>
+            <p class="text-center text-muted-color mb-4 text-sm sm:text-base">
+              소셜 계정으로 로그인
+            </p>
             <div class="flex flex-col sm:flex-row gap-4">
               <Button class="w-full" severity="danger" @click="goToGoogleLogin">
                 <i class="pi pi-google mr-2"></i>
@@ -219,20 +236,16 @@ const goToGoogleLogin = () => {
 
 <style scoped>
 /* PrimeLand 템플릿의 기존 스타일 유지 */
-.pi-eye {
-  transform: scale(1.6);
+:deep(.pi-eye),
+:deep(.pi-eye-slash) {
+  transform: scale(1.4); /* 모바일에 맞춰 약간 축소 */
   margin-right: 1rem;
 }
 
-.pi-eye-slash {
-  transform: scale(1.6);
-  margin-right: 1rem;
-}
-
-/* 탭 버튼을 위한 새 스타일 */
+/* 탭 버튼 스타일 */
 .tab-button {
   flex: 1;
-  padding: 0.75rem;
+  padding: 0.5rem;
   border-radius: 6px;
   font-weight: 600;
   cursor: pointer;
@@ -242,6 +255,16 @@ const goToGoogleLogin = () => {
   color: var(--text-color-secondary);
   border: none;
   background-color: transparent;
+  white-space: nowrap; /* 텍스트 줄바꿈 방지 */
+  font-size: 0.9rem;
+}
+
+/* 화면이 커지면 탭 버튼 패딩 증가 */
+@media (min-width: 640px) {
+  .tab-button {
+    padding: 0.75rem;
+    font-size: 1rem;
+  }
 }
 
 .tab-button.active {
@@ -249,8 +272,7 @@ const goToGoogleLogin = () => {
   color: var(--primary-color-text);
 }
 
-/* PrimeVue Password 컴포넌트가 w-full을 기본으로 지원하지 않을 수 있어 추가 */
-/* :deep()을 사용하여 하위 컴포넌트의 스타일을 지정합니다. */
+/* PrimeVue Password 컴포넌트 스타일 조정 */
 :deep(.p-password) {
   width: 100%;
 }

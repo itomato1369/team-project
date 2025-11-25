@@ -178,47 +178,47 @@ const downloadFile = async function downloadFile(fileNo) {
     console.error('파일 다운로드 실패:', err);
   }
 };
-const downloadZip = async function downloadZip(file) {
-  // 👈 인자 fileNo 제거
-  try {
-    // 1. 선택된 파일 객체에서 board_no (또는 file_no.name)만 추출하여 배열 생성
-    const fileNos = selectedFiles.value.map((file) => file.file_no.name);
+// const downloadZip = async function downloadZip(file) {
+//   // 👈 인자 fileNo 제거
+//   try {
+//     // 1. 선택된 파일 객체에서 board_no (또는 file_no.name)만 추출하여 배열 생성
+//     const fileNos = selectedFiles.value.map((file) => file.file_no.name);
 
-    if (fileNos.length === 0) {
-      alert('다운로드할 파일을 선택해주세요.');
-      return;
-    } // 2. POST 요청으로 fileNos 배열을 Body에 전달
+//     if (fileNos.length === 0) {
+//       alert('다운로드할 파일을 선택해주세요.');
+//       return;
+//     } // 2. POST 요청으로 fileNos 배열을 Body에 전달
 
-    const response = await axios.post(
-      `/api/system/data-board/download-multi`,
-      { fileNos: fileNos },
-      {
-        responseType: 'blob',
-      }
-    );
+//     const response = await axios.post(
+//       `/api/system/data-board/download-multi`,
+//       { fileNos: fileNos },
+//       {
+//         responseType: 'blob',
+//       }
+//     );
 
-    const blob = new Blob([response.data]);
-    const url = window.URL.createObjectURL(blob);
+//     const blob = new Blob([response.data]);
+//     const url = window.URL.createObjectURL(blob);
 
-    const link = document.createElement('a');
-    link.href = url;
+//     const link = document.createElement('a');
+//     link.href = url;
 
-    const contentDisposition = response.headers['content-disposition'];
-    let fileName = 'files.zip';
+//     const contentDisposition = response.headers['content-disposition'];
+//     let fileName = 'files.zip';
 
-    if (contentDisposition) {
-      const match = contentDisposition.match(/filename="?(.+)"?/);
-      if (match) fileName = decodeURIComponent(match[1]);
-    }
+//     if (contentDisposition) {
+//       const match = contentDisposition.match(/filename="?(.+)"?/);
+//       if (match) fileName = decodeURIComponent(match[1]);
+//     }
 
-    link.download = fileName;
-    link.click();
-    window.URL.revokeObjectURL(url);
-    selectedFiles.value = [];
-  } catch (err) {
-    console.error('파일 다운로드 실패:', err);
-  }
-};
+//     link.download = fileName;
+//     link.click();
+//     window.URL.revokeObjectURL(url);
+//     selectedFiles.value = [];
+//   } catch (err) {
+//     console.error('파일 다운로드 실패:', err);
+//   }
+// };
 </script>
 
 <template>
@@ -233,7 +233,7 @@ const downloadZip = async function downloadZip(file) {
       :rowHover="true"
       filterDisplay="menu"
       :loading="loading1"
-      :globalFilterFields="['name', 'country.name', 'representative.name', 'balance', 'status']"
+      :globalFilterFields="['title.name', 'country.name', 'institution_name.name', 'balance']"
       showGridlines
     >
       <template #header>
@@ -259,9 +259,6 @@ const downloadZip = async function downloadZip(file) {
         <template #body="{ data }">
           {{ data.board_no }}
         </template>
-        <template #filter="{ filterModel }">
-          <InputText v-model="filterModel.value" type="text" placeholder="Search by name" />
-        </template>
       </Column>
       <Column header="자료명" filterField="country.name" style="min-width: 12rem">
         <template #body="{ data }">
@@ -269,9 +266,7 @@ const downloadZip = async function downloadZip(file) {
             <span>{{ data.title.name }}</span>
           </div>
         </template>
-        <template #filter="{ filterModel }">
-          <InputText v-model="filterModel.value" type="text" placeholder="Search by country" />
-        </template>
+
         <template #filterclear="{ filterCallback }">
           <Button
             type="button"
@@ -314,20 +309,19 @@ const downloadZip = async function downloadZip(file) {
             <span>{{ data.institution_name.name }}</span>
           </div>
         </template>
-        <template #filter="{ filterModel }">
-          <MultiSelect
-            v-model="filterModel.value"
-            :options="representatives"
-            optionLabel="name"
-            placeholder="Any"
-          >
-            <template #option="slotProps">
-              <div class="flex items-center gap-2">
-                <span>{{ slotProps.option.name }}</span>
-              </div>
-            </template>
-          </MultiSelect>
-        </template>
+
+        <MultiSelect
+          v-model="filterModel.value"
+          :options="representatives"
+          optionLabel="name"
+          placeholder="Any"
+        >
+          <template #option="slotProps">
+            <div class="flex items-center gap-2">
+              <span>{{ slotProps.option.name }}</span>
+            </div>
+          </template>
+        </MultiSelect>
       </Column>
       <Column
         header="작성자"
@@ -341,28 +335,26 @@ const downloadZip = async function downloadZip(file) {
             <span>{{ data.writer.name }}</span>
           </div>
         </template>
-        <template #filter="{ filterModel }">
-          <MultiSelect
-            v-model="filterModel.value"
-            :options="representatives"
-            optionLabel="name"
-            placeholder="Any"
-          >
-            <template #option="slotProps">
-              <div class="flex items-center gap-2">
-                <span>{{ slotProps.option.name }}</span>
-              </div>
-            </template>
-          </MultiSelect>
-        </template>
+
+        <MultiSelect
+          v-model="filterModel.value"
+          :options="representatives"
+          optionLabel="name"
+          placeholder="Any"
+        >
+          <template #option="slotProps">
+            <div class="flex items-center gap-2">
+              <span>{{ slotProps.option.name }}</span>
+            </div>
+          </template>
+        </MultiSelect>
       </Column>
       <Column header="등록일" filterField="date" dataType="date" style="min-width: 10rem">
         <template #body="{ data }">
           {{ formatDate(data.date) }}
         </template>
-        <template #filter="{ filterModel }">
-          <DatePicker v-model="filterModel.value" dateFormat="mm/dd/yy" placeholder="mm/dd/yyyy" />
-        </template>
+
+        <DatePicker v-model="filterModel.value" dateFormat="mm/dd/yy" placeholder="mm/dd/yyyy" />
       </Column>
     </DataTable>
   </div>

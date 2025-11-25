@@ -79,6 +79,12 @@ function formatToKoreanDate(date) {
 
 // --- Event Handlers ---
 
+// [추가됨] 예약 가능한 날짜인지 확인하는 함수 (스타일링용)
+function isDateAvailable(dateObj) {
+  const key = formatCalendarDateToISO(dateObj);
+  return availableDateSet.has(key);
+}
+
 // 예약 불가능한 날짜 비활성화
 function isDateDisabled(date) {
   const checkDate = new Date(date.year, date.month, date.day);
@@ -296,7 +302,16 @@ onMounted(async () => {
                 dateFormat="yy-mm-dd"
                 @date-select="onDateSelect"
                 class="w-full"
-              />
+              >
+                <template #date="slotProps">
+                  <span
+                    :class="{ 'highlight-date': isDateAvailable(slotProps.date) }"
+                    class="p-1 block"
+                  >
+                    {{ slotProps.date.day }}
+                  </span>
+                </template>
+              </Calendar>
             </div>
 
             <!-- 예약 가능한 날짜 없음 -->
@@ -376,6 +391,7 @@ onMounted(async () => {
 </template>
 
 <style>
+/* 기존 스타일 */
 .dashboard-layout {
   min-height: 100vh;
 }
@@ -436,5 +452,11 @@ onMounted(async () => {
   font-weight: 600;
   font-size: 1.25rem;
   color: #212529;
+}
+
+/* [추가됨] 예약 가능한 날짜 강조 스타일 */
+.highlight-date {
+  font-weight: 900 !important; /* 글자 굵게 */
+  color: #000000 !important; /* 진한 검정색 */
 }
 </style>
