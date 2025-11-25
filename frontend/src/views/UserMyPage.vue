@@ -32,7 +32,7 @@ const activeTab = ref(0);
 const loggedInUserId = authStore.user.id; // 'test555'; // 하드코딩된 사용자 ID
 const userInfo = ref(null); // 사용자 정보를 담을 ref
 
-const tabTitles = ['신청 사업 목록', '상담내역', '내 정보 관리', '피보호자 관리'];
+const tabTitles = ['신청 사업 목록', '내 정보 관리', '피보호자 관리'];
 const currentTabTitle = computed(() => tabTitles[activeTab.value] || '마이페이지');
 
 // --- 데이터 로딩 ---
@@ -66,8 +66,10 @@ watch(activeTab, (newIndex) => {
 });
 
 onBeforeMount(() => {
-  if (route.query.tab === undefined) { activeTab.value = -1; }
-})
+  if (route.query.tab === undefined) {
+    activeTab.value = -1;
+  }
+});
 onMounted(() => {
   loadUserInfo(); // 컴포넌트 마운트 시 사용자 정보 로드
   // 초기 로드 시 URL에 탭 정보가 없으면 첫 번째 탭으로 설정하고 URL 업데이트
@@ -135,9 +137,9 @@ const goBackToList = () => {
           @back="goBackToList"
         />
       </TabPanel>
-      <TabPanel header="상담내역">
+      <!-- <TabPanel header="상담내역">
         <p class="placeholder-text">상담내역 컨텐츠가 준비중입니다.</p>
-      </TabPanel>
+      </TabPanel> -->
       <TabPanel header="내 정보 관리">
         <UserMyInfoUpdate v-if="userInfo && userInfo.user_id" :user-info="userInfo" />
       </TabPanel>

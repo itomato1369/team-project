@@ -66,10 +66,22 @@ router.post("/support-result", staffService.createSupportResult);
 // 지원 결과 목록 조회
 router.get("/support-result", staffService.supportResultSearch);
 
+// [신규] 필터링된 지원 결과서 조회
+router.get(
+  "/support-result/filtered",
+  staffService.supportResultByWardSurveyNo
+);
+
 // 지원 결과 상세 조회 ← 여기 추가
 router.get(
   "/support-result/:support_result_no",
   staffService.getSupportResultDetail
+);
+
+// [신규] 필터링된 지원 계획서 조회
+router.get(
+  "/support-plan/filtered",
+  staffService.supportPlanByWardSurveyNo
 );
 
 router.get("/staff-plan-items", staffService.getStaffPlanItems);
@@ -77,8 +89,14 @@ router.get("/staff-plan-items", staffService.getStaffPlanItems);
 // 설문 조회
 router.get("/survey-select", staffService.surveySelect);
 
+// wardId로 피보ho자 상세 정보 조회
+router.get("/ward-info/:wardId", staffService.getWardInfo);
+
 // 특정 설문 상세 조회
 router.get("/:surveyNo", staffService.getSurveyDetail);
+
+// surveyNo로 ward_no를 찾고, 해당 ward_no에 속한 모든 survey 목록 반환
+router.get("/surveys-by-ward/:surveyNo", staffService.getSurveysByWard);
 
 //상태를 승인으로 변경
 router.post(

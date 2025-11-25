@@ -132,6 +132,19 @@ ORDER BY
 `;
 
 const userInquirySqls = {
+  findInquiryBySurveyNo: `
+  SELECT DISTINCT
+    i.inquiry_no
+  FROM
+    survey_result sr
+  JOIN
+    inquiry_list il ON sr.business_no = il.business_no
+  JOIN
+    inquiry i ON il.inquiry_no = i.inquiry_no
+  WHERE
+    sr.survey_no = ?; 
+  `,
+
   findSurveysForMyPage: `
   SELECT 
   s.writer, -- 작성자 user_id(ex: test555)
@@ -161,7 +174,7 @@ const userInquirySqls = {
   sp.support_plan_no, 
   sr.support_result_no
   `,
-    findSurveyByInquiryContent: `
+  findSurveyByInquiryContent: `
 select 
   s.*
 from survey s

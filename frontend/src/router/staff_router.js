@@ -64,6 +64,12 @@ const staffRouter = [
         name: 'counselinglist',
         component: () => import('@/views/pages/staff/CounselingList.vue'),
       },
+      {
+        path: '/staff/user-survey-detail/:survey_no',
+        name: 'staffUserSurveyDetail',
+        component: () => import('@/components/staff/staffUserSurveyDetail.vue'),
+        props: true,
+      },
     ],
   },
 ];

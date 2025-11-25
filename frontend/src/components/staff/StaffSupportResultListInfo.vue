@@ -1,12 +1,11 @@
 <script setup>
-import { ref, watch } from 'vue';
+import { ref, watch, onMounted } from 'vue';
 import axios from 'axios';
 import InputText from 'primevue/inputtext';
 import Textarea from 'primevue/textarea';
 
 const props = defineProps({
-  item: Object,
-  dropdownItems: Array,
+  item: Object, // 부모에서 전달하는 서포트 플랜
 });
 
 // localForm 초기값
@@ -18,38 +17,50 @@ const localForm = ref({
   spend: 0,
   created_at: '',
   writer_date: '',
+  priority_no: '',
   plan: '',
   file_names: '',
   support_plan_status: '',
 });
 
-// props.item이 들어오면 서버 상태로 덮어쓰기
+// 서버 데이터 기반으로 localForm 세팅
+const setLocalForm = (data) => {
+  if (!data) return;
+  localForm.value = {
+    support_plan_no: data.support_plan_no || null,
+    support_plan_goal: data.support_plan_goal || '',
+    staff_name: data.staff_name || '',
+    business_name: data.business_name || '',
+    spend: data.spend || 0,
+    created_at: data.created_at || '',
+    writer_date: data.writer_date || '',
+    priority_no: data.priority_no || '',
+    plan: data.plan || '',
+    file_names: data.file_names || '',
+    support_plan_status: data.support_plan_status || data.status || '', // status 키 대비
+  };
+};
+
+// 초기 마운트 시
+onMounted(() => {
+  if (props.item) {
+    setLocalForm(props.item);
+  }
+});
+
+// props.item 변경 감지 (비동기 업데이트 대응)
 watch(
   () => props.item,
   (newVal) => {
-    if (newVal) {
-      localForm.value = {
-        support_plan_no: null,
-        support_plan_goal: '',
-        staff_name: '',
-        business_name: '',
-        spend: 0,
-        created_at: '',
-        writer_date: '',
-        plan: '',
-        file_names: '',
-        support_plan_status: '', // 초기값
-        ...newVal, // 서버에서 받은 값 덮어쓰기
-      };
-    }
+    setLocalForm(newVal);
   },
-  { immediate: true }
+  { immediate: true, deep: true }
 );
 
+// 금액 포맷
 const formatAmount = (amount) => {
   if (amount === null || amount === undefined) return '';
-  const onlyNums = String(amount).replace(/[^0-9]/g, '');
-  return onlyNums ? Number(onlyNums).toLocaleString() : '';
+  return Number(amount).toLocaleString();
 };
 
 // 승인 처리
@@ -61,7 +72,7 @@ const approvePlan = async () => {
       `/api/staff/support-plan/SupportPlanDetail/${localForm.value.support_plan_no}`
     );
     alert(res.data.message || '승인 완료');
-    // 승인 버튼 누르면 바로 상태 업데이트
+    // 승인 후 상태 업데이트
     localForm.value.support_plan_status = '승인';
   } catch (err) {
     console.error(err);
@@ -73,19 +84,16 @@ const approvePlan = async () => {
 <template>
   <div class="border rounded-md p-4 mt-2 shadow-sm bg-gray-50">
     <div class="flex flex-col gap-4">
-      <!-- 목표 -->
       <div>
         <label class="font-semibold text-gray-700">목표</label>
         <InputText v-model="localForm.support_plan_goal" readonly class="w-full bg-gray-100" />
       </div>
 
-      <!-- 작성자 -->
       <div>
         <label class="font-semibold text-gray-700">작성자</label>
         <InputText v-model="localForm.staff_name" readonly class="w-full bg-gray-100" />
       </div>
 
-      <!-- 지원계획 & 예상지원금액 -->
       <div class="flex gap-4">
         <div class="w-1/2">
           <label class="font-semibold text-gray-700">지원계획</label>
@@ -101,7 +109,6 @@ const approvePlan = async () => {
         </div>
       </div>
 
-      <!-- 작성일 & 요청일 -->
       <div class="flex gap-4">
         <div class="w-1/2">
           <label class="font-semibold text-gray-700">작성일</label>
@@ -113,19 +120,16 @@ const approvePlan = async () => {
         </div>
       </div>
 
-      <!-- 현재 상태 -->
       <div>
         <label class="font-semibold text-gray-700">현재상태</label>
         <InputText v-model="localForm.support_plan_status" readonly class="w-full bg-gray-100" />
       </div>
 
-      <!-- 내용 -->
       <div>
         <label class="font-semibold text-gray-700">내용</label>
         <Textarea v-model="localForm.plan" rows="4" readonly class="w-full bg-gray-100" />
       </div>
 
-      <!-- PDF 목록 -->
       <div v-if="localForm.file_names && localForm.file_names.length">
         <label class="font-semibold text-gray-700">업로드 PDF</label>
         <ul class="list-disc ml-5 text-sm text-gray-600">
@@ -133,16 +137,6 @@ const approvePlan = async () => {
         </ul>
       </div>
       <div v-else class="text-sm text-gray-400">첨부 파일 없음</div>
-
-      <!-- 승인 버튼 -->
-      <div class="flex justify-end gap-4 mt-6">
-        <button
-          @click="approvePlan"
-          class="px-6 py-2 bg-green-500 text-white font-semibold rounded-lg hover:bg-green-600 transition-colors"
-        >
-          승인
-        </button>
-      </div>
     </div>
   </div>
 </template>

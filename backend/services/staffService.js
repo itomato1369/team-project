@@ -582,3 +582,91 @@ exports.cancelStaffReservation = async (req, res) => {
     res.status(500).send({ message: "예약 취소 중 오류가 발생했습니다." });
   }
 };
+
+exports.getSurveysByWard = async (req, res) => {
+  const { surveyNo } = req.params;
+  try {
+    // 1. surveyNo로 ward_no 조회
+    const wardResult = await db.query("findWardNoBySurveyNo", [surveyNo]);
+    if (wardResult.length === 0) {
+      return res.status(404).send({ message: "Survey not found." });
+    }
+    const wardNo = wardResult[0].ward_no;
+
+    // 2. ward_no로 survey 목록 조회
+    const surveyList = await db.query("findSurveysByWardNo", [wardNo]);
+    res.status(200).send({ result: surveyList });
+  } catch (error) {
+    console.error("Error getting surveys by ward:", error);
+    res.status(500).send({ message: "Error fetching survey list." });
+  }
+};
+
+// wardId로 피보호자 상세 정보 조회
+exports.getWardInfo = async (req, res) => {
+  const { wardId } = req.params;
+  console.log(`getWardInfo 조회: wardId=${wardId}`);
+
+  if (!wardId) {
+    return res.status(400).send({ message: "피보호자 ID가 필요합니다." });
+  }
+
+  try {
+    const result = await db.query("getWardDetail", [wardId]);
+    if (result && result.length > 0) {
+      res.status(200).json(result[0]); // 단일 객체 반환
+    } else {
+      res.status(404).send({ message: "해당 피보호자를 찾을 수 없습니다." });
+    }
+  } catch (error) {
+    console.error("getWardInfo DB 쿼리 오류:", error);
+    res.status(500).send({ message: "피보호자 정보 조회 중 오류 발생" });
+  }
+};
+
+// 기관 담당자 피보호자가 작성한 사업 조사지 별 지원 계획서 조회
+exports.supportPlanByWardSurveyNo = async (req, res) => {
+  const { ward_no, survey_no } = req.query; // 쿼리 파라미터에서 ward_no와 survey_no 추출
+
+  if (!ward_no || !survey_no) {
+    return res
+      .status(400)
+      .send({ message: "ward_no와 survey_no 파라미터가 필요합니다." });
+  }
+
+  try {
+    let result = await db.query("supportPlanByWardNoSurveyNo", [ward_no, survey_no]);
+    console.log("DB 조회 결과:", result); // 결과 확인용 로그 추가
+    console.log("지원 계획 목록 조회 성공");
+    res.send(result);
+  } catch (error) {
+    console.error("supportPlan DB 쿼리 실행 오류:", error);
+    res
+      .status(500)
+      .send({ message: "지원 계획 조회 중 데이터베이스 오류 발생" });
+  }
+};
+
+// 기관 담당자 피보호자가 작성한 사업 조사지 별 지원 결과서 조회
+exports.supportResultByWardSurveyNo = async (req, res) => {
+  const { ward_no, survey_no } = req.query;
+
+  if (!ward_no || !survey_no) {
+    return res
+      .status(400)
+      .json({ message: "ward_no와 survey_no 파라미터가 필요합니다." });
+  }
+
+  try {
+    let rows = await db.query("supportResultByWardNoSurveyNo", [ward_no, survey_no]);
+
+    if (!Array.isArray(rows)) {
+      rows = rows ? [rows] : [];
+    }
+
+    res.json(rows);
+  } catch (err) {
+    console.error("지원결과 조회 오류:", err);
+    res.status(500).json({ error: "지원결과 조회 실패" });
+  }
+};

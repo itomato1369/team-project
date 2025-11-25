@@ -40,9 +40,9 @@ const goToEditWardPage = (ward) => {
   router.push({ name: 'user-ward-edit', params: { ward_no: ward.ward_no } });
 };
 
-const viewSupportHistory = (ward) => {
-  alert(`'${ward.name}'의 지원 기록 보기 기능은 현재 준비 중입니다.`);
-};
+// const viewSupportHistory = (ward) => {
+//   alert(`'${ward.name}'의 지원 기록 보기 기능은 현재 준비 중입니다.`);
+// };
 
 const getPriorityClass = (status) => {
   switch (status) {
@@ -91,7 +91,7 @@ const getPriorityClass = (status) => {
           />
         </template>
       </Column>
-      <Column header="지원 기록">
+      <!-- <Column header="지원 기록">
         <template #body="slotProps">
           <Button
             label="기록보기"
@@ -99,7 +99,7 @@ const getPriorityClass = (status) => {
             class="p-button-text"
           />
         </template>
-      </Column>
+      </Column> -->
       <Column header="정보 수정">
         <template #body="slotProps">
           <Button

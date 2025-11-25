@@ -1,14 +1,15 @@
 <script setup>
-import { ref, onBeforeMount, computed } from 'vue';
+import { ref, computed, watch } from 'vue';
 import axios from 'axios';
 import InputText from 'primevue/inputtext';
-import SupportResultItem from '@/components/staff/SupportResultItem.vue';
+import StaffSupportResultItem from '@/components/staff/StaffSupportResultItem.vue';
 
 const ALLOW_MULTIPLE_ACCORDIONS = ref(false);
 const surveys = ref([]);
 const loading = ref(false);
 const searchKeyword = ref('');
 const activeSupportPlanNo = ref(null);
+const props = defineProps(['ward-id', 'selected-survey-no']);
 
 // 상세 토글
 const handleToggleDetail = (supportResultNo) => {
@@ -29,11 +30,20 @@ const formatDate = (date) => {
   }
 };
 
-// DB에서 support-result 가져오기
-onBeforeMount(async () => {
+// 데이터 로딩 함수
+const fetchSupportResults = async (wardId, surveyNo) => {
+  if (!wardId || !surveyNo) {
+    surveys.value = [];
+    return;
+  }
   loading.value = true;
   try {
-    const res = await axios.get('/api/staff/support-result');
+    const res = await axios.get('/api/staff/support-result/filtered', {
+      params: {
+        ward_no: wardId,
+        survey_no: surveyNo,
+      },
+    });
     console.log('API 응답 확인:', res.data); // 🔥 응답 구조 확인
     const list = Array.isArray(res.data) ? res.data : [res.data];
 
@@ -54,10 +64,22 @@ onBeforeMount(async () => {
     }));
   } catch (err) {
     console.error('지원 결과 조회 오류:', err);
+    surveys.value = [];
   } finally {
     loading.value = false;
   }
-});
+};
+
+// props가 변경될 때마다 데이터 다시 로드
+watch(
+  () => [props.wardId, props.selectedSurveyNo],
+  (newValues) => {
+    const [newWardId, newSurveyNo] = newValues;
+    fetchSupportResults(newWardId, newSurveyNo);
+  },
+  { immediate: true } // 컴포넌트가 마운트될 때 즉시 실행
+);
+
 
 // 검색 필터
 const filteredSurveys = computed(() => {
@@ -85,8 +107,8 @@ const filteredSurveys = computed(() => {
     </div>
 
     <!-- 결과 리스트 -->
-    <div v-if="!loading" class="flex flex-col gap-4">
-      <SupportResultItem
+    <div v-if="!loading && filteredSurveys.length > 0" class="flex flex-col gap-4">
+      <StaffSupportResultItem
         v-for="item in filteredSurveys"
         :key="item.support_plan_no"
         :item="item"
@@ -94,6 +116,10 @@ const filteredSurveys = computed(() => {
         :allow-multiple="ALLOW_MULTIPLE_ACCORDIONS"
         @toggle-detail="() => handleToggleDetail(item.support_plan_no)"
       />
+    </div>
+
+    <div v-else-if="!loading && filteredSurveys.length === 0" class="text-center p-6 text-lg text-gray-500">
+      조회된 지원결과서가 없습니다.
     </div>
 
     <div v-else class="text-center p-6 text-lg text-gray-500">데이터 불러오는 중...</div>

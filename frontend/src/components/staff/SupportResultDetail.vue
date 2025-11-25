@@ -16,8 +16,9 @@ const localForm = ref({
   staff_name: '',
   business_name: '',
   spend: 0,
-  created_at: '',
-  writer_date: '',
+  support_created_at: '',
+  support_ended_at: '',
+  priority_no: '',
   plan: '',
   file_names: '',
   support_plan_status: '',
@@ -34,8 +35,9 @@ watch(
         staff_name: '',
         business_name: '',
         spend: 0,
-        created_at: '',
-        writer_date: '',
+        support_created_at: '',
+        support_ended_at: '',
+        priority_no: '',
         plan: '',
         file_names: '',
         support_plan_status: '', // 초기값
@@ -53,21 +55,21 @@ const formatAmount = (amount) => {
 };
 
 // 승인 처리
-const approvePlan = async () => {
-  if (!localForm.value.support_plan_no) return;
+// const approvePlan = async () => {
+//   if (!localForm.value.support_plan_no) return;
 
-  try {
-    const res = await axios.post(
-      `/api/staff/support-plan/SupportPlanDetail/${localForm.value.support_plan_no}`
-    );
-    alert(res.data.message || '승인 완료');
-    // 승인 버튼 누르면 바로 상태 업데이트
-    localForm.value.support_plan_status = '승인';
-  } catch (err) {
-    console.error(err);
-    alert('승인 중 오류 발생');
-  }
-};
+//   try {
+//     const res = await axios.post(
+//       `/api/staff/support-plan/SupportPlanDetail/${localForm.value.support_plan_no}`
+//     );
+//     alert(res.data.message || '승인 완료');
+//     // 승인 버튼 누르면 바로 상태 업데이트
+//     localForm.value.support_plan_status = '승인';
+//   } catch (err) {
+//     console.error(err);
+//     alert('승인 중 오류 발생');
+//   }
+// };
 </script>
 
 <template>
@@ -87,11 +89,7 @@ const approvePlan = async () => {
 
       <!-- 지원계획 & 예상지원금액 -->
       <div class="flex gap-4">
-        <div class="w-1/2">
-          <label class="font-semibold text-gray-700">지원계획</label>
-          <InputText v-model="localForm.business_name" readonly class="w-full bg-gray-100" />
-        </div>
-        <div class="w-1/2">
+        <div class="w-full">
           <label class="font-semibold text-gray-700">예상지원금액</label>
           <InputText
             :value="formatAmount(localForm.spend)"
@@ -104,19 +102,13 @@ const approvePlan = async () => {
       <!-- 작성일 & 요청일 -->
       <div class="flex gap-4">
         <div class="w-1/2">
-          <label class="font-semibold text-gray-700">작성일</label>
-          <InputText v-model="localForm.created_at" readonly class="w-full bg-gray-100" />
+          <label class="font-semibold text-gray-700">시작일</label>
+          <InputText v-model="localForm.support_started_at" readonly class="w-full bg-gray-100" />
         </div>
         <div class="w-1/2">
-          <label class="font-semibold text-gray-700">요청일</label>
-          <InputText v-model="localForm.writer_date" readonly class="w-full bg-gray-100" />
+          <label class="font-semibold text-gray-700">종료일</label>
+          <InputText v-model="localForm.support_ended_at" readonly class="w-full bg-gray-100" />
         </div>
-      </div>
-
-      <!-- 현재 상태 -->
-      <div>
-        <label class="font-semibold text-gray-700">현재상태</label>
-        <InputText v-model="localForm.support_plan_status" readonly class="w-full bg-gray-100" />
       </div>
 
       <!-- 내용 -->

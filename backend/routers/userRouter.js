@@ -52,6 +52,20 @@ router.get("/userwiter-survey", async (req, res) => {
   res.send({ result: survey });
 });
 
+// Called by: src/views/UserDashboard.vue
+router.get("/user-inquiry-by-surveyno", async (req, res) => {
+  const { surveyNo } = req.query;
+  console.log("받은 surveyNo: ", surveyNo); // 👈 이게 제대로 찍히는지 확인
+  console.log("req.query 전체: ", req.query); // 👈 전체 쿼리 확인
+  if (!surveyNo) {
+    return res
+      .status(400)
+      .send({ err: "SurveyNo query parameter is required." });
+  }
+  const result = await userService.getInquiryBySurveyNo(surveyNo);
+  res.send({ result: result });
+});
+
 router.get("/user-board", async (req, res) => {
   console.log("user-board query is called");
   const { term, type } = req.query;
@@ -384,8 +398,11 @@ router.get("/surveys/create", async (req, res) => {
         .send({ err: "guardianId query parameter is required." });
     }
 
-    const wards = await userService.getAvailableWardsForInquiry(guardianId, inquiryNo);
-    console.log('surveys/create: ', wards);
+    const wards = await userService.getAvailableWardsForInquiry(
+      guardianId,
+      inquiryNo
+    );
+    console.log("surveys/create: ", wards);
     res.status(200).send({ result: wards });
   } catch (err) {
     res.status(500).send({ err: "Failed to get wards: " + err.message });
@@ -427,7 +444,9 @@ router.get("/support-plan/:support_plan_no", async (req, res) => {
 router.get("/support-result/:support_result_no", async (req, res) => {
   try {
     const { support_result_no } = req.params;
-    const resultDetail = await userService.getSupportResultDetail(support_result_no);
+    const resultDetail = await userService.getSupportResultDetail(
+      support_result_no
+    );
     if (!resultDetail) {
       return res.status(404).send({ message: "Support result not found." });
     }

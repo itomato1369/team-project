@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onBeforeMount, computed } from 'vue';
+import { ref, computed, watch } from 'vue';
 import axios from 'axios';
 import InputText from 'primevue/inputtext';
 import SupportPlanItem2 from '@/components/staff/SupportPlanItem2.vue';
@@ -9,9 +9,8 @@ const surveys = ref([]);
 const loading = ref(false);
 const searchKeyword = ref('');
 const activeSupportPlanNo = ref(null);
-const props = defineProps(['ward-id']);
+const props = defineProps(['ward-id', 'selected-survey-no']);
 
-console.log(props);
 // 우선순위 매핑
 const mapPriority = (no) => {
   switch (no) {
@@ -33,11 +32,23 @@ const handleToggleDetail = (supportPlanNo) => {
   }
 };
 
-// DB 로딩
-onBeforeMount(async () => {
+// 데이터 로딩 함수
+const fetchSupportPlans = async (wardId, surveyNo) => {
+  console.log('[SupportList] Fetching data with:', { wardId, surveyNo });
+  if (!wardId || !surveyNo) {
+    surveys.value = [];
+    return;
+  }
   loading.value = true;
   try {
-    const res = await axios.get('/api/staff/support-plan');
+    const res = await axios.get('/api/staff/support-plan/filtered', {
+      params: {
+        ward_no: wardId,
+        survey_no: surveyNo
+      }
+    });
+    console.log('[SupportList] Backend response data:', res.data);
+
     surveys.value = res.data.map((item) => ({
       support_plan_no: item.support_plan_no,
       support_plan_goal: item.support_plan_goal || '',
@@ -50,15 +61,26 @@ onBeforeMount(async () => {
       spend: item.spend || 0,
       plan: item.plan || '',
       file_names: item.file_names || '',
-      support_plan_status: item.support_plan_status || item.status || '', // ✅ 상태 포함
-      //ward_no: ward_no,
+      support_plan_status: item.support_plan_status || item.status || '',
     }));
+    console.log('[SupportList] Mapped surveys:', surveys.value);
   } catch (err) {
     console.error('Support Plan 조회 오류:', err);
+    surveys.value = []; // 에러 발생 시 목록 비우기
   } finally {
     loading.value = false;
   }
-});
+};
+
+// props가 변경될 때마다 데이터 다시 로드
+watch(
+  () => [props.wardId, props.selectedSurveyNo],
+  (newValues) => {
+    const [newWardId, newSurveyNo] = newValues;
+    fetchSupportPlans(newWardId, newSurveyNo);
+  },
+  { immediate: true } // 컴포넌트가 마운트될 때 즉시 실행
+);
 
 // 검색 필터 적용
 const filteredSurveys = computed(() => {
@@ -86,7 +108,7 @@ const filteredSurveys = computed(() => {
     </div>
 
     <!-- 리스트 -->
-    <div v-if="!loading" class="flex flex-col gap-4">
+    <div v-if="!loading && filteredSurveys.length > 0" class="flex flex-col gap-4">
       <SupportPlanItem2
         v-for="item in filteredSurveys"
         :key="item.support_plan_no"
@@ -95,6 +117,10 @@ const filteredSurveys = computed(() => {
         :allow-multiple="ALLOW_MULTIPLE_ACCORDIONS"
         @toggle-detail="() => handleToggleDetail(item.support_plan_no)"
       />
+    </div>
+
+    <div v-else-if="!loading && filteredSurveys.length === 0" class="text-center p-6 text-lg text-gray-500">
+      조회된 지원계획서가 없습니다.
     </div>
 
     <div v-else class="text-center p-6 text-lg text-gray-500">데이터 불러오는 중...</div>

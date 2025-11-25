@@ -59,7 +59,11 @@ SELECT
     w.ward_no AS '피보호자번호'
 FROM survey s
 INNER JOIN ward w ON s.ward_no = w.ward_no
+<<<<<<< HEAD
 WHERE s.survey_no = 1;
+=======
+WHERE s.survey_no = ?;
+>>>>>>> dfd982de616df9fb52597ce9f6b5321e93cfb806
 `;
 
 const wardno = `SELECT * FROM survey WHERE survey_no = ?`;
@@ -148,7 +152,8 @@ SELECT
   support_title,
   support_spend,
   support_started_at,
-  support_ended_at
+  support_ended_at,
+  support_content
 FROM support_result
 ORDER BY support_started_at DESC
 `;
@@ -213,6 +218,77 @@ const newReservationCount = `SELECT COUNT(*) AS total_count FROM reservation WHE
 // 미작성 상담일지 개수
 const notCompleteConsultCount = ``;
 
+const findWardNoBySurveyNo = `
+SELECT ward_no FROM survey WHERE survey_no = ?
+`;
+
+const findSurveysByWardNo = `
+SELECT survey_no, created_at, business_name FROM survey WHERE ward_no = ? ORDER BY created_at DESC
+`;
+
+const getWardDetail = `
+SELECT
+    name AS '이름',
+    age AS '나이',
+    NULL AS '생년월일',
+    CASE
+        WHEN sex = 'MALE' THEN '남'
+        WHEN sex = 'FEMALE' THEN '여'
+        ELSE sex
+    END AS '성별',
+    disabled_level AS '장애유형',
+    address AS '주소',
+    ward_no AS '피보호자번호'
+FROM ward
+WHERE ward_no = ?
+`;
+const supportResultByWardNoSurveyNo = `
+SELECT
+  sr.support_result_no,
+  sr.support_title,
+  sr.support_spend,
+  sr.support_started_at,
+  sr.support_ended_at,
+  sr.support_content,
+  sp.staff_name,
+  sp.business_name
+FROM 
+  support_result sr
+JOIN 
+  support_plan sp ON sr.support_plan_no = sp.support_plan_no
+JOIN 
+  priority p ON sp.priority_no = p.priority_no
+WHERE 
+  sp.ward_no = ? AND p.survey_no = ?
+ORDER BY 
+  sr.support_started_at DESC
+`;
+
+const supportPlanByWardNoSurveyNo = `
+SELECT 
+  sp.support_plan_no,
+  sp.support_plan_goal,
+  sp.staff_name,
+  sp.created_at,
+  sp.writer_date,
+  sp.priority_no,
+  sp.plan,
+  sp.business_name,  
+  sp.spend,          
+  sp.support_plan_status
+FROM 
+  support_plan sp
+JOIN 
+  priority p ON sp.priority_no = p.priority_no
+WHERE 
+  p.ward_no = ? AND p.survey_no = ?
+ORDER BY 
+  sp.support_plan_no DESC`;
+
+
+
+
+
 module.exports = {
   surveySelect,
   surveyWardJoinSelect,
@@ -230,6 +306,16 @@ module.exports = {
   supportresultlistinfo,
   updateplanstatus,
   Staffplanitem,
+<<<<<<< HEAD
   reservationCount,
   newReservationCount,
+=======
+  consultCount,
+  findWardNoBySurveyNo,
+  findSurveysByWardNo,
+  getWardDetail, // 새로 추가
+  supportPlanByWardNoSurveyNo,
+  supportResultByWardNoSurveyNo,  
+>>>>>>> dfd982de616df9fb52597ce9f6b5321e93cfb806
 };
+
