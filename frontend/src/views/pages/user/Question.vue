@@ -71,6 +71,9 @@ const request = async function request() {
   }
 
   // AutoComplete의 선택 값은 객체일 수 있으므로 ID만 추출하거나 필요한 데이터를 정리합니다.
+  // Vue 컴포넌트 request 함수 내부
+  const user = JSON.parse(localStorage.getItem('user'));
+  const currentUserId = user?.user_id; // user가 null이면 currentUserId도 null
 
   const selectedCategory = formData.value.category;
   const payload = {
@@ -82,12 +85,13 @@ const request = async function request() {
     supportplan_no: formData.value.supportplan_no // supportplan_no 객체 자체가 있다면,
       ? formData.value.supportplan_no.id // 그 객체의 id만 추출
       : null, // TODO: 작성자, 등록일 등 서버에서 처리할 추가 데이터
+    user_id: currentUserId,
   };
   console.log(payload);
 
   try {
     // 서버의 Q&A 등록 API 엔드포인트로 POST 요청을 보냅니다.
-    const response = await axios.post('/api/qna/question', payload);
+    const response = await axios.post('/api/qna/question-answer/', payload);
 
     if (response.status === 201 || response.status === 200) {
       toast.add({ severity: 'success', summary: '알림', detail: '성공' });

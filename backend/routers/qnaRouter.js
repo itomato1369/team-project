@@ -23,17 +23,17 @@ router.get("/", async (req, res) => {
  *  [POST /api/qna/question]
  *  QnA 등록
  */
-router.post("/question-answer/:question_no", async (req, res) => {
+router.post("/question-answer/", async (req, res) => {
   console.log("[qnaRouter] POST /question 요청 받음");
-  const tempId = "test";
   // 프론트에서 보낸 데이터
-  const { title, category, content, supportplan_no, writer } = req.body;
+  const { title, category, content, supportplan_no, writer, user_id } =
+    req.body;
   const result = await query("insertQna", [
     title,
     category,
     content,
     supportplan_no,
-    tempId,
+    user_id,
   ]);
 
   if (!title) {
@@ -64,7 +64,7 @@ router.post("/question-answer/:question_no", async (req, res) => {
 });
 
 router.get("/supportplan", async (req, res) => {
-  const rows = await query("supportPlan");
+  const rows = await query("findSupportNo");
   res.json(rows);
 });
 router.get("/question-detail/:question_no", async (req, res) => {
