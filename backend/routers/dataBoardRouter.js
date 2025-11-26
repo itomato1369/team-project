@@ -379,10 +379,10 @@ router.get("/download/:file_no", async (req, res) => {
   }
 
   const file = rows[0]; // DB에서 가져온 파일 정보
-  const relativePath = file.file_path; // /uploads/board_files/파일명
+  const relativePath = `${file.file_path}/${file.server_file_name}`; // /uploads/board_files/파일명
 
   const absolutePath = path.join(__dirname, "..", relativePath);
-
+  console.log(absolutePath);
   if (!fs.existsSync(absolutePath)) {
     return res.status(404).send("File not found on server");
   }
