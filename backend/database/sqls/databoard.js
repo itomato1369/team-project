@@ -9,7 +9,7 @@ board_no
 , file_no
 , created_at
 , updated_at
-from board`;
+from board ORDER BY board_no DESC`;
 
 const findMemberInstitution = `
 SELECT institution_no
