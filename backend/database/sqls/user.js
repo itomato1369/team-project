@@ -146,33 +146,40 @@ const userInquirySqls = {
   `,
 
   findSurveysForMyPage: `
+  WITH survey_to_plan AS (
+    SELECT
+      sn.survey_no,
+      sp.support_plan_no,
+      sp.support_plan_status,
+      sr.support_result_no
+    FROM support_notice sn
+    LEFT JOIN support_plan sp ON sn.ward_no = sp.ward_no AND sn.notice_no = sp.notice_no
+    LEFT JOIN support_result sr ON sp.support_plan_no = sr.support_plan_no
+  )
   SELECT 
-  s.writer, -- 작성자 user_id(ex: test555)
+  s.writer, -- 작성자 user_id(ex: user1)
   w.ward_no,
   w.name,
-  i.institution_name ,
+  inst.institution_name,
   s.survey_no,
   s.business_name,
-  s.created_at ,
-  p.priority_no, -- survey를 통해 support_plan이 작성되었다면 그값을 찾기 위해선 우선순위PK값이 필요함
-  sp.support_plan_no,
-  sp.support_plan_status AS plan_status,
-  sr.support_result_no
+  s.created_at,
+  stp.support_plan_no,
+  stp.support_plan_status AS plan_status,
+  stp.support_result_no
   FROM 
   member m
   INNER JOIN ward w ON w.guardian_id = m.user_id  -- 사용자 ward 필터링
   INNER JOIN survey s ON s.ward_no = w.ward_no  -- survey 필수 (없으면 행 제외)
-  LEFT JOIN priority p ON p.survey_no = s.survey_no AND p.ward_no = w.ward_no  -- survey → priority (없을 수 있음)
-  LEFT JOIN support_plan sp ON sp.priority_no = p.priority_no AND sp.ward_no = w.ward_no  -- priority → support_plan (없을 수 있음)
-  LEFT JOIN support_result sr ON sr.support_plan_no = sp.support_plan_no  -- support_plan → support_result (없을 수 있음)
-  JOIN institution i ON i.institution_no = m.institution_no
+  LEFT JOIN survey_to_plan stp ON s.survey_no = stp.survey_no -- [수정] 올바른 CTE 서브쿼리를 사용하여 support_plan 연결
+  JOIN institution inst ON inst.institution_no = m.institution_no
   WHERE 
   m.user_id = ?
   ORDER BY 
   w.ward_no,  -- ward별 그룹핑처럼 정렬
   s.survey_no, 
-  sp.support_plan_no, 
-  sr.support_result_no
+  stp.support_plan_no, 
+  stp.support_result_no
   `,
   findSurveyByInquiryContent: `
 select 

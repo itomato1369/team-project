@@ -141,6 +141,7 @@ const handleSubmit = async () => {
       alert('정보가 성공적으로 수정되었습니다.');
     } else {
       // Create new ward
+      console.log('ward is ', ward.value);
       await axios.post('/api/user/wards', ward.value);
       alert('피보호자가 성공적으로 등록되었습니다.');
     }
@@ -200,7 +201,7 @@ onMounted(() => {
           />
           <span>-</span>
           <input
-            type="text"
+            type="password"
             id="ward_rrn2"
             ref="rrn2Input"
             v-model="rrn2"

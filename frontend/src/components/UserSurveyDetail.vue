@@ -232,6 +232,7 @@ const goBackToList = () => {
                 >
                   {{ question.priority }}
                 </span>
+                <span v-if="question.is_required === 1" class="text-red-500 mr-1">[필수]</span>
                 <span>질문 {{ index + 1 }}. {{ question.text }}</span>
               </label>
               <Textarea

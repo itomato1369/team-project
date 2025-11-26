@@ -71,24 +71,10 @@ const goToInquiryDetail = async (item) => {
     console.error('조사지 번호(survey_no)가 없습니다.');
     return;
   }
-
-  try {
-    // 1. (예제) 백엔드 API를 호출하여 상세 데이터를 가져옵니다.
-    //    실제 API 엔드포인트로 수정해야 합니다.
-    console.log(`서버에 ${surveyNo}번 조사지의 상세 정보를 요청합니다.`);
-    const response = await axios.get(`/api/user/user-inquiry-by-surveyno`, {
-      params: { surveyNo: surveyNo },
-    });
-    console.log('======================= 서버로부터 받은 상세 정보:', response.data);
-
-    // 2. 'userInquiryDetail' 라우트로 survey_no를 파라미터로 전달하며 이동합니다.
-    router.push({
-      name: 'user-inquiry-detail',
-      params: { id: response.data.result[0].inquiry_no },
-    });
-  } catch (error) {
-    console.error(`${surveyNo}번 조사지 상세 정보 조회 또는 페이지 이동 실패:`, error);
-  }
+  router.push({
+    name: 'user-survey-detail',
+    params: { survey_no: surveyNo },
+  });
 };
 
 onBeforeMount(() => {
