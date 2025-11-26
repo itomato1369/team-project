@@ -30,6 +30,7 @@ const model = ref([
         //   props: true,
         // },
       },
+      { label: '자료실', icon: 'pi pi-fw pi-file', to: '/ud/data-board', roles: ['1a'] },
     ],
   },
   {
