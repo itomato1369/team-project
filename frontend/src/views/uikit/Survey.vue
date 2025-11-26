@@ -77,9 +77,9 @@ const showSurveyListModal = async () => {
 // 모달에서 조사지 클릭 시
 const onSurveyRowClick = (event) => {
   // 라우팅 대신 selectedSurveyNoInModal 값을 업데이트
-  console.log("모달에서 선택된 survey_no:", event.data.survey_no);
+  console.log('모달에서 선택된 survey_no:', event.data.survey_no);
   selectedSurveyNoInModal.value = event.data.survey_no;
-  console.log("selectedSurveyNoInModal 업데이트 후:", selectedSurveyNoInModal.value);
+  console.log('selectedSurveyNoInModal 업데이트 후:', selectedSurveyNoInModal.value);
   isModalVisible.value = false; // 모달 닫기
 };
 </script>
@@ -111,22 +111,27 @@ const onSurveyRowClick = (event) => {
     </div>
 
     <!-- 작성한 조사지 목록 모달 (Survey.vue에 추가) -->
-    <Dialog v-model:visible="isModalVisible" modal header="관련 조사지 목록" :style="{ width: '50vw' }">
-        <DataTable
-            :value="surveyList"
-            :loading="loadingModal"
-            selectionMode="single"
-            @row-click="onSurveyRowClick"
-            dataKey="survey_no"
-            responsiveLayout="scroll"
-        >
-            <Column field="created_at" header="작성일" :sortable="true">
-                 <template #body="slotProps">
-                    {{ new Date(slotProps.data.created_at).toLocaleDateString() }}
-                </template>
-            </Column>
-            <Column field="business_name" header="사업명" :sortable="true"></Column>
-        </DataTable>
+    <Dialog
+      v-model:visible="isModalVisible"
+      modal
+      header="관련 조사지 목록"
+      :style="{ width: '50vw' }"
+    >
+      <DataTable
+        :value="surveyList"
+        :loading="loadingModal"
+        selectionMode="single"
+        @row-click="onSurveyRowClick"
+        dataKey="survey_no"
+        responsiveLayout="scroll"
+      >
+        <Column field="created_at" header="작성일" :sortable="true">
+          <template #body="slotProps">
+            {{ new Date(slotProps.data.created_at).toLocaleDateString() }}
+          </template>
+        </Column>
+        <Column field="business_name" header="사업명" :sortable="true"></Column>
+      </DataTable>
     </Dialog>
   </div>
 </template>

@@ -15,7 +15,7 @@ const applicantData = ref({
   피보호자이름: '...',
   나이: '...',
   성별: '...',
-  생년월일: '...',
+  보호자: '...',
   장애유형: '...',
   주소: '...',
 });
@@ -38,48 +38,47 @@ const fetchApplicantData = async (id) => {
     // ward_no(id)를 사용하여 피보호자 정보 조회
     const response = await axios.get(`/api/staff/ward-info/${id}`);
 
-    console.log('ApplicantInfo API 응답 전체:', response.data); // ⭐ 핵심 수정: API 응답 구조에 유연하게 대응 (result 배열 또는 data 자체 배열)
+    console.log('ApplicantInfo API 응답 전체:', response.data);
 
+    // 배열 형태 체크 후 첫 번째 객체 사용
     let data = null;
-    if (response.data && !Array.isArray(response.data) && typeof response.data === 'object') { // response.data가 배열이 아닌 객체일 경우 (단일 결과)
-      data = response.data;
-    } else if (response.data.result && Array.isArray(response.data.result) && response.data.result.length > 0) { // response.data.result가 배열일 경우
-      data = response.data.result[0];
-    } else if (Array.isArray(response.data) && response.data.length > 0) { // response.data 자체가 배열일 경우
+    if (Array.isArray(response.data) && response.data.length > 0) {
       data = response.data[0];
+    } else if (response.data && typeof response.data === 'object') {
+      data = response.data;
     }
 
     if (data) {
-      console.log('ApplicantInfo: 조회 성공, 데이터:', data);
-
+      console.log(
+        '====================================== \nApplicantInfo: 조회 성공, 데이터:',
+        data
+      );
       applicantData.value = {
-        // ⭐ DB 조회 결과가 한글 별칭이므로 대괄호 표기법 사용
-        이름: data['이름'] || '정보 없음',
+        피보호자이름: data['이름'] || '정보 없음',
         나이: data['나이'] ? `${data['나이']}세` : '정보 없음',
+        보호자: data['보호자'] || data['guardian'] || '정보 없음', // 여기에 guardian도 체크
         성별: data['성별'] || '정보 없음',
-        생년월일: data['생년월일'] || '정보 없음',
         장애유형: data['장애유형'] || '없음',
         주소: data['주소'] || '정보 없음',
       };
     } else {
-      // 데이터가 비어있을 경우 (조회 조건 불일치 등)
       console.warn('ApplicantInfo: 조회된 지원자 정보가 없습니다. ID:', id);
       applicantData.value = {
-        이름: '정보 없음',
+        피보호자이름: '정보 없음',
         나이: '정보 없음',
+        보호자: '정보 없음',
         성별: '정보 없음',
-        생년월일: '정보 없음',
         장애유형: '없음',
         주소: '정보 없음',
       };
     }
   } catch (error) {
-    console.error('지원자 정보 조회 오류:', error); // 오류 발생 시에도 데이터 없음 상태로 초기화
+    console.error('지원자 정보 조회 오류:', error);
     applicantData.value = {
-      이름: '오류',
+      피보호자이름: '오류',
       나이: '오류',
+      보호자: '오류',
       성별: '오류',
-      생년월일: '오류',
       장애유형: '오류',
       주소: '오류',
     };
@@ -96,7 +95,8 @@ watch(
     if (newWardId) {
       fetchApplicantData(newWardId);
     }
-  }
+  },
+  { immediate: true } // 초기 마운트 시에도 실행
 );
 </script>
 

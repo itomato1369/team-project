@@ -105,9 +105,6 @@ router.get("/staff-plan-items", staffService.getStaffPlanItems);
 // 설문 조회
 router.get("/survey-select", staffService.surveySelect);
 
-// wardId로 피보ho자 상세 정보 조회
-router.get("/ward-info/:wardId", staffService.getWardInfo);
-
 // surveyNo로 ward_no를 찾고, 해당 ward_no에 속한 모든 survey 목록 반환
 router.get("/surveys-by-ward/:surveyNo", staffService.getSurveysByWard);
 
@@ -122,5 +119,8 @@ router.post(
 
 // 특정 설문 상세 조회
 router.get("/:surveyNo", staffService.getSurveyDetail);
+
+// wardId로 피보ho자 상세 정보 조회
+router.get("/ward-info/:wardId", staffService.getWardInfo);
 
 module.exports = router;

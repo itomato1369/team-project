@@ -48,7 +48,7 @@ const wardsearch = `
 SELECT
     w.name AS '이름',
     w.age AS '나이',
-    NULL AS '생년월일',
+    m.user_name AS '보호자', 
     CASE
         WHEN w.sex = 'MALE' THEN '남'
         WHEN w.sex = 'FEMALE' THEN '여'
@@ -59,7 +59,8 @@ SELECT
     w.ward_no AS '피보호자번호'
 FROM survey s
 INNER JOIN ward w ON s.ward_no = w.ward_no
-WHERE s.survey_no = ?;
+INNER JOIN member m ON s.writer = m.user_id 
+WHERE s.survey_no = ?
 `;
 
 const wardno = `SELECT * FROM survey WHERE survey_no = ?`;
@@ -229,16 +230,18 @@ const getWardDetail = `
 SELECT
     name AS '이름',
     age AS '나이',
-    NULL AS '생년월일',
+    m.user_name AS '보호자',
     CASE
         WHEN sex = 'MALE' THEN '남'
         WHEN sex = 'FEMALE' THEN '여'
         ELSE sex
     END AS '성별',
     disabled_level AS '장애유형',
-    address AS '주소',
+    ward.address AS '주소',
     ward_no AS '피보호자번호'
 FROM ward
+Join member m
+on ward.guardian_id = m.user_id
 WHERE ward_no = ?
 `;
 const supportResultByWardNoSurveyNo = `
