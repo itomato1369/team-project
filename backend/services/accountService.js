@@ -1,7 +1,5 @@
 // 비즈니스 로직
 const db = require("../database/mappers/mapper.js");
-// 동적 쿼리 구성을 위해 베이스 SQL문자열을 가져옴
-const sqls = require("../database/sqls/account.js");
 const nodemailer = require("nodemailer");
 
 // 등록된 이메일로 아이디를 전송

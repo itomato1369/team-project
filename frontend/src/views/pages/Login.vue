@@ -1,5 +1,5 @@
 <script setup>
-import FloatingConfigurator from '@/components/FloatingConfigurator.vue';
+// import FloatingConfigurator from '@/components/FloatingConfigurator.vue';
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAuthStore } from '@/stores/authStore';
@@ -59,7 +59,7 @@ const goToGoogleLogin = () => {
 </script>
 
 <template>
-  <FloatingConfigurator />
+  <!-- <FloatingConfigurator /> -->
 
   <!-- 전체 배경 및 중앙 정렬 컨테이너 -->
   <div
@@ -84,7 +84,8 @@ const goToGoogleLogin = () => {
         >
           <!-- 1. 로고 및 헤더 -->
           <div class="text-center mb-6 sm:mb-8">
-            <svg
+            <img class="logo" src="/demo/images/기본로고.png" alt="메인로고" />
+            <!-- <svg
               viewBox="0 0 54 40"
               fill="none"
               xmlns="http://www.w3.org/2000/svg"
@@ -102,7 +103,7 @@ const goToGoogleLogin = () => {
                   fill="var(--primary-color)"
                 />
               </g>
-            </svg>
+            </svg> -->
             <div
               class="text-surface-900 dark:text-surface-0 text-2xl sm:text-3xl font-medium mb-2 sm:mb-4"
             >
@@ -190,7 +191,7 @@ const goToGoogleLogin = () => {
               </div>
               <div class="flex flex-row gap-3 sm:gap-4">
                 <a
-                  href="/find-id"
+                  href="/findaccount"
                   class="font-medium no-underline cursor-pointer text-primary hover:underline"
                   >아이디/PW 찾기</a
                 >
@@ -278,5 +279,25 @@ const goToGoogleLogin = () => {
 }
 :deep(.p-password-input) {
   width: 100%;
+}
+/* 로고 크기 조정 */
+.logo {
+  width: 100%;
+  max-width: 200px;
+  /* 이미지를 중앙에 배치 */
+  margin-left: auto;
+  margin-right: auto;
+  display: block;
+  margin-bottom: 1rem;
+}
+
+@media (min-width: 640px) {
+  .logo {
+    max-width: 250px;
+  }
+  .tab-button {
+    padding: 0.75rem;
+    font-size: 1rem;
+  }
 }
 </style>
