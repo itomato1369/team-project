@@ -214,7 +214,8 @@ SELECT
     n.business_name
 FROM inquiry i
 LEFT JOIN notice n ON i.notice_no = n.notice_no
-WHERE i.inquiry_status = 1`,
+WHERE i.inquiry_status = 1
+ORDER BY i.created_at DESC`,
 
   inquiryList: `select 
  business_no
