@@ -96,7 +96,7 @@ export function RegistFileForm1() {
         life: 3000,
       });
 
-      router.push('/system/data-board'); // 목록 페이지로 이동
+      router.push('/data-board'); // 목록 페이지로 이동
     } catch (err) {
       // 6. 등록 실패
       console.error('등록 실패:', err);
