@@ -224,14 +224,19 @@ const request = async function request() {
     const response = await axios.post('/api/qna/question-answer/', payload);
 
     if (response.status === 201 || response.status === 200) {
-      toast.add({ severity: 'success', summary: '알림', detail: '성공적으로 등록되었습니다.' });
+      toast.add({
+        severity: 'success',
+        summary: '알림',
+        detail: '성공적으로 등록되었습니다.',
+        life: 3000,
+      });
       router.push('/qna');
     } else {
-      toast.add({ severity: 'error', summary: '알림', detail: '등록 실패' });
+      toast.add({ severity: 'error', summary: '알림', detail: '등록 실패', life: 3000 });
     }
   } catch (error) {
     console.error('Q&A 등록 오류:', error);
-    toast.add({ severity: 'error', summary: '알림', detail: '서버 오류' });
+    toast.add({ severity: 'error', summary: '알림', detail: '서버 오류', life: 3000 });
   }
 };
 </script>

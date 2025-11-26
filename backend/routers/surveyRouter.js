@@ -218,7 +218,7 @@ router.post("/", async (req, res) => {
 
     const inquiryResult = await conn.query(sql.inquiryInsert, [
       surveyName, // inquiry_name
-      writer || "관리자", // inquiry_writer
+      writer || "시스템관리자", // inquiry_writer
       status, // inquiry_status (0,1)
       notice_no, // notice_no
     ]);
