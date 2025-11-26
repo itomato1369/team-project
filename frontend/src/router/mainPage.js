@@ -11,7 +11,7 @@ export default [
   //   component: () => import('@/components/AppMain.vue'),
   // },
   {
-    path: '/homepage',
+    path: '/',
     name: 'homepage',
     component: () => import('@/views/pages/AppHome.vue'),
   },

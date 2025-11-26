@@ -36,7 +36,7 @@ const formatDate = (dateString) => {
 const getNoticeList = async () => {
   try {
     // 백엔드 API
-    const response = await axios.get('/api/institutions/allnotice');
+    const response = await axios.get('/api/institutions/notices');
     // DB에서 가져온 데이터를 두 배열에 저장
     const data = await response.data;
     // 등록일 날짜 포맷팅

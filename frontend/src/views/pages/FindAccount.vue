@@ -2,7 +2,7 @@
 import { ref } from 'vue';
 import axios from 'axios';
 
-// 현재 탭
+// 현재 탭 이메일로 찾기 혹은 전화번호로 찾기 선택
 const currentTab = ref('email');
 
 // 폼 데이터 구조
@@ -55,6 +55,7 @@ const showMessage = (target, text, type = 'success') => {
 // 인증번호 전송 함수
 const sendVerification = async (type) => {
   const target = form.value[type];
+  console.log(target);
 
   if (!target.input) {
     showMessage(type, '연락처 또는 이메일을 입력하세요', 'error');
@@ -65,6 +66,7 @@ const sendVerification = async (type) => {
   verificationCodes.value[type] = code;
 
   const key = type === 'email' ? 'idEmail' : 'idPhone';
+
   const data =
     type === 'email'
       ? { name: form.value.idEmail.name, email: form.value.idEmail.input }

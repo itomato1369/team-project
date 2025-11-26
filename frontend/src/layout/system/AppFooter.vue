@@ -2,13 +2,13 @@
 
 <template>
   <div class="layout-footer">
-    SAKAI by
+    도움 24 by
     <a
-      href="https://primevue.org"
+      href="/"
       target="_blank"
       rel="noopener noreferrer"
       class="text-primary font-bold hover:underline"
-      >PrimeVue</a
+      >YEDAM</a
     >
   </div>
 </template>
