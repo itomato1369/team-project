@@ -29,7 +29,7 @@ const setLocalForm = (data) => {
   localForm.value = {
     support_plan_no: data.support_plan_no || null,
     support_plan_goal: data.support_plan_goal || '',
-    staff_name: data.staff_name || '',
+    staff_name: data.support_title || '김스탭',
     business_name: data.business_name || '',
     spend: data.spend || 0,
     created_at: data.created_at || '',

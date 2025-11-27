@@ -82,10 +82,10 @@ const formatAmount = (amount) => {
       </div>
 
       <!-- 작성자 -->
-      <div>
+      <!-- <div>
         <label class="font-semibold text-gray-700">작성자</label>
         <InputText v-model="localForm.staff_name" readonly class="w-full bg-gray-100" />
-      </div>
+      </div> -->
 
       <!-- 지원계획 & 예상지원금액 -->
       <div class="flex gap-4">
@@ -114,7 +114,7 @@ const formatAmount = (amount) => {
       <!-- 내용 -->
       <div>
         <label class="font-semibold text-gray-700">내용</label>
-        <Textarea v-model="localForm.plan" rows="4" readonly class="w-full bg-gray-100" />
+        <Textarea v-model="localForm.plan" rows="10" readonly class="w-full bg-gray-100" />
       </div>
 
       <!-- PDF 목록 -->

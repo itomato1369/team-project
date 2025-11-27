@@ -279,13 +279,11 @@ SELECT
      JOIN survey_result sr ON il.business_no = sr.business_no
      WHERE sr.survey_no = s.survey_no
      LIMIT 1) AS inquiry_name,
-    (SELECT sp.support_plan_status
-     FROM support_plan sp
-     JOIN priority p ON sp.priority_no = p.priority_no
-     WHERE p.survey_no = s.survey_no
-     LIMIT 1) AS plan_status
+    sp.support_plan_status AS plan_status
 FROM survey s
 JOIN ward w ON s.ward_no = w.ward_no
+LEFT JOIN support_notice sn ON s.survey_no = sn.survey_no
+LEFT JOIN support_plan sp ON sn.ward_no = sp.ward_no AND sn.notice_no = sp.notice_no
 WHERE s.survey_no = ?
 `,
 

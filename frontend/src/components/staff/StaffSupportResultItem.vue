@@ -1,5 +1,4 @@
 <script setup>
-import { computed } from 'vue';
 import StaffSupportResultListInfo from './StaffSupportResultListInfo.vue';
 
 const props = defineProps({

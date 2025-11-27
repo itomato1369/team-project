@@ -160,7 +160,11 @@ onMounted(() => {
           <!-- 내용 -->
           <div class="flex flex-wrap">
             <label>내용</label>
-            <Textarea v-model="form.plan" rows="4" />
+            <Textarea
+              v-model="form.plan"
+              rows="12"
+              placeholder="예시) 피보호자 및 보호자 이름 ,  우선순위 , 지원내용 , 중점 항목 등 작성"
+            />
           </div>
 
           <!-- 버튼 -->

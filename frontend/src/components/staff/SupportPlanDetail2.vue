@@ -105,11 +105,7 @@ const approvePlan = async () => {
 
       <!-- 작성일 & 요청일 -->
       <div class="flex gap-4">
-        <div class="w-1/2">
-          <label class="font-semibold text-gray-700">작성일</label>
-          <InputText v-model="localForm.created_at" readonly class="w-full bg-gray-100" />
-        </div>
-        <div class="w-1/2">
+        <div class="w-full">
           <label class="font-semibold text-gray-700">요청일</label>
           <InputText v-model="localForm.writer_date" readonly class="w-full bg-gray-100" />
         </div>
