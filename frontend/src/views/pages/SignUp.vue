@@ -99,14 +99,14 @@ const handleSignUp = async () => {
     console.error('회원가입 실패');
     // 이미 등록된 이용자
     if (error.response) {
-      // 이미 등록된 이용자 관련 에러
-      const errorMessage = error.response.data.message;
-
-      if (errorMessage && errorMessage.includes('이미 등록된')) {
-        serverError.value = '이미 등록된 이용자입니다!';
+      // HTTP 상태 코드가 409인지 확인
+      if (error.response.status === 409) {
+        serverError.value = '이미 등록된 이용자 입니다!';
       } else {
-        // 기타 에러 메시지 표시
-        serverError.value = errorMessage || '회원가입 중 서버 오류';
+        // 기타 에러 처리
+        const errorMessage = error.response.data.message;
+        serverError.value =
+          errorMessage || `회원가입 중 서버 오류 (Code: ${error.response.status})`;
       }
     } else {
       // 네트워크 오류 등 응답이 없는 경우
@@ -114,7 +114,6 @@ const handleSignUp = async () => {
     }
   }
 };
-
 // 이전 페이지로 이동
 const goToLogin = () => {
   router.push({ name: 'login' });
@@ -299,6 +298,8 @@ const closePostcode = () => {
 
         <div v-if="isPostcodeOpen" class="postcode-modal-overlay" @click.self="closePostcode">
           <div class="postcode-modal-content">
+            <!-- Daum API를 쉽게 사용할 수 있도록 패키징된 Vue 컴포넌트입니다. 
+             주소 검색 화면을 렌더링합니다. -->
             <VueDaumPostcode
               @complete="addressSearched"
               :width="600"
@@ -307,7 +308,6 @@ const closePostcode = () => {
               :theme="{
                 bgColor: '#fff',
                 searchColor: '#3498db',
-                // ... 기타 테마 설정 가능
               }"
             />
             <button class="close-btn" @click="closePostcode">닫기</button>
