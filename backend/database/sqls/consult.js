@@ -76,7 +76,7 @@ const getStaffReservationsBase = `
 SELECT
     at.at_no AS atNo,
     at.start_time,
-    at.status,
+    res.res_status AS status,
     res.res_no AS id, 
     res.user_id,
     res.res_reason AS reason,            -- (수정) reservation.res_reason
@@ -88,7 +88,7 @@ JOIN reservation res ON at.at_no = res.at_no
 JOIN member m ON res.user_id = m.user_id
 JOIN ward w ON w.guardian_id = m.user_id
 WHERE
-    at.staff_id = ? AND at.status = '예약'
+    at.staff_id = ? AND at.status = '예약확정'
 ORDER BY at.start_time ASC
 `;
 

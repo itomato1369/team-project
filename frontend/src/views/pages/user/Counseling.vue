@@ -275,7 +275,13 @@ onMounted(async () => {
                 optionValue="ward_no"
                 placeholder="피보호자를 선택하세요"
                 class="w-full"
-              />
+              >
+                <template #option="slotProps">
+                  <div class="w-full text-center">
+                    {{ slotProps.option.name }}
+                  </div>
+                </template>
+              </Dropdown>
             </div>
           </template>
         </Card>
