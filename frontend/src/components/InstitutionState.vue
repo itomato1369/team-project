@@ -7,9 +7,11 @@ import Dropdown from 'primevue/dropdown';
 import Calendar from 'primevue/calendar';
 import Textarea from 'primevue/textarea';
 import { useAuthStore } from '@/stores/authStore';
+import { useToast } from 'primevue';
 
 // const route = useRoute();
 const authStore = useAuthStore();
+const toast = useToast();
 
 // --- 상태 관리 ---
 const institutionInfo = ref(null); // 기관 및 관리자 정보를 저장할 변수
@@ -57,11 +59,12 @@ const loadInstitutionInfo = async () => {
   try {
     const response = await axios.get(`/api/user/institution-info/${logInUserId.value}`);
     institutionInfo.value = response.data.result;
+    console.log(institutionInfo.value);
 
     // 데이터 로딩 후 상태 업데이트
     if (institutionInfo.value) {
-      if (institutionInfo.value.status) {
-        institutionStatus.value = mapStatusToOption(institutionInfo.value.status);
+      if (institutionInfo.value.institution_status) {
+        institutionStatus.value = mapStatusToOption(institutionInfo.value.institution_status);
         tempStatus.value = institutionStatus.value;
       }
       // closed_at 값이 있으면 breakDate에 설정
@@ -91,7 +94,12 @@ function cancelEditing() {
 async function applyStatusChange() {
   const institutionNo = institutionInfo.value?.institution_no;
   if (!institutionNo) {
-    alert('기관 번호를 찾을 수 없습니다.');
+    toast.add({
+      severity: 'error',
+      summary: '알림',
+      detail: '기관 번호를 찾을 수 없습니다.',
+      life: 3000,
+    });
     return;
   }
 
@@ -116,8 +124,12 @@ async function applyStatusChange() {
 
   try {
     await axios.put(`/api/user/institution/${institutionNo}/status`, payload);
-
-    alert('기관 상태가 성공적으로 변경되었습니다.');
+    toast.add({
+      severity: 'success',
+      summary: '알림',
+      detail: '기관 상태가 성공적으로 변경되었습니다.',
+      life: 3000,
+    });
 
     // UI 즉시 반영
     institutionStatus.value = tempStatus.value;
@@ -127,12 +139,18 @@ async function applyStatusChange() {
     loadInstitutionInfo();
   } catch (error) {
     console.error('기관 상태 변경에 실패했습니다:', error);
-    alert('기관 상태 변경 중 오류가 발생했습니다.');
+    toast.add({
+      severity: 'error',
+      summary: '알림',
+      detail: '기관 상태 변경에 실패했습니다.',
+      life: 3000,
+    });
   }
 }
 </script>
 
 <template>
+  <Toast />
   <div class="institution-state-container" v-if="institutionInfo">
     <h2 class="section-title">기관 상태 관리</h2>
 
@@ -140,12 +158,12 @@ async function applyStatusChange() {
     <div v-if="!isEditing" class="display-section">
       <div class="status-display">
         <i class="pi pi-power-off status-icon"></i>
-        <p v-if="institutionStatus.value === '2s'">
+        <p v-if="institutionStatus.value.value === '2s'">
           {{ breakDate ? breakDate.toLocaleDateString() : '미정' }}까지 휴업입니다
         </p>
         <p v-else>
           현재 {{ institutionInfo.institution_name }}은
-          <span :class="`status-text-${institutionStatus.value}`"
+          <span :class="`status-text-${institutionStatus.value.value}`"
             >({{ institutionStatus.label }})</span
           >
           상태입니다
