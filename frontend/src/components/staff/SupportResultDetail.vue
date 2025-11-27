@@ -134,7 +134,6 @@ const formatAmount = (amount) => {
         >
           승인
         </button> -->
-      </div>
     </div>
   </div>
 </template>
