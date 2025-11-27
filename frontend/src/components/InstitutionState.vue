@@ -1,6 +1,6 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue';
-import { useRoute } from 'vue-router';
+// import { useRoute } from 'vue-router';
 import axios from 'axios';
 import Button from 'primevue/button';
 import Dropdown from 'primevue/dropdown';
@@ -8,7 +8,7 @@ import Calendar from 'primevue/calendar';
 import Textarea from 'primevue/textarea';
 import { useAuthStore } from '@/stores/authStore';
 
-const route = useRoute();
+// const route = useRoute();
 const authStore = useAuthStore();
 
 // --- 상태 관리 ---
@@ -42,6 +42,13 @@ const isApplyButtonDisabled = computed(() => {
     return !closingNotice.value;
   }
   return false;
+});
+
+const canChangeStatus = computed(() => {
+  if (!institutionInfo.value || !institutionInfo.value.role) {
+    return false;
+  }
+  return ['3a'].includes(institutionInfo.value.role);
 });
 
 // --- 데이터 로딩 ---
@@ -144,11 +151,7 @@ async function applyStatusChange() {
           상태입니다
         </p>
       </div>
-      <Button
-        v-if="institutionInfo.role === 'ADMIN'"
-        label="기관 상태 변경하기"
-        @click="startEditing"
-      />
+      <Button v-if="canChangeStatus" label="기관 상태 변경하기" @click="startEditing" />
     </div>
 
     <!-- Edit View (isEditing = true) -->
@@ -182,7 +185,7 @@ async function applyStatusChange() {
         />
       </div>
 
-      <div class="edit-actions" v-if="institutionInfo.role === 'ADMIN'">
+      <div class="edit-actions" v-if="canChangeStatus">
         <Button label="취소" class="p-button-secondary" @click="cancelEditing" />
         <Button label="변경하기" @click="applyStatusChange" :disabled="isApplyButtonDisabled" />
       </div>

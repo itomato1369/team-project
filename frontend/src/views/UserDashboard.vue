@@ -117,7 +117,6 @@ const performSearch = (query) => {
         <h5 class="section-title section-title--left">마감 임박 지원 / 보조금</h5>
         <div class="support-header-row-right">
           <h5 class="section-title section-title--right">내 지원 현황</h5>
-          <Button icon="pi pi-plus" class="p-button-rounded p-button-text" />
         </div>
       </div>
 
@@ -171,12 +170,14 @@ const performSearch = (query) => {
 </template>
 
 <style scoped>
-/* (기존 스타일 상단 ... ) */
+/* 기존 스타일 그대로 유지 + 고정 위치 개선 적용 */
+
 .dashboard-background {
   background-color: #f8f9fa;
   padding: 2rem;
   min-height: 100vh;
 }
+
 .main-content-card {
   background-color: #ffffff;
   padding: 2rem;
@@ -185,50 +186,64 @@ const performSearch = (query) => {
   max-width: 1200px;
   margin: 0 auto;
 }
+
+/* ==================== 고정 위치 핵심 수정 시작 ==================== */
 .support-header-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
   margin: 1.25rem 0 0.75rem 0;
-  flex-wrap: nowrap;
-  --support-left-width: 30vw;
-  --support-right-width: 40vw;
+  flex-wrap: nowrap; /* 줄바꿈 방지 */
+  position: relative; /* 자식 absolute 기준점 */
+  min-height: 40px; /* 텍스트 높이만큼 최소 높이 확보 */
+  padding-right: 220px; /* 오른쪽 고정 요소 공간 확보 (필요에 따라 조정) */
+  box-sizing: border-box;
 }
-.section-title--left {
-  margin: 0;
-  flex: 0 0 var(--support-left-width);
-  max-width: var(--support-left-width);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
+
 .support-header-row-right {
+  position: absolute; /* 완전 고정 */
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%); /* 수직 중앙 정렬 */
   display: flex;
   align-items: center;
   gap: 0.75rem;
+  white-space: nowrap;
+  z-index: 10;
 }
+
+/* 변수 사용 안 해도 되게끔 고정 너비로 변경 (필요시 px 값 조정) */
 .section-title--right {
   margin: 0;
-  flex: 0 0 var(--support-right-width);
-  max-width: var(--support-right-width);
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+/* 왼쪽 타이틀은 기존처럼 남은 공간 꽉 채우기 */
+.section-title--left {
+  margin: 0;
+  flex: 1;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  text-align: left;
+  padding-right: 1rem; /* 오른쪽 고정 요소와 겹치지 않게 여유 */
 }
+/* ==================== 고정 위치 핵심 수정 끝 ==================== */
+
 .search-bar-wrapper {
   display: flex;
   justify-content: center;
   margin-bottom: 1.5rem;
 }
+
 .support-sections-row {
-  border-spacing: 1px;
   display: flex;
   gap: 1.5rem;
   margin-top: 1rem;
   flex-wrap: wrap;
 }
+
 .support-column {
   flex: 1 1 48%;
   min-width: 280px;
@@ -236,50 +251,36 @@ const performSearch = (query) => {
   border: 1px solid #000;
   border-radius: 10px;
   padding: 0.75rem;
-  max-height: 250px; /* 최대 높이 설정 */
-  overflow-y: auto; /* 내용이 넘치면 스크롤 */
+  max-height: 250px;
+  overflow-y: auto;
 }
-/* .Menu_Group {
-  flex-wrap: wrap;
-  gap: 1rem;
-  justify-content: center;
-} 
- .Menu_Item {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  width: 120px;
-  text-decoration: none;
-  color: inherit;
-}  */
+
 .Menu_Group {
-  /* Tailwind: flex justify-between p-4 bg-white rounded-xl shadow-lg */
   flex-wrap: wrap;
   display: flex;
   justify-content: center;
-  padding: 1.5rem 1rem; /* 상하 패딩 확대 */
+  padding: 1.5rem 1rem;
   background-color: white;
-  border-radius: 1rem; /* 모서리 둥글게 */
-  /* 명확하고 부드러운 그림자 효과 */
+  border-radius: 1rem;
   box-shadow:
     0 10px 15px -3px rgba(0, 0, 0, 0.1),
-    0 4px 6px -2px rgba(0, 0, 0, 0.05); /* shadow-xl */
+    0 4px 6px -2px rgba(0, 0, 0, 0.05);
 }
+
 .Menu_Item {
-  /* flex flex-col items-center */
   display: flex;
   flex-direction: column;
   align-items: center;
   text-decoration: none;
-  color: #4b5563; /* text-gray-600 */
+  color: #4b5563;
   transition: all 200ms ease-in-out;
-  flex-basis: 16%; /*  5개 메뉴가 균등하게 공간을 차지 */
+  flex-basis: 16%;
   padding: 0.5rem;
 }
 
 .Menu_Item:has(.Icon_Container:hover) {
-  transform: translateY(-4px); /* 호버 시 떠오르는 효과 강조 */
-  color: #4f46e5; /* hover:text-indigo-600 */
+  transform: translateY(-4px);
+  color: #4f46e5;
 }
 
 .Icon_Container {
@@ -296,66 +297,58 @@ const performSearch = (query) => {
 .menu-icon {
   font-size: 2rem;
 }
+
 .support-item {
   border: 1px solid #e6e6e6;
   border-radius: 6px;
   padding: 1rem;
   margin-bottom: 1rem;
 }
+
 .support-item h6 {
   margin: 0 0 0.5rem 0;
 }
+
 .support-item p {
   margin: 0;
   color: #6b6b6b;
 }
-/* (... 기존 스타일 끝) */
 
-/* --- MODIFIED ---
-  .support-status-item (아코디언 헤더) 스타일 수정
-  - cursor: pointer 추가 (클릭 가능 표시)
-  - align-items: center 추가 (아이콘 수직 정렬)
-  - padding-right 수정 (아이콘 공간 확보)
-  - transition 추가 (부드러운 호버 효과)
-*/
+/* 아코디언 관련 스타일 (기존 그대로) */
 .support-status-item {
   display: flex;
   justify-content: space-between;
-  align-items: center; /* 아이콘 수직 정렬 */
-  padding: 0.75rem 0.5rem; /* 좌우 여백 수정 */
+  align-items: center;
+  padding: 0.75rem 0.5rem;
   border-bottom: 1px solid #e6e6e6;
-  cursor: pointer; /* 클릭 가능하도록 커서 변경 */
+  cursor: pointer;
   transition: background-color 0.2s ease;
 }
 
 .support-status-item > span:first-of-type {
-  flex: 1; /* business_name이 남은 공간을 차지하도록 */
-  margin-right: 0.5rem; /* 아이콘과의 간격 */
+  flex: 1;
+  margin-right: 0.5rem;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .support-status-item > span.date {
-  flex-shrink: 0; /* 날짜는 고정 너비 유지 */
-  width: 100px; /* 날짜 너비 고정 */
+  flex-shrink: 0;
+  width: 100px;
   text-align: right;
-  margin-right: 0.75rem; /* 아이콘과의 간격 */
+  margin-right: 0.75rem;
 }
 
-/* (선택 사항) 호버 및 열린 상태 스타일 */
 .support-status-item:hover {
   background-color: #f9f9f9;
 }
+
 .support-status-item.item-open {
   background-color: #f5f5f5;
-  font-weight: 600; /* 500 또는 bold */
+  font-weight: 600;
 }
 
-/* --- MODIFIED ---
-  :last-child 규칙을 'accordion-item-wrapper' 기준으로 변경합니다.
-  '열리지 않은' 마지막 항목의 헤더만 하단 테두리를 제거합니다.
-*/
 .accordion-item-wrapper:last-child .support-status-item:not(.item-open) {
   border-bottom: none;
 }
@@ -364,41 +357,27 @@ const performSearch = (query) => {
   color: #6b6b6b;
 }
 
-/* --- ADDED --- (아코디언 아이콘 스타일) */
 .accordion-icon {
   margin-left: 0.75rem;
   color: #888;
   font-size: 0.9rem;
 }
 
-/* --- ADDED --- (아코디언 패널 스타일) */
 .accordion-panel {
-  padding: 1rem 1.25rem; /* 헤더보다 좀 더 안쪽으로 */
-  background-color: #fdfdfd; /* 헤더와 약간 다른 배경색 */
+  padding: 1rem 1.25rem;
+  background-color: #fdfdfd;
   border-bottom: 1px solid #e6e6e6;
-  /* 트랜지션을 위해 overflow: hidden이 필수입니다. */
   overflow: hidden;
   color: #333;
 }
-.accordion-panel p {
-  margin: 0.5rem 0;
-}
 
-/* 마지막 아이템의 패널은 하단 테두리 제거 */
 .accordion-item-wrapper:last-child .accordion-panel {
   border-bottom: none;
 }
 
-/* --- ADDED ---
-  Vue <transition>을 위한 CSS (name="accordion-slide"와 일치)
-  max-height를 이용한 부드러운 슬라이드 효과입니다.
-*/
 .accordion-slide-enter-active,
 .accordion-slide-leave-active {
   transition: all 0.3s ease-out;
-  /* 주의: 이 값은 패널 콘텐츠의 최대 예상 높이보다 커야 합니다.
-    콘텐츠가 더 길어질 수 있다면 200px, 300px 등으로 넉넉하게 잡으세요.
-  */
   max-height: 150px;
 }
 
@@ -406,37 +385,35 @@ const performSearch = (query) => {
 .accordion-slide-leave-to {
   max-height: 0;
   opacity: 0;
-  /* 닫힐 때 패딩과 마진이 0이 되도록 하여 더 부드럽게 만듭니다. */
   padding-top: 0;
   padding-bottom: 0;
   margin-top: 0;
   margin-bottom: 0;
 }
-/* --- END ADDED --- */
 
-/* (기존 반응형 @media 스타일 ... ) */
+/* 반응형 – 작은 화면에서도 오른쪽 타이틀 고정 유지 */
 @media (max-width: 992px) {
   .support-header-row {
-    flex-wrap: wrap;
-    --support-left-width: 100%;
-    --support-right-width: 100%;
-    gap: 0.5rem;
+    padding-right: 200px; /* 모바일에서도 공간 확보 */
   }
-  .section-title--left,
-  .section-title--right {
-    flex: 0 0 100%;
-    max-width: 100%;
-    text-align: left;
-  }
+
   .support-header-row-right {
-    width: 100%;
-    justify-content: flex-start;
+    right: 0;
+    font-size: 1rem;
   }
 }
 
 @media (max-width: 768px) {
   .support-column {
     flex-basis: 100%;
+  }
+
+  .support-header-row {
+    padding-right: 180px; /* 필요시 더 줄여도 됨 */
+  }
+
+  .support-header-row-right {
+    font-size: 0.95rem;
   }
 }
 </style>
