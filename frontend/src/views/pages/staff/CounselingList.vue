@@ -76,16 +76,6 @@ function goToDetail(consultNo) {
   router.push({ path: '/counseling-logform', query: { consultNo: consultNo } });
 }
 
-// PDF 다운로드 (기능 예시)
-function downloadPdf(consultNo) {
-  toast.add({
-    severity: 'success',
-    summary: '다운로드',
-    detail: `${consultNo}번 기록 PDF 다운로드를 시작합니다.`,
-    life: 3000,
-  });
-}
-
 // 초기 로딩
 onMounted(() => {
   fetchRecords();
@@ -206,12 +196,6 @@ onMounted(() => {
                   icon="pi pi-eye"
                   class="p-button-text p-button-sm p-button-info"
                   @click="goToDetail(data.consult_no)"
-                />
-                <Button
-                  label="다운로드"
-                  icon="pi pi-download"
-                  class="p-button-text p-button-sm p-button-secondary"
-                  @click="downloadPdf(data.consult_no)"
                 />
               </div>
             </template>

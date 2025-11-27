@@ -112,9 +112,25 @@ const formatDateTime = (dateTimeString) => {
   return date.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', hour12: false });
 };
 
+// [신규] 날짜를 'YYYY-MM-DD' 형식으로 변환하는 헬퍼 함수
+const formatDateToISO = (date) => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
 const navigateTo = (routeName) => {
   if (routeName === 'today-schedule') {
-    router.push({ name: 'reservations' });
+    const today = formatDateToISO(new Date());
+    router.push({
+      name: 'reservations',
+      query: {
+        searchType: 'date',
+        startDate: today,
+        endDate: today,
+      },
+    });
   }
   if (routeName === 'new-reservations') {
     router.push({ name: 'reservations' });
@@ -156,7 +172,7 @@ const navigateTo = (routeName) => {
         </Card>
 
         <Card class="stat-card" @click="navigateTo('pending-reports')">
-          <template #title>미작성 상담일지</template>
+          <template #title>상담일지</template>
           <template #content>
             <div class="stat-value">
               <span class="count-red">{{ pendingReportsCount }}</span
@@ -179,7 +195,7 @@ const navigateTo = (routeName) => {
           </Column>
           <Column field="applicantName" header="신청인(보호자)" style="width: 25%"></Column>
           <Column field="wardName" header="피보호자" style="width: 25%"></Column>
-          <Column field="res_reason" header="상담사유" style="width: 20%"></Column>
+          <!-- <Column field="res_reason" header="상담사유" style="width: 20%"></Column> -->
           <Column field="status" header="상태" style="width: 15%">
             <template #body="slotProps">
               <Tag

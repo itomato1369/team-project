@@ -196,14 +196,13 @@ export const staffReservationApi = {
   },
 
   /**
-   * 담당자가 예약을 취소시킵니다. (available_time의 at_no 기준)
-   * (POST /api/staff/reservations/cancel/:at_no)
-   * @param {number} at_no - 취소할 'available_time'의 ID
+   * 담당자가 예약을 취소시킵니다. (reservation의 res_no 기준)
+   * (POST /api/staff/reservations/cancel/:res_no)
+   * @param {number} res_no - 취소할 'reservation'의 ID
    * @returns {Promise<AxiosResponse<any>>}
    */
-  cancelReservationByStaff: (at_no) => {
-    // 요구사항 3: 담당자가 취소 시 at_no를 기준으로 '상담불가' 상태로 변경
-    return api.post(`/api/staff/reservations/cancel/${at_no}`);
+  cancelReservationByStaff: (res_no) => {
+    return api.post(`/api/staff/reservations/cancel/${res_no}`);
   },
 
   // (참고) '기록 작성'은 페이지 이동(location.href)으로 처리하거나,
