@@ -57,14 +57,15 @@ async function loadReservations() {
  */
 function confirmCancel(event, reservationData) {
   confirm.require({
-    target: event.currentTarget,
+    // target: event.currentTarget, // [삭제] 모달(Dialog) 형태는 target이 필요 없습니다.
+    header: '예약 취소 확인', // [추가] 모달창 상단 제목
     message: `${reservationData.dateTime} 예약을 취소하시겠습니까?`,
     icon: 'pi pi-exclamation-triangle',
     acceptLabel: '예, 취소합니다',
     rejectLabel: '아니요',
     acceptClass: 'p-button-danger',
+    blockScroll: true, // [추가] 모달이 떴을 때 배경 스크롤 막기 (선택사항)
     accept: () => {
-      // 'accept' 콜백: 실제 취소 로직 실행 (reservationData.id는 res_no)
       handleCancel(reservationData.id);
     },
     reject: () => {
@@ -129,7 +130,7 @@ onMounted(() => {
       <p class="welcome-message">신청하신 상담 예약의 현재 상태입니다.</p>
 
       <div class="table-container">
-        <ConfirmPopup></ConfirmPopup>
+        <!-- <ConfirmDialog></ConfirmDialog> -->
         <Toast />
 
         <DataTable

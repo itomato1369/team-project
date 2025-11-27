@@ -64,17 +64,6 @@ exports.getPendingReportsCount = async (req, res) => {
   }
 };
 
-// 신규 예약 신청 개수
-exports.getNewReservationCount = async () => {
-  const newReservation = await db.query("newReservationCount", [staff_id]);
-
-  let total_count = 0;
-  if (newReservation && newReservation.count.length > 0) {
-    total_count = newReservation[0].total_count;
-  }
-  return { total_count: total_count };
-};
-
 // 미작성 상담일지 개수
 // exports.getNotCompleteConsultCount = async () => {
 //   const notCompleteConsult = await db.query("notCompleteConsultCount", [staff_id]);
@@ -370,53 +359,75 @@ function formatTime(date) {
 
 /**
  * [신규] 1. 담당자 스케줄 조회 (GET /api/staff/schedules)
- * - 인증된 담당자(req.user)의 '상담가능' 슬롯과 '예약건수'를 조합
+ * - 인증된 담당자(req.user)의 '상담가능' 슬롯과 '예약확정'된 슬롯을 조합하여 30분 단위로 상세 표시
  */
 exports.getSchedules = async (req, res) => {
-  // authMiddleware가 주입한 사용자 정보 (가정)
-  const staff_id = req.user.id; // 예: 'staff_user_01' (member.user_id)
-  const staff_name = req.user.name; // 예: '홍길동' (member.user_name)
+  const staff_id = req.user.id;
+  const thirtyMinutes = 30 * 60 * 1000;
 
-  if (!staff_id || !staff_name) {
+  if (!staff_id) {
     return res.status(401).send({ message: "인증 정보가 없습니다." });
   }
 
   try {
-    // 1. '상담가능' 슬롯 조회 (at_no 포함)
-    const availableSlots = await db.query("getAvailableSlots", [staff_id]); // 2. '예약확정' 건수 조회
-    const reservationCounts = await db.query("getReservationCounts", [
-      staff_id,
-    ]); // 3. 프론트엔드가 요구하는 scheduledData 객체로 가공
+    // 1. '상담가능' 블록 조회 (주석 처리 - 예약된 시간만 보여주기로 함)
+    // const availableBlocks = await db.query("getAvailableSlots", [staff_id]);
+    
+    // 2. 확정된 '예약' 목록 상세 조회
+    const upcomingReservations = await db.query("getStaffUpcomingReservations", [staff_id]);
+    
+    // 3. 빠른 조회를 위해 예약된 시간 Set 생성 (예약된 시간을 표시해야 하므로 필요 없음)
+    // const reservedTimeSlots = new Set(
+    //   upcomingReservations.map(r => new Date(r.res_start).toISOString())
+    // );
 
-    const scheduledData = {}; // 3-1. '상담가능' 슬롯 가공
+    const scheduledData = {};
 
-    availableSlots.forEach((slot) => {
-      const dateKey = formatDateISO(new Date(slot.start_time));
-      if (!scheduledData[dateKey]) {
-        scheduledData[dateKey] = [];
-      } // 프론트엔드 모달에서 삭제/조회할 수 있도록 at_no와 label 전달
+    // 4. '상담가능' 블록을 30분 단위로 쪼개고, 예약된 시간은 제외 (주석 처리 - 예약된 시간만 보여주기로 함)
+    // availableBlocks.forEach((block) => {
+    //   let currentTime = new Date(block.start_time.getTime());
 
-      scheduledData[dateKey].push({
-        type: "available",
-        label: `${formatTime(slot.start_time)} - ${formatTime(
-          slot.end_time
-        )} 상담가능`,
-        at_no: slot.at_no, // [중요] 삭제 시 사용할 고유 ID
-      });
-    }); // 3-2. '예약건수' 가공
+    //   while (currentTime < block.end_time) {
+    //     const isoTimestamp = currentTime.toISOString();
+        
+    //     if (!reservedTimeSlots.has(isoTimestamp)) {
+    //       const dateKey = formatDateISO(currentTime);
+    //       if (!scheduledData[dateKey]) {
+    //         scheduledData[dateKey] = [];
+    //       }
+    //       scheduledData[dateKey].push({
+    //         type: "available",
+    //         label: `${formatTime(currentTime)} 상담가능`, // This is what the user is seeing
+    //         at_no: block.at_no,
+    //         start_time_stamp: isoTimestamp
+    //       });
+    //     }
+    //     currentTime = new Date(currentTime.getTime() + thirtyMinutes);
+    //   }
+    // });
 
-    reservationCounts.forEach((item) => {
-      const dateKey = item.date; // YYYY-MM-DD
+    // 5. '예약확정'된 슬롯을 캘린더 데이터에 추가
+    upcomingReservations.forEach((res) => {
+      const res_start = new Date(res.res_start);
+      const dateKey = formatDateISO(res_start);
       if (!scheduledData[dateKey]) {
         scheduledData[dateKey] = [];
       }
       scheduledData[dateKey].push({
         type: "reservation",
-        label: `${item.count}건 예약`,
+        label: `${formatTime(res_start)} ${res.ward_name}님`,
+        res_no: res.res_no,
+        ward_no: res.ward_no
       });
     });
 
+    // 6. 날짜별로 시간순 정렬
+    for (const dateKey in scheduledData) {
+      scheduledData[dateKey].sort((a, b) => a.label.localeCompare(b.label));
+    }
+
     res.status(200).json(scheduledData);
+
   } catch (error) {
     console.error("스케줄 조회 오류:", error);
     res.status(500).send({ message: "스케줄 조회 중 오류가 발생했습니다." });
@@ -443,14 +454,13 @@ exports.createSchedule = async (req, res) => {
       weekly: "W",
       weekdays: "D",
     };
-    const recurring_rule_char =
-      recurringRulesMap[recurring_rules] || recurringRulesMap["none"]; // --- 반복 날짜 생성 로직 ---
+    const recurring_rule_char = recurringRulesMap[recurring_rules] || "N";
 
     const datesToInsert = [];
     const baseStartDate = new Date(start_time);
     const baseEndDate = new Date(end_time);
 
-    if (recurring_rules === "none") {
+    if (recurring_rules === "N") {
       datesToInsert.push({ start: baseStartDate, end: baseEndDate });
     } else {
       const recurrenceEndDate = new Date(baseStartDate);
@@ -535,6 +545,17 @@ exports.deleteSchedule = async (req, res) => {
   }
 
   try {
+    // 1. 해당 스케줄 블록에 확정된 예약이 있는지 확인
+    const reservations = await db.query("getReservationCountByAtNo", [at_no]);
+    const reservationCount = reservations[0].count;
+
+    if (reservationCount > 0) {
+      return res
+        .status(400)
+        .send({ message: "예약이 존재하는 상담 시간은 삭제할 수 없습니다." });
+    }
+
+    // 2. 예약이 없을 경우에만 삭제 진행
     const result = await db.query("deleteStaffSchedule", [at_no, staff_id]);
 
     if (result.affectedRows === 0) {
@@ -567,8 +588,9 @@ exports.getStaffReservations = async (req, res) => {
 
   try {
     const queryParams = [staff_id];
-    let queryName = "getStaffReservationsBase"; // 기본 쿼리 // 검색 조건에 따라 쿼리 이름과 파라미터 동적 변경
+    let queryName = "getStaffReservationsBase"; // 기본 쿼리
 
+    // 검색 조건에 따라 쿼리 이름과 파라미터 동적 변경
     if (searchType === "date" && startDate && endDate) {
       queryName = "getStaffReservationsByDate";
       queryParams.push(startDate, endDate);
@@ -589,34 +611,35 @@ exports.getStaffReservations = async (req, res) => {
 };
 
 /**
- * [신규] 5. 담당자 예약 취소 (POST /api/staff/reservations/cancel/:at_no)
- * - (요구사항 3)
+ * [신규] 5. 담당자 예약 취소 (POST /api/staff/reservations/cancel/:res_no)
+ * - (요구사항 3 수정)
  */
 exports.cancelStaffReservation = async (req, res) => {
   const staff_id = req.user.id; // 인증된 담당자 ID
-  const { at_no } = req.params;
+  const { res_no } = req.params;
 
-  if (!at_no) {
+  if (!res_no) {
     return res
       .status(400)
-      .send({ message: "취소할 예약 ID(at_no)가 필요합니다." });
+      .send({ message: "취소할 예약 ID(res_no)가 필요합니다." });
   }
   if (!staff_id) {
     return res.status(401).send({ message: "인증 정보가 없습니다." });
   }
 
   try {
-    const result = await db.query("cancelStaffReservation", [at_no, staff_id]);
+    const result = await db.query("staffCancelReservation", [res_no, staff_id]);
 
     if (result.affectedRows === 0) {
-      // 본인 스케줄이 아니거나, '예약' 상태가 아님
+      // 본인에게 배정된 예약이 아니거나, 존재하지 않는 예약
       return res
         .status(404)
         .send({ message: "취소할 예약을 찾을 수 없거나 권한이 없습니다." });
-    } // (중요) TODO: (요구사항 3) 신청자(사용자)에게 취소 알림 전송 로직
+    }
 
+    // TODO: 신청자(사용자)에게 취소 알림 전송 로직
     console.log(
-      `(Notification) at_no: ${at_no} 예약이 담당자에 의해 취소됨. 사용자에게 알림 전송 필요.`
+      `(Notification) res_no: ${res_no} 예약이 담당자에 의해 취소됨. 사용자에게 알림 전송 필요.`
     );
 
     res.status(200).send({ message: "예약이 성공적으로 취소되었습니다." });

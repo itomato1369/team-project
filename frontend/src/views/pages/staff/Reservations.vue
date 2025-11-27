@@ -105,6 +105,12 @@ function executeSearch() {
 
 // 컴포넌트 마운트 시 초기 목록 조회
 onMounted(() => {
+  const { query } = router.currentRoute.value;
+  if (query.searchType && query.startDate && query.endDate) {
+    searchType.value = query.searchType;
+    searchStartDate.value = query.startDate;
+    searchEndDate.value = query.endDate;
+  }
   fetchReservations();
 });
 
@@ -150,10 +156,10 @@ async function confirmCancel() {
   if (!currentReservation.value || isCanceling.value) return;
 
   const reservationToCancel = currentReservation.value;
-  const atNo = reservationToCancel.atNo;
+  const resNo = reservationToCancel.id; // atNo 대신 res_no (reservation.id)를 사용합니다.
 
-  if (!atNo) {
-    modalError.value = '취소할 예약 ID(at_no)가 없습니다.';
+  if (!resNo) {
+    modalError.value = '취소할 예약 ID(res_no)가 없습니다.';
     return;
   }
 
@@ -161,8 +167,8 @@ async function confirmCancel() {
   modalError.value = null;
 
   try {
-    await staffReservationApi.cancelReservationByStaff(atNo);
-    console.log(`(DB) UPDATE available_time SET status = '상담불가' WHERE at_no = ${atNo};`);
+    await staffReservationApi.cancelReservationByStaff(resNo); // resNo를 API로 전달
+    console.log(`(API) Reservation ${resNo} cancelled by staff.`);
 
     // (옵션 2: 목록 새로고침 - 추천)
     await fetchReservations();
@@ -270,12 +276,12 @@ async function confirmCancel() {
               >
                 피보호자
               </th>
-              <th
+              <!-- <th
                 scope="col"
                 class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
               >
                 요청 사유
-              </th>
+              </th> -->
               <th
                 scope="col"
                 class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider"
@@ -314,10 +320,9 @@ async function confirmCancel() {
               <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
                 {{ reservation.patientName }}
               </td>
-
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600 truncate max-w-xs">
+              <!-- <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600 truncate max-w-xs">
                 {{ reservation.reason }}
-              </td>
+              </td> -->
               <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-medium space-x-2">
                 <!-- consult_status가 '완료'인 경우 -->
                 <button

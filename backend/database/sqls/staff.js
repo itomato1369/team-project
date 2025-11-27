@@ -211,7 +211,13 @@ WHERE support_plan_no = ?
 `;
 
 // 오늘의 상담 일정 개수
-const reservationCount = `SELECT COUNT(*) AS total_count FROM available_time WHERE staff_id = ? AND status = '예약'`;
+const reservationCount = `
+SELECT COUNT(*) AS total_count 
+FROM reservation 
+WHERE staff_id = ? 
+  AND res_status = '예약확정'
+  AND DATE(res_start) = CURDATE()
+`;
 
 // 신규 예약 신청 개수
 const newReservationCount = `SELECT COUNT(*) AS total_count FROM reservation WHERE staff_id = ? AND res_status = '예약확정'`;
@@ -294,6 +300,32 @@ FROM support_plan
 WHERE support_plan_status = '승인' and ward_no = ?
 `;
 
+/**
+ * [신규] 담당자의 예정된 예약 목록 상세 조회 (캘린더용)
+ */
+const getStaffUpcomingReservations = `
+SELECT 
+    r.res_no,
+    r.res_start,
+    r.ward_no,
+    w.name AS ward_name
+FROM reservation r
+JOIN ward w ON r.ward_no = w.ward_no
+WHERE r.staff_id = ?
+  AND r.res_status = '예약확정'
+  AND r.res_start >= NOW()
+ORDER BY r.res_start ASC
+`;
+
+/**
+ * [신규] at_no 기준으로 확정된 예약 건수 조회
+ */
+const getReservationCountByAtNo = `
+SELECT COUNT(*) AS count 
+FROM reservation 
+WHERE at_no = ? AND res_status = '예약확정'
+`;
+
 module.exports = {
   surveySelect,
   surveyWardJoinSelect,
@@ -322,4 +354,6 @@ module.exports = {
   notCompleteConsultCount,
   selectnotice,
   selectresultnotice,
+  getStaffUpcomingReservations,
+  getReservationCountByAtNo,
 };

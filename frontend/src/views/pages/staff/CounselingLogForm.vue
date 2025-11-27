@@ -4,13 +4,21 @@ import { useRoute, useRouter } from 'vue-router';
 import { useAuthStore } from '@/stores/authStore';
 import { consultLogApi } from '@/api/api.js';
 
+// [필수 라이브러리 및 컴포넌트 임포트]
+import { toPng } from 'html-to-image';
+import jsPDF from 'jspdf';
+import CounselingLogPdf from '@/components/CounselingLogPdf.vue'; // 경로 확인 필요
+
 const route = useRoute();
 const router = useRouter();
 const authStore = useAuthStore();
 const isLoading = ref(false);
 const isSubmitting = ref(false);
 const surveyList = ref([]);
-const isEditing = ref(false); // 수정 모드 상태
+const isEditing = ref(false);
+
+// [핵심] 자식 컴포넌트(PDF 템플릿)를 참조하기 위한 ref
+const pdfComponentRef = ref(null);
 
 const isViewMode = computed(() => !!route.query.consultNo);
 
@@ -164,12 +172,7 @@ async function handleUpdate() {
 
   try {
     isSubmitting.value = true;
-
-    // [수정] API 호출 인자 분리
-    // 1. 수정할 상담 번호 추출
     const consultNo = route.query.consultNo;
-
-    // 2. 전송할 데이터 (Payload)
     const payload = {
       content: form.content,
       consult_datetime: form.consult_datetime,
@@ -181,10 +184,7 @@ async function handleUpdate() {
       res_no: form.res_no ? Number(form.res_no) : null,
       ward_no: form.ward_no,
     };
-
-    // 3. API 호출: (ID, Payload) 순서로 전달
     await consultLogApi.updateLog(consultNo, payload);
-
     alert('수정 완료');
     isEditing.value = false;
     await fetchLogDetail(consultNo);
@@ -200,8 +200,56 @@ function goBack() {
   router.back();
 }
 
-function downloadPdf() {
-  alert('PDF 다운로드 기능');
+// [PDF 다운로드 로직]
+async function downloadPdf() {
+  // 1. 자식 컴포넌트(CounselingLogPdf)가 expose한 DOM 요소(pdfContentRef) 가져오기
+  const element = pdfComponentRef.value?.pdfContentRef;
+
+  if (!element) {
+    alert('PDF 변환 대상을 찾을 수 없습니다.');
+    return;
+  }
+
+  try {
+    // 2. DOM -> PNG 변환 (skipFonts: true로 CORS 에러 방지)
+    // 별도 컴포넌트를 사용하므로 filter 옵션은 제거해도 됩니다.
+    const dataUrl = await toPng(element, {
+      quality: 0.95,
+      cacheBust: true,
+      skipFonts: true,
+    });
+
+    // 3. 이미지 로드 대기
+    const imgProps = new Image();
+    imgProps.src = dataUrl;
+    await new Promise((resolve) => {
+      imgProps.onload = resolve;
+    });
+
+    // 4. PDF 생성 (A4)
+    const doc = new jsPDF('p', 'mm', 'a4');
+    const imgWidth = 210;
+    const pageHeight = 297;
+    const imgHeight = (imgProps.height * imgWidth) / imgProps.width;
+
+    let heightLeft = imgHeight;
+    let position = 0;
+
+    doc.addImage(dataUrl, 'PNG', 0, position, imgWidth, imgHeight);
+    heightLeft -= pageHeight;
+
+    while (heightLeft >= 0) {
+      position = heightLeft - imgHeight;
+      doc.addPage();
+      doc.addImage(dataUrl, 'PNG', 0, position, imgWidth, imgHeight);
+      heightLeft -= pageHeight;
+    }
+
+    doc.save(`상담일지_${form.ward_name}_${form.consult_datetime}.pdf`);
+  } catch (error) {
+    console.error('PDF 변환 실패:', error);
+    alert(`PDF 다운로드 실패: ${error.message}`);
+  }
 }
 </script>
 
@@ -402,6 +450,10 @@ function downloadPdf() {
           </div>
         </form>
       </div>
+    </div>
+
+    <div style="position: fixed; left: -9999px; top: 0; z-index: -50">
+      <CounselingLogPdf ref="pdfComponentRef" :data="form" />
     </div>
   </div>
 </template>
