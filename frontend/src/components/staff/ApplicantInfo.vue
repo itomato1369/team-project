@@ -49,10 +49,7 @@ const fetchApplicantData = async (id) => {
     }
 
     if (data) {
-      console.log(
-        '====================================== \nApplicantInfo: 조회 성공, 데이터:',
-        data
-      );
+      console.log('ApplicantInfo: 조회 성공, 데이터:', data);
       applicantData.value = {
         피보호자이름: data['이름'] || '정보 없음',
         나이: data['나이'] ? `${data['나이']}세` : '정보 없음',

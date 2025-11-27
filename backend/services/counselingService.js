@@ -50,16 +50,19 @@ module.exports.createLog = async (req, res) => {
       throw new Error("상담 일지 생성 실패 - insertId 없음");
     }
     console.log("Consultation Log Created. Insert ID:", result.insertId);
-    // 예약 상태 업데이트
-    console.log("Executing Query (updateReservationToBooked):", res_no);
-    await connection.query(sqlList.updateReservationToBooked, [res_no]);
 
-    // [신규] 상담상태가 '완료'이고, 연결된 조사지가 있으면 해당 조사지 상태를 '심사중'으로 변경
-    if (consult_status === "완료" && survey_no) {
-      console.log(
-        `상담 완료, 조사지(${survey_no}) 상태를 '심사중'으로 변경합니다.`
-      );
-      await connection.query(sqlList.updateSurveyStatus, [survey_no]);
+    // [수정] 상담상태가 '완료'일 경우에만 예약 및 조사지 상태 업데이트
+    if (consult_status === "완료") {
+      if (res_no) {
+        console.log("Executing Query (updateReservationToBooked):", res_no);
+        await connection.query(sqlList.updateReservationToBooked, [res_no]);
+      }
+      if (survey_no) {
+        console.log(
+          `상담 완료, 조사지(${survey_no}) 상태를 '심사중'으로 변경합니다.`
+        );
+        await connection.query(sqlList.updateSurveyStatus, [survey_no]);
+      }
     }
 
     // 문제없으면 커밋
@@ -271,14 +274,26 @@ module.exports.updateConsult = async (req, res) => {
         .send({ message: "수정할 상담 기록을 찾을 수 없습니다." });
     }
 
-    // 3. [신규] 상담상태가 '완료'이고, 연결된 조사지가 있으면 해당 조사지 상태를 '심사중'으로 변경
-    if (consult_status === "완료" && existingLog.survey_no) {
-      console.log(
-        `상담 완료, 조사지(${existingLog.survey_no}) 상태를 '심사중'으로 변경합니다.`
-      );
-      await connection.query(sqlList.updateSurveyStatus, [
-        existingLog.survey_no,
-      ]);
+    // 3. [수정] 상담상태가 '완료'일 경우 예약 및 조사지 상태 업데이트
+    if (consult_status === "완료") {
+      // 예약 상태 업데이트
+      if (existingLog.res_no) {
+        console.log(
+          `상담 완료, 예약(${existingLog.res_no}) 상태를 '상담완료'로 변경합니다.`
+        );
+        await connection.query(sqlList.updateReservationToBooked, [
+          existingLog.res_no,
+        ]);
+      }
+      // 조사지 상태 업데이트
+      if (existingLog.survey_no) {
+        console.log(
+          `상담 완료, 조사지(${existingLog.survey_no}) 상태를 '심사중'으로 변경합니다.`
+        );
+        await connection.query(sqlList.updateSurveyStatus, [
+          existingLog.survey_no,
+        ]);
+      }
     }
 
     await connection.commit();

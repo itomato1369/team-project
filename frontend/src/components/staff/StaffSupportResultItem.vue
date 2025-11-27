@@ -1,5 +1,4 @@
 <script setup>
-import { computed } from 'vue';
 import StaffSupportResultListInfo from './StaffSupportResultListInfo.vue';
 
 const props = defineProps({
@@ -28,9 +27,9 @@ const handleButtonClick = () => {
         </h2>
         <p class="text-gray-500 text-base mt-1">{{ item.plan }}</p>
       </div>
-      <button class="px-4 py-2 text-base border rounded-lg hover:bg-gray-100">
+      <!-- <button class="px-4 py-2 text-base border rounded-lg hover:bg-gray-100">
         {{ item.staff_name }}
-      </button>
+      </button> -->
     </div>
 
     <!-- 우선순위 / 요청일 / 자세히보기 -->

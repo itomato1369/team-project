@@ -85,6 +85,7 @@ const model = ref([
         roles: ['2a'],
       },
       { label: '담당자신청서조회', icon: 'pi pi-fw pi-home', to: '/activityreport', roles: ['2a'] },
+      { label: '담당자마이페이지', icon: 'pi pi-fw pi-home', to: '/amy', roles: ['2a'] },
     ],
   },
   {
@@ -100,6 +101,7 @@ const model = ref([
       { label: '지원결과조회', icon: 'pi pi-fw pi-home', to: '/supportresultlist', roles: ['3a'] },
       // { label: 'Landing', icon: 'pi pi-fw pi-globe', to: '/landing', roles: ['3a'] },
       // { label: 'Crud', icon: 'pi pi-fw pi-pencil', to: '/pages/crud', roles: ['3a'] },
+      { label: '관리자마이페이지', icon: 'pi pi-fw pi-home', to: '/amy', roles: ['3a'] },
     ],
   },
   {

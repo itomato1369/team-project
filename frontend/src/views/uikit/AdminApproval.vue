@@ -112,7 +112,7 @@ onMounted(() => {
 
 <template>
   <div class="approval-page">
-    <h2 class="page-subtitle">신규 관리자 및 담당자 승인 대기 목록</h2>
+    <h2 class="page-subtitle">신규 이용자 및 담당자 승인 대기 목록</h2>
 
     <div class="table-container">
       <div v-if="!approvalList.length" class="empty-list-message">

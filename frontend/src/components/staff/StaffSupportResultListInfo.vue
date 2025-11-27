@@ -29,7 +29,7 @@ const setLocalForm = (data) => {
   localForm.value = {
     support_plan_no: data.support_plan_no || null,
     support_plan_goal: data.support_plan_goal || '',
-    staff_name: data.staff_name || '',
+    staff_name: data.support_title || '김스탭',
     business_name: data.business_name || '',
     spend: data.spend || 0,
     created_at: data.created_at || '',
@@ -108,23 +108,6 @@ const approvePlan = async () => {
           />
         </div>
       </div>
-
-      <div class="flex gap-4">
-        <div class="w-1/2">
-          <label class="font-semibold text-gray-700">작성일</label>
-          <InputText v-model="localForm.created_at" readonly class="w-full bg-gray-100" />
-        </div>
-        <div class="w-1/2">
-          <label class="font-semibold text-gray-700">요청일</label>
-          <InputText v-model="localForm.writer_date" readonly class="w-full bg-gray-100" />
-        </div>
-      </div>
-
-      <div>
-        <label class="font-semibold text-gray-700">현재상태</label>
-        <InputText v-model="localForm.support_plan_status" readonly class="w-full bg-gray-100" />
-      </div>
-
       <div>
         <label class="font-semibold text-gray-700">내용</label>
         <Textarea v-model="localForm.plan" rows="4" readonly class="w-full bg-gray-100" />

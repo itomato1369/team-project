@@ -11,11 +11,13 @@ import Textarea from 'primevue/textarea';
 import Button from 'primevue/button';
 import ProgressSpinner from 'primevue/progressspinner';
 import { useAuthStore } from '@/stores/authStore';
+import { useToast } from 'primevue';
 
 const authStore = useAuthStore();
 const route = useRoute();
 const router = useRouter();
 const inquiryId = route.params.id;
+const toast = useToast();
 
 const inquiryDetail = ref(null); // 문의 기본 정보를 담을 ref
 const questions = ref([]); // 질문 목록을 담을 ref
@@ -58,8 +60,8 @@ onMounted(async () => {
     const wardsResponse = await axios.get('/api/user/surveys/create', {
       params: {
         guardianId: authStore.user.id,
-        inquiryNo: inquiryId
-      }
+        inquiryNo: inquiryId,
+      },
     });
     const fetchedWards = wardsResponse.data.result;
 
@@ -118,7 +120,9 @@ const isSaveDisabled = computed(() => {
 
   // 수정 모드일 경우, 수정 사유도 비어있는지 확인
   if (editMode.value) {
-    return hasUnansweredRequiredQuestions || modificationReason.value.trim() === '' || isWardNotSelected;
+    return (
+      hasUnansweredRequiredQuestions || modificationReason.value.trim() === '' || isWardNotSelected
+    );
   }
 
   return hasUnansweredRequiredQuestions || isWardNotSelected;
@@ -167,17 +171,32 @@ const saveInquiry = async () => {
     console.log('Payload to be sent:', saveData);
 
     await axios.post('/api/user/user-inquiries/answer', saveData);
-    alert('내용이 저장되었습니다.');
+    toast.add({
+      severity: 'success',
+      summary: '알림',
+      detail: '내용이 저장되었습니다.',
+      life: 3000,
+    });
+    goBackToList();
   } catch (err) {
-    console.error('저장에 실패했습니다:', err);
-    alert('저장 중 오류가 발생했습니다.');
+    toast.add({
+      severity: 'error',
+      summary: '알림',
+      detail: err,
+      life: 3000,
+    });
   }
 };
 
 // 수정 버튼 클릭 시 함수
 const updateInquiry = async () => {
   if (!existingSurvey.value) {
-    alert('오류: 수정할 설문 정보가 없습니다.');
+    toast.add({
+      severity: 'error',
+      summary: '알림',
+      detail: '오류: 수정할 설문 정보가 없습니다.',
+      life: 3000,
+    });
     return;
   }
 
@@ -195,10 +214,22 @@ const updateInquiry = async () => {
     };
 
     await axios.put(`/api/user/survey-results/${existingSurvey.value.survey_no}`, updateData);
-    alert('내용이 수정되었습니다.');
+    toast.add({
+      severity: 'success',
+      summary: '알림',
+      detail: '내용이 수정되었습니다.',
+      life: 3000,
+    });
+    goBackToList();
+    // alert('내용이 수정되었습니다.');
   } catch (err) {
     console.error('수정에 실패했습니다:', err);
-    alert('수정 중 오류가 발생했습니다.');
+    toast.add({
+      severity: 'success',
+      summary: '알림',
+      detail: err,
+      life: 3000,
+    });
   }
 };
 
@@ -209,6 +240,7 @@ const goBackToList = () => {
 </script>
 
 <template>
+  <Toast />
   <div>
     <!-- 로딩 중일 때 스피너 표시 -->
     <div v-if="loading" class="flex justify-center items-center h-64">
@@ -258,26 +290,26 @@ const goBackToList = () => {
       <!-- 목적 및 내용 입력 -->
       <Card>
         <template #title>
-          <div class="font-semibold text-xl " > 조사 목적 및 내용  </div>
+          <div class="font-semibold text-xl">조사 목적 및 내용</div>
         </template>
         <template #content>
           <div class="flex flex-col gap-6">
-            <div class="flex flex-col gap-3" >
+            <div class="flex flex-col gap-3">
               <label>대상</label>
               <Dropdown
-              v-model="selectedWardNo"
-              :options="wards"
-              optionLabel="name"
-              optionValue="ward_no"
-              placeholder="대상 선택"
-              class="w-full md:w-56"
+                v-model="selectedWardNo"
+                :options="wards"
+                optionLabel="name"
+                optionValue="ward_no"
+                placeholder="대상 선택"
+                class="w-full md:w-56"
               />
             </div>
             <div class="flex flex-col gap-3">
               <label>목적</label>
               <InputText v-model="surveyPurpose" placeholder="조사 목적을 입력하세요..." />
             </div>
-            
+
             <div class="flex flex-col gap-3">
               <label>내용</label>
               <Textarea v-model="surveyContent" rows="3" placeholder="조사 내용을 입력하세요..." />
@@ -312,7 +344,7 @@ const goBackToList = () => {
                   :class="{
                     'priority-urgent': question.priority === '긴급',
                     'priority-important': question.priority === '중점',
-                    'priority-plan': question.priority === '계획'
+                    'priority-plan': question.priority === '계획',
                   }"
                   class="priority-tag"
                 >

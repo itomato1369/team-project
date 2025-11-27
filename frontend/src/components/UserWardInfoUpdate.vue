@@ -5,7 +5,7 @@ import axios from 'axios';
 import Button from 'primevue/button';
 import DataTable from 'primevue/datatable';
 import Column from 'primevue/column';
-import Tag from 'primevue/tag';
+// import Tag from 'primevue/tag';
 
 const props = defineProps({
   userId: {
@@ -44,18 +44,18 @@ const goToEditWardPage = (ward) => {
 //   alert(`'${ward.name}'의 지원 기록 보기 기능은 현재 준비 중입니다.`);
 // };
 
-const getPriorityClass = (status) => {
-  switch (status) {
-    case '긴급':
-      return 'priority-urgent';
-    case '중점':
-      return 'priority-important';
-    case '준비':
-      return 'priority-ready';
-    default:
-      return '';
-  }
-};
+// const getPriorityClass = (status) => {
+//   switch (status) {
+//     case '긴급':
+//       return 'priority-urgent';
+//     case '중점':
+//       return 'priority-important';
+//     case '준비':
+//       return 'priority-ready';
+//     default:
+//       return '';
+//   }
+// };
 </script>
 
 <template>
@@ -83,14 +83,14 @@ const getPriorityClass = (status) => {
       </Column>
       <Column field="guardian_relation" header="관계"></Column>
       <Column field="disabled_level" header="장애 수준"></Column>
-      <Column header="서비스 우선순위">
+      <!-- <Column header="서비스 우선순위">
         <template #body="slotProps">
           <Tag
             :value="slotProps.data.priority_status || '없음'"
             :class="getPriorityClass(slotProps.data.priority_status)"
           />
         </template>
-      </Column>
+      </Column> -->
       <!-- <Column header="지원 기록">
         <template #body="slotProps">
           <Button

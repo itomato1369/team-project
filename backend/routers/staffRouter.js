@@ -39,11 +39,11 @@ router.get(
 );
 
 /**
- * 5. 담당자 예약 취소 (POST /api/staff/reservations/cancel/:at_no)
+ * 5. 담당자 예약 취소 (POST /api/staff/reservations/cancel/:res_no)
  * - (요구사항 3)
  */
 router.post(
-  "/reservations/cancel/:at_no",
+  "/reservations/cancel/:res_no",
   verifyAccessToken,
   staffService.cancelStaffReservation
 );
@@ -122,5 +122,7 @@ router.get("/:surveyNo", staffService.getSurveyDetail);
 
 // wardId로 피보ho자 상세 정보 조회
 router.get("/ward-info/:wardId", staffService.getWardInfo);
+
+router.get("/survey/:wardId", staffService.getApprovedBusinessNames);
 
 module.exports = router;

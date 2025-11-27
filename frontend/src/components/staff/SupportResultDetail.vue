@@ -114,7 +114,7 @@ const formatAmount = (amount) => {
       <!-- 내용 -->
       <div>
         <label class="font-semibold text-gray-700">내용</label>
-        <Textarea v-model="localForm.plan" rows="4" readonly class="w-full bg-gray-100" />
+        <Textarea v-model="localForm.plan" rows="10" readonly class="w-full bg-gray-100" />
       </div>
 
       <!-- PDF 목록 -->
@@ -127,14 +127,13 @@ const formatAmount = (amount) => {
       <div v-else class="text-sm text-gray-400">첨부 파일 없음</div>
 
       <!-- 승인 버튼 -->
-      <div class="flex justify-end gap-4 mt-6">
+      <!-- <div class="flex justify-end gap-4 mt-6">
         <button
           @click="approvePlan"
           class="px-6 py-2 bg-green-500 text-white font-semibold rounded-lg hover:bg-green-600 transition-colors"
         >
           승인
-        </button>
-      </div>
+        </button> -->
     </div>
   </div>
 </template>

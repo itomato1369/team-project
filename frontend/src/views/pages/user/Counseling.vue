@@ -275,7 +275,13 @@ onMounted(async () => {
                 optionValue="ward_no"
                 placeholder="피보호자를 선택하세요"
                 class="w-full"
-              />
+              >
+                <template #option="slotProps">
+                  <div class="w-full text-center">
+                    {{ slotProps.option.name }}
+                  </div>
+                </template>
+              </Dropdown>
             </div>
           </template>
         </Card>
@@ -457,6 +463,6 @@ onMounted(async () => {
 /* [추가됨] 예약 가능한 날짜 강조 스타일 */
 .highlight-date {
   font-weight: 900 !important; /* 글자 굵게 */
-  color: #000000 !important; /* 진한 검정색 */
+  color: #22c55e !important; /* A shade of green */
 }
 </style>
