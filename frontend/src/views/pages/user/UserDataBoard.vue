@@ -230,24 +230,11 @@ const downloadZip = async function downloadZip(file) {
       :globalFilterFields="['name', 'country.name', 'representative.name', 'balance', 'status']"
       showGridlines
     >
-      <template #header>
-        <div class="flex justify-between">
-          <IconField>
-            <InputIcon>
-              <i class="pi pi-search" />
-            </InputIcon>
-            <InputText v-model="filters1['global'].value" placeholder="Keyword Search" />
-          </IconField>
-        </div>
-      </template>
       <template #empty> No file found. </template>
       <template #loading> Loading file data. Please wait. </template>
       <Column field="name" header="자료 번호" style="min-width: 12rem">
         <template #body="{ data }">
           {{ data.board_no }}
-        </template>
-        <template #filter="{ filterModel }">
-          <InputText v-model="filterModel.value" type="text" placeholder="Search by name" />
         </template>
       </Column>
       <Column header="자료명" filterField="country.name" style="min-width: 12rem">
@@ -256,9 +243,7 @@ const downloadZip = async function downloadZip(file) {
             <span>{{ data.title.name }}</span>
           </div>
         </template>
-        <template #filter="{ filterModel }">
-          <InputText v-model="filterModel.value" type="text" placeholder="Search by country" />
-        </template>
+
         <template #filterclear="{ filterCallback }">
           <Button
             type="button"
@@ -267,7 +252,7 @@ const downloadZip = async function downloadZip(file) {
             severity="secondary"
           ></Button>
         </template>
-        <template #filterapply="{ filterCallback }">
+        <template>
           <Button
             type="button"
             icon="pi pi-check"
@@ -301,20 +286,19 @@ const downloadZip = async function downloadZip(file) {
             <span>{{ data.institution_name.name }}</span>
           </div>
         </template>
-        <template #filter="{ filterModel }">
-          <MultiSelect
-            v-model="filterModel.value"
-            :options="representatives"
-            optionLabel="name"
-            placeholder="Any"
-          >
-            <template #option="slotProps">
-              <div class="flex items-center gap-2">
-                <span>{{ slotProps.option.name }}</span>
-              </div>
-            </template>
-          </MultiSelect>
-        </template>
+
+        <MultiSelect
+          v-model="filterModel.value"
+          :options="representatives"
+          optionLabel="name"
+          placeholder="Any"
+        >
+          <template #option="slotProps">
+            <div class="flex items-center gap-2">
+              <span>{{ slotProps.option.name }}</span>
+            </div>
+          </template>
+        </MultiSelect>
       </Column>
       <Column
         header="작성자"
@@ -328,27 +312,18 @@ const downloadZip = async function downloadZip(file) {
             <span>{{ data.writer.name }}</span>
           </div>
         </template>
-        <template #filter="{ filterModel }">
-          <MultiSelect
-            v-model="filterModel.value"
-            :options="representatives"
-            optionLabel="name"
-            placeholder="Any"
-          >
-            <template #option="slotProps">
-              <div class="flex items-center gap-2">
-                <span>{{ slotProps.option.name }}</span>
-              </div>
-            </template>
-          </MultiSelect>
-        </template>
+
+        <MultiSelect
+          v-model="filterModel.value"
+          :options="representatives"
+          optionLabel="name"
+          placeholder="Any"
+        >
+        </MultiSelect>
       </Column>
       <Column header="등록일" filterField="date" dataType="date" style="min-width: 10rem">
         <template #body="{ data }">
           {{ formatDate(data.date) }}
-        </template>
-        <template #filter="{ filterModel }">
-          <DatePicker v-model="filterModel.value" dateFormat="mm/dd/yy" placeholder="mm/dd/yyyy" />
         </template>
       </Column>
     </DataTable>
