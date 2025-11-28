@@ -8,31 +8,49 @@ const authStore = useAuthStore();
 
 const model = ref([
   {
-    label: '홈',
+    label: '시스템',
     items: [
-      { label: '시스템 관리자 대쉬보드', icon: 'pi pi-fw pi-home', to: '/system' },
-      { label: '로그아웃', icon: 'pi pi-fw pi-sign-out', command: () => authStore.logout() },
-    ],
-  },
-  {
-    label: '기능',
-    items: [
+      { label: '시스템 관리자 대쉬보드', icon: 'pi pi-fw pi-home', to: '/system', roles: ['SYS'] },
       {
         label: '신규기관 등록',
         icon: 'pi pi-fw pi-check-square',
         to: '/system/institutions/register',
+        roles: ['SYS'],
       },
-      { label: '자료실', icon: 'pi pi-fw pi-file', to: '/data-board', roles: ['SYS'] },
       {
         label: '등록기관 목록',
         icon: 'pi pi-fw pi-list',
         to: '/system/institutions',
         class: 'rotated-icon',
+        roles: ['SYS'],
       },
-      { label: '공고 등록', icon: 'pi pi-fw pi-check-square', to: '/system/notices/register' },
-      { label: '공고 목록', icon: 'pi pi-fw pi-list', to: '/system/notices' },
-      { label: '조사지 관리', icon: 'pi pi-fw pi-book', to: '/system/survey' },
-      { label: '권한승인 대기 목록', icon: 'pi pi-fw pi-id-card', to: '/system/approval' },
+      {
+        label: '공고 등록',
+        icon: 'pi pi-fw pi-check-square',
+        to: '/system/notices/register',
+        roles: ['SYS'],
+      },
+      { label: '공고 목록', icon: 'pi pi-fw pi-list', to: '/system/notices', roles: ['SYS'] },
+      { label: '조사지 관리', icon: 'pi pi-fw pi-book', to: '/system/survey', roles: ['SYS'] },
+
+      {
+        label: '권한승인 대기 목록',
+        icon: 'pi pi-fw pi-id-card',
+        to: '/system/approval',
+        roles: ['SYS'],
+      },
+      {
+        label: '자료실',
+        icon: 'pi pi-fw pi-file',
+        to: '/data-board',
+        roles: ['SYS'],
+      },
+      {
+        label: '로그아웃',
+        icon: 'pi pi-fw pi-sign-out',
+        command: () => authStore.logout(),
+        roles: ['SYS'],
+      },
     ],
   },
 ]);

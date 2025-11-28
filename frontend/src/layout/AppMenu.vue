@@ -8,38 +8,6 @@ const authStore = useAuthStore();
 // 메뉴 데이터 + 권한 정보 추가
 const model = ref([
   {
-    label: 'Home',
-    items: [
-      { label: 'Dashboard', icon: 'pi pi-fw pi-home', to: '/', roles: ['1a', '2a', '3a', 'SYS'] },
-      { label: '로그인', icon: 'pi pi-fw pi-sign-in', to: '/login', roles: ['guest'] }, // guest: 비로그인
-      {
-        label: '로그아웃',
-        icon: 'pi pi-fw pi-sign-out',
-        command: () => authStore.logout(),
-        roles: ['1a', '2a', '3a', 'SYS'],
-      }, // 로그인
-      {
-        label: 'Q&A',
-        icon: 'pi pi-fw pi-search',
-        to: '/qna',
-        roles: ['1a', '2a', '3a', 'SYS'],
-        //         {
-        //   path: '/qna',
-        //   name: 'user-qna',
-        //   component: () => import('@/views/pages/user/UserQna.vue'),
-        //   props: true,
-        // },
-      },
-      { label: '자료실', icon: 'pi pi-fw pi-file', to: '/ud/data-board', roles: ['1a'] },
-      {
-        label: '자료실',
-        icon: 'pi pi-fw pi-file',
-        to: '/data-board',
-        roles: ['2a', '3a', 'SYS'],
-      },
-    ],
-  },
-  {
     label: '이용자',
     items: [
       {
@@ -55,6 +23,24 @@ const model = ref([
         roles: ['1a'],
       },
       { label: '마이 페이지', icon: 'pi pi-fw pi-home', to: '/umy', roles: ['1a'] },
+      {
+        label: 'Q&A',
+        icon: 'pi pi-fw pi-search',
+        to: '/qna',
+        roles: ['1a'],
+      },
+      {
+        label: '자료실',
+        icon: 'pi pi-fw pi-file',
+        to: '/data-board',
+        roles: ['1a'],
+      },
+      {
+        label: '로그아웃',
+        icon: 'pi pi-fw pi-sign-out',
+        command: () => authStore.logout(),
+        roles: ['1a'],
+      },
     ],
   },
   {
@@ -86,6 +72,24 @@ const model = ref([
       },
       { label: '담당자신청서조회', icon: 'pi pi-fw pi-home', to: '/activityreport', roles: ['2a'] },
       { label: '담당자마이페이지', icon: 'pi pi-fw pi-home', to: '/amy', roles: ['2a'] },
+      {
+        label: 'Q&A',
+        icon: 'pi pi-fw pi-search',
+        to: '/qna',
+        roles: ['2a'],
+      },
+      {
+        label: '자료실',
+        icon: 'pi pi-fw pi-file',
+        to: '/data-board',
+        roles: ['2a'],
+      },
+      {
+        label: '로그아웃',
+        icon: 'pi pi-fw pi-sign-out',
+        command: () => authStore.logout(),
+        roles: ['2a'],
+      },
     ],
   },
   {
@@ -102,6 +106,24 @@ const model = ref([
       // { label: 'Landing', icon: 'pi pi-fw pi-globe', to: '/landing', roles: ['3a'] },
       // { label: 'Crud', icon: 'pi pi-fw pi-pencil', to: '/pages/crud', roles: ['3a'] },
       { label: '관리자마이페이지', icon: 'pi pi-fw pi-home', to: '/amy', roles: ['3a'] },
+      {
+        label: 'Q&A',
+        icon: 'pi pi-fw pi-search',
+        to: '/qna',
+        roles: ['3a'],
+      },
+      {
+        label: '자료실',
+        icon: 'pi pi-fw pi-file',
+        to: '/data-board',
+        roles: ['3a'],
+      },
+      {
+        label: '로그아웃',
+        icon: 'pi pi-fw pi-sign-out',
+        command: () => authStore.logout(),
+        roles: ['3a'],
+      },
     ],
   },
   {
@@ -136,6 +158,19 @@ const model = ref([
         to: '/system/approval',
         roles: ['SYS'],
       },
+      {
+        label: '자료실',
+        icon: 'pi pi-fw pi-file',
+        to: '/data-board',
+        roles: ['SYS'],
+      },
+      {
+        label: '로그아웃',
+        icon: 'pi pi-fw pi-sign-out',
+        command: () => authStore.logout(),
+        roles: ['SYS'],
+      },
+      { label: '로그인', icon: 'pi pi-fw pi-sign-in', to: '/login', roles: ['guest'] }, // guest: 비로그인 // 로그인
     ],
   },
 ]);
