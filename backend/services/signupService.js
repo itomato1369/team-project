@@ -10,7 +10,7 @@ const isUserIdCheck = async (userId) => {
   return rows.length > 0;
 };
 
-//
+// 회원가입 시 전송할 데이터 처리 함수
 const register = async (userData) => {
   const { userId, password, name, birthDate, email, phone, fullAddress, role } =
     userData;

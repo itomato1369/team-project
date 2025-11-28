@@ -49,7 +49,7 @@ function goToDashboard() {
 
       <div @click="goToDashboard" class="layout-topbar-logo" style="cursor: pointer">
         <img class="logo" src="/demo/images/기본로고.png" alt="메인로고" />
-        <span>도움 24</span>
+        <!-- <span>도움 24</span> -->
       </div>
     </div>
 
@@ -116,8 +116,8 @@ function goToDashboard() {
 
 /* 2. 로고 이미지(.logo)의 크기를 강제 고정 */
 .layout-topbar-logo .logo {
-  width: 85px !important;
-  height: 85px !important;
+  width: 100px;
+  height: 56px;
 
   /* PNG 이미지의 가로세로 비율을 유지하며 컨테이너에 맞춤 */
   object-fit: contain !important;

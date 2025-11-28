@@ -122,7 +122,7 @@ const approvePlan = async () => {
       <!-- 내용 -->
       <div>
         <label class="font-semibold text-gray-700">내용</label>
-        <Textarea v-model="localForm.plan" rows="4" readonly class="w-full bg-gray-100" />
+        <Textarea v-model="localForm.plan" rows="8" readonly class="w-full bg-gray-100" />
       </div>
 
       <!-- PDF 목록 -->

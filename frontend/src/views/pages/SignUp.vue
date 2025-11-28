@@ -124,6 +124,7 @@ const searchZipcode = () => {
   isPostcodeOpen.value = true;
   apiLoadError.value = ''; // 에러 메시지 초기화
 };
+
 // 우편번호 검색 완료 시 처리 함수
 const addressSearched = (data) => {
   // 모달 닫기
@@ -298,8 +299,8 @@ const closePostcode = () => {
 
         <div v-if="isPostcodeOpen" class="postcode-modal-overlay" @click.self="closePostcode">
           <div class="postcode-modal-content">
-            <!-- Daum API를 쉽게 사용할 수 있도록 패키징된 Vue 컴포넌트입니다. 
-             주소 검색 화면을 렌더링합니다. -->
+            <!-- Daum API를 쉽게 사용할 수 있도록 패키징된 Vue 컴포넌트를 활용하여
+             주소 검색 화면을 렌더링 -->
             <VueDaumPostcode
               @complete="addressSearched"
               :width="600"

@@ -215,7 +215,7 @@ const request = async function request() {
     // 선택된 객체에서 name 추출
     category: selectedCategory ? selectedCategory.name : null,
     // 선택된 객체에서 id만 추출
-    supportplan_no: selectedSupportPlan ? selectedSupportPlan.support_plan_no : null,
+    supportplan_no: formData.value.supportplan_no?.id,
     user_id: currentUserId, // Pinia에서 가져온 user_id를 백엔드에 전달
   };
   console.log('전송 데이터:', payload);
@@ -274,8 +274,8 @@ const request = async function request() {
         <AutoComplete
           v-model="formData.supportplan_no"
           :suggestions="supportSelection"
-          optionLabel="support_plan_no"
-          placeholder="지원 계획 번호 선택"
+          optionLabel="name"
+          placeholder="지원 계획 선택"
           dropdown
           @complete="selectionList2($event)"
         />

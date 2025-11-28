@@ -82,10 +82,10 @@ const formatAmount = (amount) => {
       </div>
 
       <!-- 작성자 -->
-      <!-- <div>
+      <div>
         <label class="font-semibold text-gray-700">작성자</label>
         <InputText v-model="localForm.staff_name" readonly class="w-full bg-gray-100" />
-      </div> -->
+      </div>
 
       <!-- 지원계획 & 예상지원금액 -->
       <div class="flex gap-4">
@@ -127,14 +127,13 @@ const formatAmount = (amount) => {
       <div v-else class="text-sm text-gray-400">첨부 파일 없음</div>
 
       <!-- 승인 버튼 -->
-      <div class="flex justify-end gap-4 mt-6">
+      <!-- <div class="flex justify-end gap-4 mt-6">
         <button
           @click="approvePlan"
           class="px-6 py-2 bg-green-500 text-white font-semibold rounded-lg hover:bg-green-600 transition-colors"
         >
           승인
-        </button>
-      </div>
+        </button> -->
     </div>
   </div>
 </template>

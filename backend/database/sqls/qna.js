@@ -93,11 +93,20 @@ LEFT JOIN
 WHERE
     q.question_no = ?;`;
 
-const findSupportNo = `SELECT sp.support_plan_no
+// const findSupportNo = `SELECT sp.support_plan_no
+// FROM support_plan sp
+// JOIN ward w ON sp.ward_no = w.ward_no
+// JOIN member m ON m.user_id = w.guardian_id
+// WHERE m.user_id = ?;
+// `;
+const findSupportNo = `
+SELECT 
+    sp.support_plan_no AS id, 
+    sp.support_plan_goal AS name
 FROM support_plan sp
 JOIN ward w ON sp.ward_no = w.ward_no
 JOIN member m ON m.user_id = w.guardian_id
-WHERE m.user_id = ?; 
+WHERE m.user_id = ?;
 `;
 
 const countAnswers = `
