@@ -93,6 +93,7 @@ const handleSignUp = async () => {
 
     await axios.post(nodeApiUrl, signUpData);
     alert('회원가입이 완료되었습니다');
+
     goToLogin();
   } catch (error) {
     // 요청 실패
@@ -114,7 +115,7 @@ const handleSignUp = async () => {
     }
   }
 };
-// 이전 페이지로 이동
+// 로그인 페이지로 이동
 const goToLogin = () => {
   router.push({ name: 'login' });
 };

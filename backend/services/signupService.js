@@ -33,6 +33,7 @@ const register = async (userData) => {
 
   // 이용자 기본 상태값
   const defaultStatus = "READY";
+  const institutionNo = null;
 
   // DB에 저장할 값 배열
   const values = [
@@ -45,6 +46,7 @@ const register = async (userData) => {
     fullAddress, // mapper에서는 address
     role,
     defaultStatus,
+    institutionNo,
   ];
   // DB 쿼리 실행
   await db.query("signUpUser", values);
