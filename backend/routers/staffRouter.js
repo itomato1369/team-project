@@ -91,6 +91,12 @@ router.get(
   staffService.supportResultByWardSurveyNo
 );
 
+// [신규] 지원 결과 승인 및 지원 계획 상태 '지원종료'로 변경
+router.post(
+  "/support-result/approve",
+  staffService.approveSupportResult
+);
+
 // 지원 결과 상세 조회 ← 여기 추가
 router.get(
   "/support-result/:support_result_no",

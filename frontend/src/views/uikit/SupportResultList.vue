@@ -38,7 +38,8 @@ onBeforeMount(async () => {
     const list = Array.isArray(res.data) ? res.data : [res.data];
 
     surveys.value = list.map((item) => ({
-      support_plan_no: item.support_result_no,
+      support_result_no: item.support_result_no, // support_result_no를 올바르게 할당
+      support_plan_no: item.support_plan_no, // support_plan_no도 함께 전달
       title: item.support_title,
       spend: item.support_spend,
       // 상세 보기용 데이터
@@ -88,11 +89,11 @@ const filteredSurveys = computed(() => {
     <div v-if="!loading" class="flex flex-col gap-4">
       <SupportResultItem
         v-for="item in filteredSurveys"
-        :key="item.support_plan_no"
+        :key="item.support_result_no"
         :item="item"
-        :is-active="activeSupportPlanNo === item.support_plan_no"
+        :is-active="activeSupportPlanNo === item.support_result_no"
         :allow-multiple="ALLOW_MULTIPLE_ACCORDIONS"
-        @toggle-detail="() => handleToggleDetail(item.support_plan_no)"
+        @toggle-detail="() => handleToggleDetail(item.support_result_no)"
       />
     </div>
 

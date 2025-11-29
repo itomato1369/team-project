@@ -328,6 +328,16 @@ FROM reservation
 WHERE at_no = ? AND res_status = '예약확정'
 `;
 
+const approveSupportResult = `
+UPDATE support_plan
+SET support_plan_status = '5f'
+WHERE support_plan_no = (
+  SELECT support_plan_no
+  FROM support_result
+  WHERE support_result_no = ?
+)
+`;
+
 module.exports = {
   surveySelect,
   surveyWardJoinSelect,
@@ -358,4 +368,5 @@ module.exports = {
   selectresultnotice,
   getStaffUpcomingReservations,
   getReservationCountByAtNo,
+  approveSupportResult,
 };

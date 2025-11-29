@@ -152,7 +152,7 @@ const getStatusSeverity = (status) => {
 
       <!-- Custom body for the 'result' column -->
       <template #body-result="{ data }">
-        <Button label="결과확인" outlined @click="showUserSupportResult(data)" :disabled="!data.support_result_no" />
+        <Button label="결과확인" outlined @click="showUserSupportResult(data)" :disabled="data.plan_status !== '5f' && data.plan_status !== '지원종료'" />
       </template>
     </BaseDataTable>
   </div>

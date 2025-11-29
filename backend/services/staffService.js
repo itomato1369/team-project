@@ -757,3 +757,29 @@ exports.getApprovedBusinessNames = async (req, res) => {
     throw err;
   }
 };
+
+// [신규] 지원 결과 승인 및 지원 계획 상태를 '지원종료'로 변경
+exports.approveSupportResult = async (req, res) => {
+  const { support_result_no } = req.body;
+
+  if (!support_result_no) {
+    return res
+      .status(400)
+      .json({ message: "지원 결과 번호(support_result_no)가 필요합니다." });
+  }
+
+  try {
+    const result = await db.query("approveSupportResult", [support_result_no]);
+
+    if (result.affectedRows === 0) {
+      return res
+        .status(404)
+        .json({ message: "해당 지원 결과를 찾을 수 없거나, 연결된 지원 계획이 없습니다." });
+    }
+
+    res.json({ message: "지원 계획 상태가 '지원종료'로 변경되었습니다." });
+  } catch (err) {
+    console.error("지원 결과 승인 중 오류 발생:", err);
+    res.status(500).json({ message: "서버 오류" });
+  }
+};

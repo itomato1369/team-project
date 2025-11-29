@@ -12,6 +12,7 @@ const props = defineProps({
 // localForm 초기값
 const localForm = ref({
   support_plan_no: null,
+  support_result_no: null,
   support_plan_goal: '',
   staff_name: '',
   business_name: '',
@@ -31,6 +32,7 @@ watch(
     if (newVal) {
       localForm.value = {
         support_plan_no: null,
+        support_result_no: null,
         support_plan_goal: '',
         staff_name: '',
         business_name: '',
@@ -55,21 +57,23 @@ const formatAmount = (amount) => {
 };
 
 // 승인 처리
-// const approvePlan = async () => {
-//   if (!localForm.value.support_plan_no) return;
+const approvePlan = async () => {
+  if (!localForm.value.support_result_no) {
+    alert('결과 보고서 번호가 없습니다.');
+    return;
+  }
 
-//   try {
-//     const res = await axios.post(
-//       `/api/staff/support-plan/SupportPlanDetail/${localForm.value.support_plan_no}`
-//     );
-//     alert(res.data.message || '승인 완료');
-//     // 승인 버튼 누르면 바로 상태 업데이트
-//     localForm.value.support_plan_status = '승인';
-//   } catch (err) {
-//     console.error(err);
-//     alert('승인 중 오류 발생');
-//   }
-// };
+  try {
+    const res = await axios.post(`/api/staff/support-result/approve`, {
+      support_result_no: localForm.value.support_result_no,
+    });
+    alert(res.data.message || '승인 처리 완료');
+    // 화면 새로고침 또는 부모 컴포넌트에 이벤트 전달 필요
+  } catch (err) {
+    console.error(err);
+    alert('승인 중 오류 발생: ' + (err.response?.data?.message || err.message));
+  }
+};
 </script>
 
 <template>
@@ -127,13 +131,14 @@ const formatAmount = (amount) => {
       <div v-else class="text-sm text-gray-400">첨부 파일 없음</div>
 
       <!-- 승인 버튼 -->
-      <!-- <div class="flex justify-end gap-4 mt-6">
+      <div class="flex justify-end gap-4 mt-6">
         <button
           @click="approvePlan"
           class="px-6 py-2 bg-green-500 text-white font-semibold rounded-lg hover:bg-green-600 transition-colors"
         >
           승인
-        </button> -->
+        </button>
+      </div>
     </div>
   </div>
 </template>
