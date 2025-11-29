@@ -374,6 +374,7 @@ const myInfoSqls = {
       m.user_name,
       m.email,
       m.phone,
+      m.address,
       m.role,
       m.status,
       i.institution_no,
