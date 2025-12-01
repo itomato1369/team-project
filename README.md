@@ -12,18 +12,12 @@
 
 # 개발환경
 
-### 분석 설계 : figma, ERD Cloud, Google Workspace
-
+분석 설계 : figma, ERD Cloud, Google Workspace
 통합 개발 환경 : Visual Studio Code
-
 형상관리 툴 : GitHub
-
 데이터베이스 : MariaDB
-
 배포 환경 : GitHub actions, NAVERCloud
-
 프론트엔드 : Vue, PRIMEVUE, Pinia, HTML, CSS, JavaScript
-
 백엔드 : Node, express
 
 # 데이터 베이스 설계
@@ -37,13 +31,9 @@
 # 프로젝트 팀 구성 및 역할
 
 배진욱 : 조장, 기관 담당자, 기관 관리자, 업무처리 프로세스
-
 박세민 : 부조장, 로그인, 소셜 로그인, 스케줄 예약, 상담관리
-
 박희찬 : 개발환경 구축 및 관리, 조사지 관리, Q&A, 자료실
-
 김현태 : GitHub 생성 및 관리, 마이페이지, 기관 상태 변경
-
 김동우 : DB서버 구축 및 관리, 회원가입, 시스템 관리자
 
 ## Git 주소
@@ -52,4 +42,4 @@
 
 # 데모 시연영상
 
-![영상 경로 오류](images/시연영상.mp4)
+![이미지 경로 오류](images/시연영상.mp4)
