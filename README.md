@@ -13,12 +13,19 @@
 # 개발환경
 
 분석 설계 : figma, ERD Cloud, Google Workspace
+
 통합 개발 환경 : Visual Studio Code
+
 형상관리 툴 : GitHub
+
 데이터베이스 : MariaDB
-배포 환경 : GitHub actions, NAVERCloud
+
+배포 환경 : GitHub actions, NAVER Cloud
+
 프론트엔드 : Vue, PRIMEVUE, Pinia, HTML, CSS, JavaScript
+
 백엔드 : Node, express
+
 
 # 데이터 베이스 설계
 
